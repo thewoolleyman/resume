@@ -15,6 +15,11 @@ implementation exists, then factory-driven.
 Registered as an adopter in livespec's fleet manifest
 ([`.livespec-fleet-manifest.jsonc`](https://github.com/thewoolleyman/livespec/blob/master/.livespec-fleet-manifest.jsonc),
 profile `["baseline", "orchestrator-plugin", "app"]`, posture `pinned`).
-Onboarding — the `/livespec:seed` interview, `.livespec.jsonc`, credential
-wrapper, GitHub App, beads tenant, and conformance wiring — is driven by the
-`resume-adopter-onboarding` plan thread in the livespec repo.
+Onboarding follows livespec's published end-user path —
+[docs/installation.md](https://github.com/thewoolleyman/livespec/blob/master/docs/installation.md) —
+executed from inside this repo, exactly as any greenfield adopter would:
+enable the plugins via a committed `.claude/settings.json`, then run
+`/livespec:seed` here (seed authors the spec tree AND writes
+`.livespec.jsonc`). This bootstrap doubles as the live test of those
+installation instructions; friction found here gets filed back against
+livespec's `greenfield-install-experience` thread.
