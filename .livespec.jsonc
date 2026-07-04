@@ -1,3 +1,11 @@
 {
-  "template": "livespec"
+  "template": "livespec",
+  // Active implementation orchestrator (the work-item front-end for THIS project).
+  // livespec's own operations resolve the work-item routing target from this key —
+  // /livespec:doctor's capture-as-work-item disposition, the auto-memory redirect
+  // hook, and /livespec:revise's post-step gap check. Harness enablement (in
+  // .claude/settings.json) makes the orchestrator's skills available; THIS key is
+  // what selects it. The git-jsonl store defaults to work-items.jsonl at the project
+  // root, so no separate "livespec-orchestrator-git-jsonl" config section is required.
+  "implementation": { "plugin": "livespec-orchestrator-git-jsonl" }
 }
