@@ -14,13 +14,6 @@
         "ref": "release"
       }
     },
-    "livespec-driver-codex": {
-      "source": {
-        "source": "github",
-        "repo": "thewoolleyman/livespec-driver-codex",
-        "ref": "release"
-      }
-    },
     "livespec-orchestrator-git-jsonl": {
       "source": {
         "source": "github",
@@ -32,7 +25,6 @@
   "enabledPlugins": {
     "livespec@livespec": true,
     "livespec@livespec-driver-claude": true,
-    "livespec@livespec-driver-codex": true,
     "livespec-orchestrator-git-jsonl@livespec-orchestrator-git-jsonl": true
   }
 }
