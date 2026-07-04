@@ -1,4 +1,8 @@
-# resume
+# Chad Woolley's resume
+
+See https://resume.thewoolleyweb.com for live version of resume.
+
+## Development
 
 The maintainer's resume application — a modern, AI-centric successor to
 [interactive-resume.gitlab.io](https://gitlab.com/thewoolleyman/interactive-resume.gitlab.io)
