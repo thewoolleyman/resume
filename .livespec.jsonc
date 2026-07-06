@@ -1,5 +1,11 @@
 {
   "template": "livespec",
+  // Suppress the revise post-step capture-impl-gaps invocation for BOTH the
+  // Claude and Codex drivers while the adversarial spec-hardening loop runs
+  // (plan/adversarial-spec-hardening/): the repo is pre-implementation, so
+  // gap capture would only surface the whole spec as unimplemented. Flip back
+  // to false (or delete) once implementation planning begins.
+  "post_step_skip_capture_impl_gaps": true,
   // Active implementation orchestrator (the work-item front-end for THIS project).
   // livespec's own operations resolve the work-item routing target from this key —
   // /livespec:doctor's capture-as-work-item disposition, the auto-memory redirect
