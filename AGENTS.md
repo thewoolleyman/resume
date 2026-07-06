@@ -21,3 +21,21 @@ Use conventional-commit messages matching the established pattern:
 - `chore(spec): cut vNNN — <summary>` for a revise that cuts a version.
 - `docs(spec): propose <topic>` for filing a proposed change.
 - `docs(spec): critique <topic>` for a critique.
+
+### Functional vs. non-functional taxonomy
+
+In this repo the split is **product vs. process**, NOT the textbook
+behavior-vs-quality split. `non-functional-requirements.md` is the ONLY
+non-functional file (how contributors build/test/maintain: toolchain,
+TDD, CI, quality gates). Every other `SPECIFICATION/` file —
+`spec.md`, `contracts.md`, `constraints.md`, `scenarios.md` — is
+**functional**: it specifies the delivered product, including
+runtime/deploy/framework/accessibility/performance constraints. So
+framework choice, performance, and accessibility are functional here and
+live in `constraints.md`, even though a textbook taxonomy would label
+them "non-functional qualities."
+
+The file named `non-functional-requirements.md` IS the authoritative
+definition of the category; do not override it with the generic meaning
+of the term. Derive a project's taxonomy from its own artifacts (file
+names, boundary sections), not from training priors.
