@@ -73,6 +73,11 @@ Preferred operator loop:
 2. Run `drive --action <action-id>` - execute exactly one selected action.
 3. Commit and push each coherent unit to `master`.
 
+Sessions run this loop autonomously — pick, execute, land, repeat — stopping
+only for a blocker that needs a human maintainer decision or intervention,
+plan completion, or session limits. See `plan/guardrail/handoff.md`
+§"Loop autonomously until blocked or complete".
+
 Current fallback while the git-jsonl operator surface matures:
 
 - Use the livespec-orchestrator-git-jsonl `next` skill to rank the next

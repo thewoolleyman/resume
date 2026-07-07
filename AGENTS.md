@@ -28,8 +28,12 @@ Plans live under `plan/<name>/` with `research/findings.md` (the design
 of record) and `handoff.md` (the paste-driven session entry point),
 following the `plan/adversarial-spec-hardening/` convention:
 
-- `handoff.md` tells a driver to do exactly ONE action per session and
-  ends with a `## Resume` section holding the exact paste line.
+- `handoff.md` defines the driving procedure: one well-scoped action per
+  iteration, looping autonomously until a blocker needs a human maintainer
+  decision or intervention, the plan completes, or session limits are hit —
+  unless the plan itself requires stricter turn-taking (e.g. adversarial
+  critique/revise threads). It ends with a `## Resume` section holding the
+  exact paste line.
 - Non-derivable loop state lives in a "Where the loop stands now"
   section of `handoff.md`, updated by the turn that changes it. State
   derivable from the repo (e.g. the git-jsonl `next` ranking) is not

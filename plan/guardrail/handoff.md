@@ -31,32 +31,42 @@ This plan provisions the initial guardrail harness:
 This plan does NOT implement the resume product. It prepares the repo so the
 product MVP can be implemented under the required discipline.
 
-## Do exactly one action
+## Loop autonomously until blocked or complete
 
-Use the operator surface when available:
+Drive work items in a continuous loop within the session — do NOT stop after
+one action. Each iteration:
 
-1. Run `needs-attention` - triage the next actionable item across spec,
-   implementation, human-valve, and hygiene state.
-2. Run `drive --action <action-id>` - execute exactly one selected action.
-3. Commit and push the coherent result to `master`.
+1. Pick the ripe item: run `needs-attention` when the operator surface exists;
+   until then run the livespec-orchestrator-git-jsonl `next` skill.
+2. Execute it: `drive --action <action-id>` when available; until then run
+   livespec-orchestrator-git-jsonl `implement` for that one item
+   (Red -> Green, close with merge evidence).
+3. Commit and push each coherent unit to `master` automatically, matching the
+   repository's `AGENTS.md` convention, then continue to the next iteration.
 
-Fallback while git-jsonl does not expose the full operator surface:
+(If no guardrail work items exist — already done as of `b03c271` — seed them
+from `plan/guardrail/research/findings.md` §"Work slices" using
+livespec-orchestrator-git-jsonl `capture-work-item`: small, dependency-ordered
+items with human-readable titles.)
 
-1. If guardrail work items already exist, run the livespec-orchestrator-git-jsonl
-   `next` skill to pick the most-ripe guardrail item, then run
-   livespec-orchestrator-git-jsonl `implement` for that one item.
-2. If no guardrail work items exist, seed work items from
-   `plan/guardrail/research/findings.md` section "Work slices" using
-   livespec-orchestrator-git-jsonl `capture-work-item`. Seed small,
-   dependency-ordered items with human-readable titles, starting with
-   "Repository bootstrap and package-script surface".
-3. After each coherent unit, commit and push to `master` automatically, matching
-   the repository's `AGENTS.md` convention.
+STOP looping only when one of these holds:
 
-After the action, report in human-readable terms what was done and which files,
-gates, or behavior it affects; update §"Where the loop stands now" when the
-non-derivable state changed; and END the report with the next handoff prompt
-line from §"Resume" plus a description of the next ripe action, e.g.:
+- **Plan complete** — perform the Terminal step.
+- **Maintainer blocker** — a decision or intervention only the human
+  maintainer can provide: multiple valid directions with no spec answer, a
+  conflict with the spec or a ratified decision, a needed spec change
+  (propose-change/revise), missing credentials/secrets (e.g. GitHub App
+  secrets, branch-protection admin, Vercel), or anything destructive or
+  irreversible. State the blocker in human-readable terms and what decision or
+  action is needed.
+- **Session limits** — the context or session is ending; land what is
+  coherent, never a half-provisioned gate.
+
+When the loop pauses or stops, report in human-readable terms what was done
+and which files, gates, or behavior it affects; update §"Where the loop stands
+now" when the non-derivable state changed; and END the report with the next
+handoff prompt line from §"Resume" plus a description of the next ripe action
+(or the blocker awaiting the maintainer), e.g.:
 
 > Next: implement `li-XXXXXX` — <title> (<what it provisions>). Paste this into
 > Claude Code or Codex:
@@ -120,19 +130,22 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **work items seeded** (commit `b03c271`, 2026-07-07). The 11
-dependency-ordered guardrail slices from
-`plan/guardrail/research/findings.md` §"Work slices" are filed in
-`work-items.jsonl` as `li-ugymfg` through `li-gzmujc`, each depending on its
-predecessor so exactly one item is ripe at a time. The `needs-attention` /
-`drive` operator surface does not exist yet — use the git-jsonl fallback
-(`next` then `implement`). No guardrail artifact (no `package.json`) exists
-yet.
+Current state: **slice 1 done — bootstrap and script surface provisioned**
+(2026-07-07). Work items were seeded at `b03c271` (`li-ugymfg` through
+`li-gzmujc`, each depending on its predecessor). `li-ugymfg` — repository
+bootstrap and package-script surface — closed at merge `a2cf94e`:
+`package.json` pins Bun and names every required script, `bootstrap` installs
+the committed `.githooks` via `core.hooksPath`, not-yet-provisioned scripts
+exit 3 naming their provisioning work item, and harness tests run via
+`bun run test:harness`. The `needs-attention` / `drive` operator surface does
+not exist yet — use the git-jsonl fallback (`next` then `implement`). The
+loop is autonomous: sessions drive items continuously and stop only for
+maintainer blockers, plan completion, or session limits.
 
-Next ripe action: implement `li-ugymfg` — "Repository bootstrap and
-package-script surface" (pinned Bun/SvelteKit project metadata, the required
-Bun script surface including `bootstrap`/`check`/`tdd-commit`, and a
-`bootstrap` that installs the committed hooks).
+Next ripe action: implement `li-w6mvog` — "Aggregate check skeleton
+(`bun run check`)": make `bun run check` the single non-mutating quality
+gate, verifying the required script surface, toolchain configuration, and CI
+delegation as those artifacts appear.
 
 ## Resume
 
