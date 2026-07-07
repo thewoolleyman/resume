@@ -130,10 +130,10 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **slices 1–6 done — bootstrap, script surface, aggregate
+Current state: **slices 1–7 done — bootstrap, script surface, aggregate
 check, toolchain gates, the Red -> Green TDD gate, the local memory
-guardrail + discipline inventory, and GitHub CI + pull-request
-automation provisioned** (2026-07-07). Work items
+guardrail + discipline inventory, GitHub CI + pull-request automation,
+and the Result/ROP enforcement gate provisioned** (2026-07-08). Work items
 were seeded at `b03c271` (`li-ugymfg` through `li-gzmujc`, each depending
 on its predecessor). Closed so far: `li-ugymfg` (bootstrap + script
 surface, merge `a2cf94e`), `li-w6mvog` (aggregate check skeleton, merge
@@ -171,7 +171,17 @@ auto-merge for eligible owner PRs via a GitHub App token,
 was configured and verified: rebase-only merges, auto-merge +
 delete-branch-on-merge enabled, a no-bypass `linear-history` ruleset
 (id 18639747) binding administrators, and classic protection requiring
-the `check` status non-strict. `bun run check` now runs nine
+the `check` status non-strict. Slice 7 closed as `li-oaxjqm` (merge
+`3a21662`): `scripts/check-result.ts` wired as `bun run check:result` —
+standalone TypeScript compiler-API AST checks over first-party `src/**`
+(armed-but-vacuous until product source lands): Result-returning core
+exports, AsyncResult boundary exports, no ignored Results, rethrow-only
+catches outside approved adapters, no thrown DomainError, no raw Error
+rendering in UI modules, and a standalone import-boundary scan; plus
+effective-enablement verification of `no-floating-promises` and the
+newly enabled `switch-exhaustiveness-check` ESLint rules. The
+standalone-dependency-boundaries inventory row flipped to gate-enforced
+via that import scan. `bun run check` now runs ten
 operational gates. The commit-msg (TDD) and pre-commit (memory) hooks
 are LIVE for every commit. The `needs-attention` / `drive` operator
 surface does not exist yet — use the git-jsonl fallback (`next` then
@@ -187,14 +197,16 @@ contents write; install it on `thewoolleyman/resume`) and provision the
 `.github/README.md` — until then `auto-enable-merge.yml` emits an
 actionable notice instead of enabling auto-merge.
 
-Next ripe action: implement `li-oaxjqm` — "Result/ROP enforcement gate
-(`check:result`)": the typed `Result`/`DomainError` contract documented
-per NFR §"Result and railway-oriented programming discipline", plus the
-local TypeScript/ESLint/AST checks (public Result typing in first-party
-core directories, no ignored Results, no floating promises, exhaustive
-`DomainError.kind` switches, no blanket catch outside approved adapters,
-no raw error/provider-payload rendering) wired as `bun run check:result`
-inside `bun run check`.
+Next ripe action: implement `li-m2trzv` — "Coverage and property/fuzz
+gates" (slice 8): document and enforce 100% line and branch coverage for
+first-party `src/**` product source (`test:coverage`; fail when
+thresholds drop below 100% or any src file is below 100%), and the
+reproducible `fast-check`-style property/fuzz gate (`test:property`)
+with fixed/logged seeds, replay command, committed run counts, shrink
+capture, and valid/malformed/adversarial/boundary generator classes per
+NFR §"Test coverage expectations" and §"Fuzzing and property checks" —
+armed additively while no product source exists, enforced from the
+first `src/**` commit.
 
 ## Resume
 
