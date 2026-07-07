@@ -57,11 +57,6 @@ const PENDING_GATES: readonly {
   title: string;
 }[] = [
   {
-    family: "tdd red->green branch-range validation",
-    workItem: "li-avk7d7",
-    title: "Content-triggered Red -> Green TDD commit gate",
-  },
-  {
     family: "local memory guardrail (check:memory)",
     workItem: "li-6b6u6m",
     title: "Local memory guardrail and discipline inventory",
@@ -310,6 +305,39 @@ function verifyEffectiveEslintRules(root: string): string[] {
   return failures;
 }
 
+// Validates TDD evidence over origin/master..HEAD via the range validator
+// (scripts/tdd-range-check.ts), so rebases, squashes, and --no-verify
+// commits cannot launder product source past the commit-msg hook.
+function checkTddBranchRange(root: string): GateResult {
+  const gate = "tdd branch-range validation (origin/master..HEAD)";
+  if (!existsSync(join(root, ".git"))) {
+    return { gate, status: "skipped", detail: "not a git repository" };
+  }
+  const validator = join(root, "scripts", "tdd-range-check.ts");
+  if (!existsSync(validator)) {
+    return {
+      gate,
+      status: "FAIL",
+      detail:
+        "scripts/tdd-range-check.ts is missing while the repository is a git tree",
+    };
+  }
+  const run = Bun.spawnSync({ cmd: ["bun", validator], cwd: root });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-4)
+      .join(" | ");
+    return { gate, status: "FAIL", detail: tail };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail: "all product-source commits in range carry valid TDD evidence",
+  };
+}
+
 // Static verification that the committed toolchain configuration is at the
 // pinned baseline — §"TypeScript quality gates" requires the aggregate check
 // to fail when the configuration drops below it. Activation is keyed on
@@ -476,6 +504,7 @@ const results: GateResult[] = [
   checkHarnessTests(root),
   checkToolchainBaseline(root, pkg),
   checkToolchainRunners(root),
+  checkTddBranchRange(root),
   checkNoPrematureProductSource(root),
 ];
 

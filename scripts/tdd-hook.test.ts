@@ -12,7 +12,13 @@
 // whose core.hooksPath points at this repository's committed .githooks/.
 
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -47,10 +53,9 @@ function headMessage(dir: string): string {
   return git(dir, "log", "-1", "--format=%B").output;
 }
 
-// A fixture repository with one product file, one passing base test (unless
-// omitted), and a test:harness script — enough for every leg of the
-// protocol.
-function makeRepo(options: { withoutBaseTest?: boolean } = {}): string {
+// A fixture repository with one product file, one passing base test, and a
+// test:harness script — enough for every leg of the protocol.
+function makeRepo(): string {
   const dir = mkdtempSync(join(tmpdir(), "resume-tdd-fixture-"));
   fixtures.push(dir);
   git(dir, "init", "-q", "-b", "master");
@@ -67,13 +72,11 @@ function makeRepo(options: { withoutBaseTest?: boolean } = {}): string {
     }),
   );
   mkdirSync(join(dir, "tests"), { recursive: true });
-  if (!options.withoutBaseTest) {
-    writeFileSync(
-      join(dir, "tests", "base.test.ts"),
-      'import { expect, test } from "bun:test";\n' +
-        'test("base", () => {\n  expect(true).toBe(true);\n});\n',
-    );
-  }
+  writeFileSync(
+    join(dir, "tests", "base.test.ts"),
+    'import { expect, test } from "bun:test";\n' +
+      'test("base", () => {\n  expect(true).toBe(true);\n});\n',
+  );
   mkdirSync(join(dir, "src"), { recursive: true });
   writeFileSync(
     join(dir, "src", "foo.ts"),
@@ -287,7 +290,17 @@ describe("content-triggered Red -> Green TDD commit gate (li-avk7d7)", () => {
       },
     });
     const output = run.stdout.toString() + run.stderr.toString();
-    expect(output).toContain("[ok] tdd branch-range validation");
+    const gateLine = output
+      .split("\n")
+      .find((line) => line.includes("tdd branch-range validation"));
+    expect(gateLine).toBeDefined();
+    // Inside the hook's staged-tree checkout there is no .git, so the gate
+    // reports itself as skipped; in the real repository it must be ok.
+    if (existsSync(join(repoRoot, ".git"))) {
+      expect(gateLine).toContain("[ok]");
+    } else {
+      expect(gateLine).toContain("skipped");
+    }
     expect(run.exitCode).toBe(0);
   }, 240000);
 
@@ -322,7 +335,11 @@ describe("content-triggered Red -> Green TDD commit gate (li-avk7d7)", () => {
   }, 240000);
 
   test("the Suite-Green leg rejects a zero-test full-suite run", () => {
-    const dir = makeRepo({ withoutBaseTest: true });
+    const dir = makeRepo();
+    // Deleting the whole suite alongside a product change leaves the staged
+    // tree with zero tests: the deletion selects no leg, but the product
+    // change takes Suite-Green, whose full-suite run must reject zero tests.
+    git(dir, "rm", "-q", "tests/base.test.ts");
     writeFileSync(
       join(dir, "src", "foo.ts"),
       "// tidy\nexport function foo(): number {\n  return 1;\n}\n",

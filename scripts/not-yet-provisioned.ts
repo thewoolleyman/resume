@@ -57,10 +57,6 @@ const PROVISIONERS: Record<string, Provisioner> = {
     workItem: "li-6b6u6m",
     provider: "Local memory guardrail and discipline inventory",
   },
-  "tdd-commit": {
-    workItem: "li-avk7d7",
-    provider: "Content-triggered Red -> Green TDD commit gate",
-  },
 };
 
 const name = process.argv[2];

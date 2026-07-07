@@ -24,7 +24,7 @@
     "check:scenarios": "bun scripts/not-yet-provisioned.ts check:scenarios",
     "check:result": "bun scripts/not-yet-provisioned.ts check:result",
     "check:memory": "bun scripts/not-yet-provisioned.ts check:memory",
-    "tdd-commit": "bun scripts/not-yet-provisioned.ts tdd-commit"
+    "tdd-commit": "bun scripts/tdd-commit.ts"
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",

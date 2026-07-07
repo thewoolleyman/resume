@@ -135,7 +135,7 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
     });
-    expect(output).toContain("li-avk7d7");
+    expect(output).toContain("li-6b6u6m");
     expect(output).toContain("li-xjjeqo");
   });
 

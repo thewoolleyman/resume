@@ -46,6 +46,30 @@ directly instead.
   excluded (`.prettierignore`) because specs and plans are governed
   prose whose diffs must stay stable.
 
+## Red -> Green TDD commit gate
+
+`.githooks/commit-msg` (installed by `bootstrap`) runs
+`tdd-commit-msg-hook.ts`, the content-triggered gate from
+§"Mechanically enforced Red -> Green commit protocol": the staged
+buckets (first-party product source under `src/**` vs test files)
+plus HEAD trailer state select the Red, Green, or Suite-Green leg —
+never an intent marker or subject prefix. Red stages exactly one
+failing anchor test alone (a real assertion failure; import errors are
+rejected) and records checksummed `TDD-Red-*` trailers; Green amends
+the implementation in, re-verifies the anchor byte-for-byte, re-runs
+it, and records `TDD-Green-*`; Suite-Green runs the full provisioned
+suite against the staged tree (zero-test runs reject) and records
+`TDD-Suite-Green-*`. `tdd-range-check.ts` re-validates
+`origin/master..HEAD` inside `bun run check` so rebases, squashes, and
+`--no-verify` commits cannot launder product source past the hook; an
+unresolvable base fails actionably. `bun run tdd-commit red-green
+--anchor <test> --message "<subject>"` mechanizes
+stage-anchor-alone -> commit -> stage-implementation -> amend;
+`bun run tdd-commit suite-green --message "<subject>"` covers
+refactors, chores, and passing test-only cleanups. Anchor runner
+dispatch: Playwright for `e2e/**`, Vitest once it joins the toolchain,
+Bun's built-in runner until then (the documented interim runner).
+
 ## Package-script surface
 
 `package.json` names every script required by §"Package script
