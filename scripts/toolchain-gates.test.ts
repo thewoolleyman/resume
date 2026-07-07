@@ -67,7 +67,29 @@ const REQUIRED_SCRIPTS = [
 interface ToolchainFixtureOptions {
   readonly omitTsFlag?: string;
   readonly lintScript?: string;
+  readonly eslintConfig?: string;
 }
+
+// A fixture ESLint config carrying every required rule family as real
+// config entries (it is scanned by the aggregate check, never executed).
+const BASELINE_ESLINT_CONFIG = `import prettier from "eslint-config-prettier";
+import perfectionist from "eslint-plugin-perfectionist";
+import svelte from "eslint-plugin-svelte";
+import tseslint from "typescript-eslint";
+
+export default [
+  ...tseslint.configs.strictTypeChecked,
+  ...svelte.configs.recommended,
+  {
+    plugins: { perfectionist },
+    rules: {
+      "svelte/valid-compile": "error",
+      "no-restricted-imports": ["error", {}],
+    },
+  },
+  prettier,
+];
+`;
 
 // A fixture whose toolchain configuration is fully at baseline unless
 // perturbed by the options.
@@ -104,7 +126,10 @@ function makeToolchainFixture(options: ToolchainFixtureOptions = {}): string {
     join(dir, "tsconfig.json"),
     JSON.stringify({ compilerOptions }),
   );
-  writeFileSync(join(dir, "eslint.config.js"), "export default [];\n");
+  writeFileSync(
+    join(dir, "eslint.config.js"),
+    options.eslintConfig ?? "export default [];\n",
+  );
   writeFileSync(join(dir, ".prettierrc.json"), "{}\n");
   return dir;
 }
@@ -198,5 +223,38 @@ describe("toolchain configuration baseline (li-tagohm)", () => {
     );
     expect(exitCode).toBe(1);
     expect(output).toContain("--max-warnings 0");
+  });
+
+  test("an eslint config with every rule family as real entries passes", () => {
+    const { exitCode } = runCheck(
+      makeToolchainFixture({ eslintConfig: BASELINE_ESLINT_CONFIG }),
+    );
+    expect(exitCode).toBe(0);
+  });
+
+  test("removing the svelte/valid-compile rule fails even when comments still mention it", () => {
+    const spoofed = BASELINE_ESLINT_CONFIG.replace(
+      '      "svelte/valid-compile": "error",\n',
+      "      // svelte/valid-compile is enforced elsewhere, honest\n",
+    );
+    expect(spoofed).toContain("svelte/valid-compile");
+    const { exitCode, output } = runCheck(
+      makeToolchainFixture({ eslintConfig: spoofed }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("svelte/valid-compile");
+  });
+
+  test("removing the no-restricted-imports rule fails even when comments still mention it", () => {
+    const spoofed = BASELINE_ESLINT_CONFIG.replace(
+      '      "no-restricted-imports": ["error", {}],\n',
+      "      /* no-restricted-imports handled by convention */\n",
+    );
+    expect(spoofed).toContain("no-restricted-imports");
+    const { exitCode, output } = runCheck(
+      makeToolchainFixture({ eslintConfig: spoofed }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("no-restricted-imports");
   });
 });
