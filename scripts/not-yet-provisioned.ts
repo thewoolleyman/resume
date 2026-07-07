@@ -12,10 +12,6 @@ interface Provisioner {
 }
 
 const PROVISIONERS: Record<string, Provisioner> = {
-  check: {
-    workItem: "li-w6mvog",
-    provider: "Aggregate check skeleton (`bun run check`)",
-  },
   dev: {
     workItem: null,
     provider:

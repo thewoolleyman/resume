@@ -7,7 +7,7 @@
   },
   "scripts": {
     "bootstrap": "bun install && bun scripts/install-hooks.ts",
-    "check": "bun scripts/not-yet-provisioned.ts check",
+    "check": "bun scripts/check.ts",
     "dev": "bun scripts/not-yet-provisioned.ts dev",
     "build": "bun scripts/not-yet-provisioned.ts build",
     "typecheck": "bun scripts/not-yet-provisioned.ts typecheck",

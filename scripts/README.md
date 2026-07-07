@@ -6,6 +6,20 @@ Red -> Green commit protocol": nothing here is first-party product
 source under `src/**`. Harness code is covered by its own tests
 (`bun run test:harness`, Bun's built-in runner over `scripts/**/*.test.ts`).
 
+## Aggregate check (`bun run check`)
+
+`check.ts` is the single non-mutating quality gate per
+§"Aggregate command". Gates activate additively: at this stage it
+verifies the package-script surface (required names, bootstrap hook
+install, exact version pins), runs the harness tests, fail-closes on
+toolchain configuration or `src/**` product source that appears before
+its gate, and prints every not-yet-provisioned gate family with the
+work item that provisions it. Exit codes: `0` pass, `1` gate failure,
+`2` usage error, `3` precondition failure (documented narrower
+convention: a failing gate is `1`, not an internal bug).
+`CHECK_SKIP_HARNESS_TESTS=1` skips the harness-test gate; the harness
+tests set it to avoid recursive `bun test scripts` runs.
+
 ## Package-script surface
 
 `package.json` names every script required by §"Package script
