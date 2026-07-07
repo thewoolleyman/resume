@@ -144,17 +144,22 @@ enablement via eslint --print-config, merge `a3959fc`), `li-avk7d7`
 grammar with sha256 anchor checksums, origin/master..HEAD range validation
 in `bun run check`, and the `tdd-commit` helper, merge `6969e4e` —
 self-hosting: that commit carries its own `TDD-Suite-Green-*` trailers),
-and `li-6b6u6m` (local memory guardrail + discipline inventory, merge
+`li-6b6u6m` (local memory guardrail + discipline inventory, merge
 `b651ed9`: `scripts/check-memory.ts` wired as `bun run check:memory` AND
 as the bootstrap-installed `.githooks/pre-commit` hook, rejecting
 prohibited hidden tool-state paths with default-deny for undocumented
 hidden paths, unindexed `.ai/*.md` notes, and dangling `AGENTS.md` links;
-the ordinary-tool-configuration policy in `AGENTS.md` documents the
-`.claude/settings.json` and `.idea/**` exceptions;
 `.ai/discipline-adoption.md` carries all twelve baseline rows, verified by
 `scripts/check-discipline-inventory.ts` inside `bun run check`, including
-citation-existence checks). `bun run check` now runs eight operational
-gates. The commit-msg (TDD) and pre-commit (memory) hooks are LIVE for
+citation-existence checks), and `li-6tntj5` (watcher fix for two
+guardrail bypasses in `b651ed9`, merge `ff16156`: a note is indexed only
+by a purpose-bearing entry under the AGENTS.md "Agent-facing notes index"
+— prose mentions no longer count — and the `.idea` exception is narrowed
+to shareable project configuration with `.idea/workspace.xml`-style local
+state default-denied; both watcher repros re-verified blocked at HEAD).
+The ordinary-tool-configuration policy in `AGENTS.md` documents the
+`.claude/settings.json` and narrow shareable-`.idea` exceptions.
+`bun run check` now runs eight operational gates. The commit-msg (TDD) and pre-commit (memory) hooks are LIVE for
 every commit. The `needs-attention` / `drive` operator surface does not
 exist yet — use the git-jsonl fallback (`next` then `implement`). The loop
 is autonomous: sessions drive items continuously and stop only for
