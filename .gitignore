@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# SvelteKit / Vite build outputs
+.svelte-kit/
+build/
+dist/
+.vercel/
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
+
+# TypeScript
+*.tsbuildinfo
+
+# OS noise
+.DS_Store

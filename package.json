@@ -1,0 +1,29 @@
+{
+  "name": "resume",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "bun": "1.3.6"
+  },
+  "scripts": {
+    "bootstrap": "bun install && bun scripts/install-hooks.ts",
+    "check": "bun scripts/not-yet-provisioned.ts check",
+    "dev": "bun scripts/not-yet-provisioned.ts dev",
+    "build": "bun scripts/not-yet-provisioned.ts build",
+    "typecheck": "bun scripts/not-yet-provisioned.ts typecheck",
+    "lint": "bun scripts/not-yet-provisioned.ts lint",
+    "lint:fix": "bun scripts/not-yet-provisioned.ts lint:fix",
+    "format": "bun scripts/not-yet-provisioned.ts format",
+    "format:check": "bun scripts/not-yet-provisioned.ts format:check",
+    "test:unit": "bun scripts/not-yet-provisioned.ts test:unit",
+    "test:integration": "bun scripts/not-yet-provisioned.ts test:integration",
+    "test:e2e": "bun scripts/not-yet-provisioned.ts test:e2e",
+    "test:coverage": "bun scripts/not-yet-provisioned.ts test:coverage",
+    "test:property": "bun scripts/not-yet-provisioned.ts test:property",
+    "test:harness": "bun test scripts",
+    "check:scenarios": "bun scripts/not-yet-provisioned.ts check:scenarios",
+    "check:result": "bun scripts/not-yet-provisioned.ts check:result",
+    "check:memory": "bun scripts/not-yet-provisioned.ts check:memory",
+    "tdd-commit": "bun scripts/not-yet-provisioned.ts tdd-commit"
+  }
+}
