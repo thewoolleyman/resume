@@ -82,8 +82,11 @@ mechanical realization of hidden memory databases, transcripts, and
 tool caches — default-deny for any other hidden path not documented as
 ordinary tool configuration), `.ai/` entries that are not flat
 `.ai/*.md` notes, unindexed notes, and dangling `AGENTS.md`
-references. The policy and its narrow exceptions (`.claude/settings.json`,
-`.idea/**`, …) live in `AGENTS.md` §"Local memory guardrail policy";
+references — a note is indexed only by a purpose-bearing entry under
+the AGENTS.md "Agent-facing notes index", never by a prose mention.
+The policy and its narrow exceptions (`.claude/settings.json`,
+shareable `.idea` project configuration, …) live in
+`AGENTS.md` §"Local memory guardrail policy";
 the script's allowlist mirrors it. Enforced twice per the spec:
 `.githooks/pre-commit` runs it with `--staged` (index paths plus the
 staged `AGENTS.md`), and the aggregate check runs `bun run

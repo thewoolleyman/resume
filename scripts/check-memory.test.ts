@@ -62,7 +62,9 @@ function runMemory(
 
 // A clean tree fixture: an indexed .ai note plus one representative of each
 // documented ordinary-tool-configuration allowlist family
-// (AGENTS.md §"Local memory guardrail policy").
+// (AGENTS.md §"Local memory guardrail policy"). The .idea entries are the
+// SHAREABLE JetBrains project-configuration forms only — workspace/local
+// state is prohibited (watcher fix li-6tntj5).
 function makeTree(): string {
   const dir = mkdtempSync(join(tmpdir(), "resume-memory-fixture-"));
   fixtures.push(dir);
@@ -74,8 +76,13 @@ function makeTree(): string {
   mkdirSync(join(dir, ".ai"), { recursive: true });
   writeFileSync(join(dir, ".ai", "decisions.md"), "# decisions\n");
   writeFileSync(join(dir, ".gitignore"), "node_modules/\n");
-  mkdirSync(join(dir, ".idea"), { recursive: true });
-  writeFileSync(join(dir, ".idea", "workspace.xml"), "<project />\n");
+  mkdirSync(join(dir, ".idea", "inspectionProfiles"), { recursive: true });
+  writeFileSync(join(dir, ".idea", "modules.xml"), "<project />\n");
+  writeFileSync(join(dir, ".idea", "fixture.iml"), "<module />\n");
+  writeFileSync(
+    join(dir, ".idea", "inspectionProfiles", "Project_Default.xml"),
+    "<profile />\n",
+  );
   mkdirSync(join(dir, ".claude"), { recursive: true });
   writeFileSync(join(dir, ".claude", "settings.json"), "{}\n");
   return dir;
@@ -140,6 +147,44 @@ describe("local memory guardrail — tree mode (li-6b6u6m)", () => {
     expect(exitCode).toBe(1);
     expect(output).toContain(".ai/scratch.md");
     expect(output).toContain("not indexed");
+  });
+
+  test("a prose-only AGENTS.md mention does not count as indexing (li-6tntj5)", () => {
+    const dir = makeTree();
+    writeFileSync(join(dir, ".ai", "leak.md"), "private memory\n");
+    writeFileSync(
+      join(dir, "AGENTS.md"),
+      "# AGENTS.md\n\nSee `.ai/leak.md` for scratch thoughts.\n\n" +
+        "## Agent-facing notes index\n\n" +
+        "- `.ai/decisions.md` — fixture note\n",
+    );
+    const { exitCode, output } = runMemory(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain(".ai/leak.md");
+    expect(output).toContain("not indexed");
+  });
+
+  test("an index entry without a stated purpose is rejected (li-6tntj5)", () => {
+    const dir = makeTree();
+    writeFileSync(join(dir, ".ai", "leak.md"), "private memory\n");
+    writeFileSync(
+      join(dir, "AGENTS.md"),
+      "# AGENTS.md\n\n## Agent-facing notes index\n\n" +
+        "- `.ai/decisions.md` — fixture note\n" +
+        "- `.ai/leak.md`\n",
+    );
+    const { exitCode, output } = runMemory(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain(".ai/leak.md");
+    expect(output).toContain("purpose");
+  });
+
+  test("rejects .idea workspace/local state while allowing shareable project configuration (li-6tntj5)", () => {
+    const dir = makeTree();
+    writeFileSync(join(dir, ".idea", "workspace.xml"), "<project />\n");
+    const { exitCode, output } = runMemory(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain(".idea/workspace.xml");
   });
 
   test("rejects an AGENTS.md reference to a missing .ai note", () => {
@@ -233,6 +278,32 @@ describe("local memory guardrail — staged mode and hook (li-6b6u6m)", () => {
     writeFileSync(join(dir, "README.md"), "# fixture\n");
     git(dir, "add", "README.md");
     expect(git(dir, "commit", "-m", "docs: readme").exitCode).toBe(0);
+  }, 240000);
+
+  test("the installed hook blocks both watcher-reported bypasses (li-6tntj5)", () => {
+    const dir = makeGitTree();
+    git(dir, "config", "core.hooksPath", join(repoRoot, ".githooks"));
+    git(dir, "add", "-A");
+    expect(git(dir, "commit", "-m", "chore: init fixture").exitCode).toBe(0);
+    // Bypass 1: a note mentioned only in prose, not in the notes index.
+    writeFileSync(join(dir, ".ai", "leak.md"), "private memory\n");
+    writeFileSync(
+      join(dir, "AGENTS.md"),
+      "# AGENTS.md\n\nSee `.ai/leak.md` for scratch thoughts.\n\n" +
+        "## Agent-facing notes index\n\n" +
+        "- `.ai/decisions.md` — fixture note\n",
+    );
+    git(dir, "add", ".ai/leak.md", "AGENTS.md");
+    const proseOnly = git(dir, "commit", "-m", "chore: leak via prose");
+    expect(proseOnly.exitCode).not.toBe(0);
+    expect(proseOnly.output).toContain(".ai/leak.md");
+    git(dir, "reset", "-q", "--hard");
+    // Bypass 2: JetBrains workspace/local state under .idea/.
+    writeFileSync(join(dir, ".idea", "workspace.xml"), "<project />\n");
+    git(dir, "add", "-f", ".idea/workspace.xml");
+    const workspace = git(dir, "commit", "-m", "chore: leak workspace state");
+    expect(workspace.exitCode).not.toBe(0);
+    expect(workspace.output).toContain(".idea/workspace.xml");
   }, 240000);
 
   test("the aggregate check runs the memory guardrail as an operational gate", () => {

@@ -81,16 +81,22 @@ configuration rather than memory):
 - `.claude/settings.json` — Claude Code project settings (plugin
   marketplaces and enablement). Reproducible configuration only; the
   rest of `.claude/**` (memory, transcripts, caches) stays prohibited.
-- `.idea/**` — JetBrains project configuration; workspace/local state
-  is excluded by `.idea/.gitignore`.
+- Shareable JetBrains project configuration ONLY: `.idea/.gitignore`,
+  `.idea/modules.xml`, `.idea/vcs.xml`, `.idea/GitLink.xml`,
+  `.idea/misc.xml`, `.idea/encodings.xml`, top-level `.idea/*.iml`,
+  and the `inspectionProfiles/`, `codeStyles/`, `runConfigurations/`
+  subdirectories. Workspace/local state (`.idea/workspace.xml`,
+  `shelf/`, `tasks.xml`, usage statistics, …) stays prohibited.
 - `.ai/` (the sanctioned notes directory), `.githooks/`, `.github/`,
   `.livespec.jsonc`, `.prettierrc.json`, `.prettierignore`, and the
   `.gitignore`/`.gitattributes`/`.gitkeep`/`.editorconfig` basenames —
   ordinary repository configuration.
 
 Agent-facing local notes live under `.ai/*.md` (flat, markdown only)
-and every note MUST be indexed below with its purpose; a dangling
-index entry also fails the guard.
+and every note MUST have a list entry stating its purpose under
+§"Agent-facing notes index" below — a prose mention elsewhere in this
+file does NOT count as indexing. A dangling reference to a missing
+note also fails the guard.
 
 ## Agent-facing notes index (.ai/)
 

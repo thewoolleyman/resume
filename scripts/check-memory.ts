@@ -46,6 +46,10 @@ const PROHIBITED_TOOL_STATE_PREFIXES = [
 // Ordinary tool configuration per AGENTS.md §"Local memory guardrail
 // policy" — documented as configuration rather than memory. Keep the two in
 // sync: the policy is the human-readable record, this is its enforcement.
+// The .idea exception is deliberately NARROW (watcher fix li-6tntj5): only
+// the shareable JetBrains project-configuration forms are listed;
+// workspace/local state (.idea/workspace.xml, shelf/, tasks.xml, …) falls
+// through to default-deny.
 const ORDINARY_EXACT_PATHS = [
   // Claude Code project settings (plugin marketplaces/enablement); the rest
   // of .claude/** stays prohibited.
@@ -53,13 +57,21 @@ const ORDINARY_EXACT_PATHS = [
   ".prettierrc.json",
   ".prettierignore",
   ".livespec.jsonc",
+  ".idea/.gitignore",
+  ".idea/modules.xml",
+  ".idea/vcs.xml",
+  ".idea/GitLink.xml",
+  ".idea/misc.xml",
+  ".idea/encodings.xml",
 ] as const;
 
 const ORDINARY_PREFIXES = [
   ".ai/", // the sanctioned agent-notes directory (rules below)
   ".githooks/", // committed hooks installed by bootstrap
   ".github/", // CI workflows (slice 6, li-xjjeqo)
-  ".idea/", // JetBrains project configuration; state is gitignored within
+  ".idea/inspectionProfiles/",
+  ".idea/codeStyles/",
+  ".idea/runConfigurations/",
 ] as const;
 
 const ORDINARY_BASENAMES = [
@@ -69,14 +81,21 @@ const ORDINARY_BASENAMES = [
   ".editorconfig",
 ] as const;
 
+// Top-level JetBrains module files are shareable project configuration.
+const ORDINARY_PATTERNS = [/^\.idea\/[^/]+\.iml$/] as const;
+
 const AI_NOTE_PATTERN = /^\.ai\/[^/]+\.md$/;
 const AI_REFERENCE_PATTERN = /\.ai\/[A-Za-z0-9._-]+\.md/g;
+const NOTES_INDEX_HEADING = /^##\s+agent-facing notes index/i;
 
 function isOrdinaryToolConfiguration(path: string): boolean {
   if (ORDINARY_PREFIXES.some((prefix) => path.startsWith(prefix))) {
     return true;
   }
   if ((ORDINARY_EXACT_PATHS as readonly string[]).includes(path)) {
+    return true;
+  }
+  if (ORDINARY_PATTERNS.some((pattern) => pattern.test(path))) {
     return true;
   }
   const segments = path.split("/");
@@ -86,6 +105,39 @@ function isOrdinaryToolConfiguration(path: string): boolean {
     firstHidden === segments.length - 1 &&
     (ORDINARY_BASENAMES as readonly string[]).includes(basename)
   );
+}
+
+// The AGENTS.md notes INDEX — list entries under the "Agent-facing notes
+// index" heading. Only these count as indexing a note (a prose mention
+// elsewhere does not; watcher fix li-6tntj5). Maps each indexed note path
+// to the entry text following it, which must state the note's purpose.
+export function noteIndexEntries(agentsIndex: string): Map<string, string> {
+  const entries = new Map<string, string>();
+  const lines = agentsIndex.split("\n");
+  const start = lines.findIndex((line) => NOTES_INDEX_HEADING.test(line));
+  if (start === -1) {
+    return entries;
+  }
+  for (let i = start + 1; i < lines.length; i += 1) {
+    const line = lines[i] ?? "";
+    if (/^#{1,2}\s/.test(line)) {
+      break;
+    }
+    if (!/^\s*[-*]\s+/.test(line)) {
+      continue;
+    }
+    const match = new RegExp(AI_REFERENCE_PATTERN.source).exec(line);
+    if (match === null) {
+      continue;
+    }
+    const purpose = line
+      .slice(match.index + match[0].length)
+      .replace(/[`'"]/g, "");
+    if (!entries.has(match[0])) {
+      entries.set(match[0], purpose);
+    }
+  }
+  return entries;
 }
 
 // referenceExists widens the dangling-reference check beyond the path list:
@@ -99,6 +151,7 @@ export function findMemoryViolations(
 ): string[] {
   const violations: string[] = [];
   const pathSet = new Set(paths);
+  const indexEntries = noteIndexEntries(agentsIndex);
   for (const path of paths) {
     const segments = path.split("/");
     if (segments.some((s) => s.startsWith(".aider"))) {
@@ -135,8 +188,15 @@ export function findMemoryViolations(
         violations.push(
           `${path} — only flat .ai/*.md notes are allowed under .ai/`,
         );
-      } else if (!agentsIndex.includes(path)) {
-        violations.push(`${path} — .ai note is not indexed from AGENTS.md`);
+      } else if (!indexEntries.has(path)) {
+        violations.push(
+          `${path} — .ai note is not indexed from the AGENTS.md ` +
+            '"Agent-facing notes index" (a prose mention elsewhere does not count)',
+        );
+      } else if (!/[A-Za-z0-9]/.test(indexEntries.get(path) ?? "")) {
+        violations.push(
+          `${path} — the AGENTS.md index entry must state the note's purpose`,
+        );
       }
     }
   }
