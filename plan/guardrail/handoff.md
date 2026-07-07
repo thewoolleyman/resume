@@ -130,9 +130,10 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **slices 1–5 done — bootstrap, script surface, aggregate
-check, toolchain gates, the Red -> Green TDD gate, and the local memory
-guardrail + discipline inventory provisioned** (2026-07-07). Work items
+Current state: **slices 1–6 done — bootstrap, script surface, aggregate
+check, toolchain gates, the Red -> Green TDD gate, the local memory
+guardrail + discipline inventory, and GitHub CI + pull-request
+automation provisioned** (2026-07-07). Work items
 were seeded at `b03c271` (`li-ugymfg` through `li-gzmujc`, each depending
 on its predecessor). Closed so far: `li-ugymfg` (bootstrap + script
 surface, merge `a2cf94e`), `li-w6mvog` (aggregate check skeleton, merge
@@ -159,22 +160,41 @@ to shareable project configuration with `.idea/workspace.xml`-style local
 state default-denied; both watcher repros re-verified blocked at HEAD).
 The ordinary-tool-configuration policy in `AGENTS.md` documents the
 `.claude/settings.json` and narrow shareable-`.idea` exceptions.
-`bun run check` now runs eight operational gates. The commit-msg (TDD) and pre-commit (memory) hooks are LIVE for
-every commit. The `needs-attention` / `drive` operator surface does not
-exist yet — use the git-jsonl fallback (`next` then `implement`). The loop
-is autonomous: sessions drive items continuously and stop only for
-maintainer blockers, plan completion, or session limits.
+Slice 6 closed as `li-xjjeqo` (merge `cc7b20f`):
+`.github/workflows/check.yml` runs `bun run check` on PRs to master and
+pushes to master (first run 28901040870 passed all gates on the GitHub
+runner), `.github/workflows/auto-enable-merge.yml` enables rebase
+auto-merge for eligible owner PRs via a GitHub App token,
+`.github/README.md` documents statuses/merge-methods/protection, and
+`scripts/check-ci.ts` verifies it all inside `bun run check`
+(`CHECK_LIVE_GITHUB=1` adds live `gh` verification). Live GitHub state
+was configured and verified: rebase-only merges, auto-merge +
+delete-branch-on-merge enabled, a no-bypass `linear-history` ruleset
+(id 18639747) binding administrators, and classic protection requiring
+the `check` status non-strict. `bun run check` now runs nine
+operational gates. The commit-msg (TDD) and pre-commit (memory) hooks
+are LIVE for every commit. The `needs-attention` / `drive` operator
+surface does not exist yet — use the git-jsonl fallback (`next` then
+`implement`). The loop is autonomous: sessions drive items continuously
+and stop only for maintainer blockers, plan completion, or session
+limits.
 
-Next ripe action: implement `li-xjjeqo` — "GitHub CI and pull-request
-automation": `.github/workflows/check.yml` (run `bun run check` on PRs to
-master and pushes to master), `.github/workflows/auto-enable-merge.yml`
-(rebase auto-merge via a short-lived GitHub App token; requires the
-`APP_ID` / `APP_PRIVATE_KEY` secrets, which only the maintainer can
-provision), required status-check and merge-method/branch-protection
-documentation, and repository-local settings verification wired into
-`bun run check` (live `gh` verification only when credentials are
-available). When it lands, flip the discipline inventory's "GitHub CI and
-pull-request discipline" row to gate-enforced citing those workflows.
+Outstanding maintainer action (not blocking the next slices, but
+required before `li-eg4w7j` can claim the PR landing path operational):
+create the automation GitHub App (permissions: pull_requests write,
+contents write; install it on `thewoolleyman/resume`) and provision the
+`APP_ID` / `APP_PRIVATE_KEY` repository secrets per
+`.github/README.md` — until then `auto-enable-merge.yml` emits an
+actionable notice instead of enabling auto-merge.
+
+Next ripe action: implement `li-oaxjqm` — "Result/ROP enforcement gate
+(`check:result`)": the typed `Result`/`DomainError` contract documented
+per NFR §"Result and railway-oriented programming discipline", plus the
+local TypeScript/ESLint/AST checks (public Result typing in first-party
+core directories, no ignored Results, no floating promises, exhaustive
+`DomainError.kind` switches, no blanket catch outside approved adapters,
+no raw error/provider-payload rendering) wired as `bun run check:result`
+inside `bun run check`.
 
 ## Resume
 
