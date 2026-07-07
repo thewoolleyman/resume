@@ -189,24 +189,37 @@ surface does not exist yet — use the git-jsonl fallback (`next` then
 and stop only for maintainer blockers, plan completion, or session
 limits.
 
-Outstanding maintainer action (not blocking the next slices, but
-required before `li-eg4w7j` can claim the PR landing path operational):
-create the automation GitHub App (permissions: pull_requests write,
-contents write; install it on `thewoolleyman/resume`) and provision the
-`APP_ID` / `APP_PRIVATE_KEY` repository secrets per
-`.github/README.md` — until then `auto-enable-merge.yml` emits an
-actionable notice instead of enabling auto-merge.
+The former "outstanding maintainer action" (GitHub App + secrets) was
+converted by maintainer directive (2026-07-08) into the agent-executable
+work item `li-2o7eza`, ranked first (a6V). Chrome on this host is
+logged in to GitHub; the local `gh` auth has repo admin. The task uses
+the standard livespec 1Password env-wrapper pattern — study
+`/data/projects/1password-env-wrapper/` (README.md, SPECIFICATION.md,
+`create-1password-env-wrapper.sh`, rendered examples
+`with-livespec-env.sh` / `with-openbrain-env.sh`) and the prior art in
+`/data/projects/livespec/plan/archive/github-app-auth/` and
+`/data/projects/livespec/plan/archive/credential-wrapper/` BEFORE
+building anything. Credentials destined for the new `resume` 1Password
+Environment are additionally dumped to a `.env` file under the system
+`/tmp` for the maintainer to import (explicit maintainer instruction).
+Verify pattern understanding first and file livespec
+propose-change/revise if the spec must name the wrapper as the
+documented secret-injection mechanism, then implement.
 
-Next ripe action: implement `li-m2trzv` — "Coverage and property/fuzz
-gates" (slice 8): document and enforce 100% line and branch coverage for
-first-party `src/**` product source (`test:coverage`; fail when
-thresholds drop below 100% or any src file is below 100%), and the
-reproducible `fast-check`-style property/fuzz gate (`test:property`)
-with fixed/logged seeds, replay command, committed run counts, shrink
-capture, and valid/malformed/adversarial/boundary generator classes per
-NFR §"Test coverage expectations" and §"Fuzzing and property checks" —
-armed additively while no product source exists, enforced from the
-first `src/**` commit.
+Next ripe action: implement `li-2o7eza` — "GitHub App credentials via
+the 1Password env-wrapper pattern": create the automation GitHub App in
+the logged-in Chrome (permissions: pull_requests write + contents
+write; install on `thewoolleyman/resume`; generate a private key), set
+the `APP_ID` / `APP_PRIVATE_KEY` repo secrets, provision a committed
+`with-resume-env.sh` wrapper via the 1password-env-wrapper factory for
+a new `resume` 1Password Environment, dump those credentials to a
+`/tmp` `.env` file for import, make every secret-needing command
+(e.g. `CHECK_LIVE_GITHUB=1`) documented/tested through the wrapper, and
+prove auto-merge operational (test PR auto-merges on a green `check`).
+After it: `li-m2trzv` — coverage (100% line/branch for `src/**`,
+`test:coverage`) and reproducible fast-check property/fuzz gates
+(`test:property`), armed additively per NFR §"Test coverage
+expectations" and §"Fuzzing and property checks".
 
 ## Resume
 
