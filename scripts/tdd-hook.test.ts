@@ -47,9 +47,10 @@ function headMessage(dir: string): string {
   return git(dir, "log", "-1", "--format=%B").output;
 }
 
-// A fixture repository with one product file, one passing base test, and a
-// test:harness script — enough for every leg of the protocol.
-function makeRepo(): string {
+// A fixture repository with one product file, one passing base test (unless
+// omitted), and a test:harness script — enough for every leg of the
+// protocol.
+function makeRepo(options: { withoutBaseTest?: boolean } = {}): string {
   const dir = mkdtempSync(join(tmpdir(), "resume-tdd-fixture-"));
   fixtures.push(dir);
   git(dir, "init", "-q", "-b", "master");
@@ -66,11 +67,13 @@ function makeRepo(): string {
     }),
   );
   mkdirSync(join(dir, "tests"), { recursive: true });
-  writeFileSync(
-    join(dir, "tests", "base.test.ts"),
-    'import { expect, test } from "bun:test";\n' +
-      'test("base", () => {\n  expect(true).toBe(true);\n});\n',
-  );
+  if (!options.withoutBaseTest) {
+    writeFileSync(
+      join(dir, "tests", "base.test.ts"),
+      'import { expect, test } from "bun:test";\n' +
+        'test("base", () => {\n  expect(true).toBe(true);\n});\n',
+    );
+  }
   mkdirSync(join(dir, "src"), { recursive: true });
   writeFileSync(
     join(dir, "src", "foo.ts"),
@@ -265,6 +268,96 @@ describe("content-triggered Red -> Green TDD commit gate (li-avk7d7)", () => {
     const message = headMessage(dir);
     expect(message).toContain("TDD-Red-Test: tests/foo.test.ts");
     expect(message).toContain("TDD-Green-Verified-At:");
+    const status = git(dir, "status", "--porcelain");
+    expect(status.output.trim()).toBe("");
+  }, 240000);
+  test("the aggregate check runs the branch-range validation as an operational gate", () => {
+    const run = Bun.spawnSync({
+      cmd: [
+        "bun",
+        join(repoRoot, "scripts", "check.ts"),
+        "--project-root",
+        repoRoot,
+      ],
+      cwd: repoRoot,
+      env: {
+        ...process.env,
+        CHECK_SKIP_HARNESS_TESTS: "1",
+        CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+      },
+    });
+    const output = run.stdout.toString() + run.stderr.toString();
+    expect(output).toContain("[ok] tdd branch-range validation");
+    expect(run.exitCode).toBe(0);
+  }, 240000);
+
+  test("staging more than one failing test file is rejected (the anchor is singular)", () => {
+    const dir = makeRepo();
+    writeFileSync(
+      join(dir, "tests", "a1.test.ts"),
+      'import { expect, test } from "bun:test";\n' +
+        'test("a1", () => {\n  expect(1).toBe(2);\n});\n',
+    );
+    writeFileSync(
+      join(dir, "tests", "a2.test.ts"),
+      'import { expect, test } from "bun:test";\n' +
+        'test("a2", () => {\n  expect(1).toBe(2);\n});\n',
+    );
+    git(dir, "add", "tests/a1.test.ts", "tests/a2.test.ts");
+    const commit = git(dir, "commit", "-m", "test: two anchors at once");
+    expect(commit.exitCode).not.toBe(0);
+  }, 240000);
+
+  test("a Red whose failure is an import error is rejected as non-meaningful", () => {
+    const dir = makeRepo();
+    writeFileSync(
+      join(dir, "tests", "broken.test.ts"),
+      'import { expect, test } from "bun:test";\n' +
+        'import { ghost } from "../src/missing-module";\n' +
+        'test("ghost", () => {\n  expect(ghost).toBe(1);\n});\n',
+    );
+    git(dir, "add", "tests/broken.test.ts");
+    const commit = git(dir, "commit", "-m", "test: broken import");
+    expect(commit.exitCode).not.toBe(0);
+  }, 240000);
+
+  test("the Suite-Green leg rejects a zero-test full-suite run", () => {
+    const dir = makeRepo({ withoutBaseTest: true });
+    writeFileSync(
+      join(dir, "src", "foo.ts"),
+      "// tidy\nexport function foo(): number {\n  return 1;\n}\n",
+    );
+    git(dir, "add", "src/foo.ts");
+    const commit = git(dir, "commit", "-m", "chore: tidy foo");
+    expect(commit.exitCode).not.toBe(0);
+  }, 240000);
+
+  test("an unresolvable range base fails the range validator actionably", () => {
+    const dir = makeRepo();
+    const range = sh(dir, [
+      "bun",
+      join(repoRoot, "scripts", "tdd-range-check.ts"),
+    ]);
+    expect(range.exitCode).not.toBe(0);
+    expect(range.output).toContain("origin/master");
+  }, 240000);
+
+  test("the tdd-commit helper provides a Suite-Green mode", () => {
+    const dir = makeRepo();
+    writeFileSync(
+      join(dir, "src", "foo.ts"),
+      "// tidy\nexport function foo(): number {\n  return 1;\n}\n",
+    );
+    const helper = sh(dir, [
+      "bun",
+      join(repoRoot, "scripts", "tdd-commit.ts"),
+      "suite-green",
+      "--message",
+      "chore: tidy foo",
+    ]);
+    expect(helper.exitCode).toBe(0);
+    const message = headMessage(dir);
+    expect(message).toContain("TDD-Suite-Green-Scope: full-suite");
     const status = git(dir, "status", "--porcelain");
     expect(status.output.trim()).toBe("");
   }, 240000);
