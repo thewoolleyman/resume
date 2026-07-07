@@ -15,9 +15,12 @@ version pins), runs the harness tests, verifies the toolchain
 configuration baseline (the five required TypeScript strictness flags,
 the lint rule families, and the format config — failing by name when
 any is dropped), runs the toolchain gates through their named scripts
-(`typecheck`, `lint`, `format:check`), fail-closes on `src/**` product
-source appearing before the guardrails are complete, and prints every
-not-yet-provisioned gate family with the work item that provisions it.
+(`typecheck`, `lint`, `format:check`), validates TDD evidence over
+`origin/master..HEAD`, runs the local memory guardrail
+(`check:memory`) and the discipline-adoption inventory verification,
+fail-closes on `src/**` product source appearing before the guardrails
+are complete, and prints every not-yet-provisioned gate family with
+the work item that provisions it.
 Exit codes: `0` pass, `1` gate failure, `2` usage error,
 `3` precondition failure (documented narrower convention: a failing
 gate is `1`, not an internal bug).
@@ -69,6 +72,43 @@ stage-anchor-alone -> commit -> stage-implementation -> amend;
 refactors, chores, and passing test-only cleanups. Anchor runner
 dispatch: Playwright for `e2e/**`, Vitest once it joins the toolchain,
 Bun's built-in runner until then (the documented interim runner).
+
+## Local memory guardrail (`check:memory`)
+
+`check-memory.ts` enforces §"Local memory guardrails": prohibited
+private-memory / hidden tool-state paths (`.claude/**`, `.codex/**`,
+`.cursor/**`, `.continue/**`, `.aider*`, and — as the documented
+mechanical realization of hidden memory databases, transcripts, and
+tool caches — default-deny for any other hidden path not documented as
+ordinary tool configuration), `.ai/` entries that are not flat
+`.ai/*.md` notes, unindexed notes, and dangling `AGENTS.md`
+references. The policy and its narrow exceptions (`.claude/settings.json`,
+`.idea/**`, …) live in `AGENTS.md` §"Local memory guardrail policy";
+the script's allowlist mirrors it. Enforced twice per the spec:
+`.githooks/pre-commit` runs it with `--staged` (index paths plus the
+staged `AGENTS.md`), and the aggregate check runs `bun run
+check:memory` over the tracked tree (git index when a `.git` exists, a
+filesystem walk otherwise — e.g. the hook's staged-tree checkout).
+Self-contained by design so the hook and fixtures can run it
+standalone. Exit codes: `0` clean, `1` violations, `2` usage, `3`
+precondition (`--staged` outside a git repository).
+
+## Discipline-adoption inventory gate
+
+`check-discipline-inventory.ts` verifies `.ai/discipline-adoption.md`
+per §"Discipline adoption inventory": the required columns, every
+seed-listed baseline row, allowed dispositions and enforcement
+classes, resolvable citations for gate-/process-enforced rows (a
+backticked `bun run <script>` must be a real non-stub script, a
+backticked path must exist), a "none"-coverage plus explicit
+not-enforced disclaimer for documented-only rows, reason + revisit
+conditions for deferred/rejected rows, a gate-enforced TDD row citing
+the commit-msg hook, and an ecosystem row citing the §"Livespec
+ecosystem tooling adoption" enumeration. Runs in-process inside
+`check.ts` and standalone via
+`bun scripts/check-discipline-inventory.ts`. A tree without the
+inventory is unprovisioned unless it already carries `src/**` product
+source, which fail-closes.
 
 ## Package-script surface
 

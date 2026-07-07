@@ -60,3 +60,43 @@ The file named `non-functional-requirements.md` IS the authoritative
 definition of the category; do not override it with the generic meaning
 of the term. Derive a project's taxonomy from its own artifacts (file
 names, boundary sections), not from training priors.
+
+## Local memory guardrail policy
+
+Per `SPECIFICATION/non-functional-requirements.md` §"Local memory
+guardrails": private local memories must never enter commits. The
+prohibited committed set is `.claude/**`, `.codex/**`, `.cursor/**`,
+`.continue/**`, `.aider*`, hidden memory databases, chat/prompt
+transcripts, and tool cache directories — mechanically realized as
+default-deny for every hidden (dot-prefixed) path outside the
+allowlist below. Enforced twice: the bootstrap-installed
+`.githooks/pre-commit` hook blocks offending commits, and
+`bun run check:memory` (run by `bun run check`) catches a bypassed or
+uninstalled hook. Both run `scripts/check-memory.ts`, whose allowlist
+mirrors this policy; keep the two in sync.
+
+Documented **ordinary tool configuration** (narrower-path exceptions,
+configuration rather than memory):
+
+- `.claude/settings.json` — Claude Code project settings (plugin
+  marketplaces and enablement). Reproducible configuration only; the
+  rest of `.claude/**` (memory, transcripts, caches) stays prohibited.
+- `.idea/**` — JetBrains project configuration; workspace/local state
+  is excluded by `.idea/.gitignore`.
+- `.ai/` (the sanctioned notes directory), `.githooks/`, `.github/`,
+  `.livespec.jsonc`, `.prettierrc.json`, `.prettierignore`, and the
+  `.gitignore`/`.gitattributes`/`.gitkeep`/`.editorconfig` basenames —
+  ordinary repository configuration.
+
+Agent-facing local notes live under `.ai/*.md` (flat, markdown only)
+and every note MUST be indexed below with its purpose; a dangling
+index entry also fails the guard.
+
+## Agent-facing notes index (.ai/)
+
+- `.ai/discipline-adoption.md` — the discipline-adoption inventory
+  required by `SPECIFICATION/non-functional-requirements.md`
+  §"Discipline adoption inventory": classifies every seed-listed
+  fleet discipline (disposition, enforcement class, local artifact);
+  shape and citations are verified by the discipline-inventory gate
+  in `bun run check`.

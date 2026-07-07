@@ -11,9 +11,12 @@ Hook files land additively with their guardrail slices
 
 - `commit-msg` — the content-triggered Red -> Green TDD gate
   (work item `li-avk7d7`).
-- The local memory guardrail hook rejecting prohibited private-memory
-  paths, unindexed `.ai/*.md` notes, and dangling `AGENTS.md` links
-  (work item `li-6b6u6m`).
+- `pre-commit` — the local memory guardrail rejecting prohibited
+  private-memory / hidden tool-state paths, unindexed `.ai/*.md`
+  notes, and dangling `AGENTS.md` links in the staged tree (work item
+  `li-6b6u6m`; policy in `AGENTS.md` §"Local memory guardrail
+  policy"). `bun run check:memory` runs the same guard inside
+  `bun run check`, so a bypassed or uninstalled hook is still caught.
 
 Because `bootstrap` installs the *directory*, hooks added later are
 active for every clone that has already run `bootstrap` — no

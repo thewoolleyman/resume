@@ -53,10 +53,6 @@ const PROVISIONERS: Record<string, Provisioner> = {
     workItem: "li-oaxjqm",
     provider: "Result/ROP enforcement gate (`check:result`)",
   },
-  "check:memory": {
-    workItem: "li-6b6u6m",
-    provider: "Local memory guardrail and discipline inventory",
-  },
 };
 
 const name = process.argv[2];

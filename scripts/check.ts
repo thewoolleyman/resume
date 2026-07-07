@@ -17,6 +17,11 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import {
+  INVENTORY_PATH,
+  verifyDisciplineInventory,
+} from "./check-discipline-inventory";
+
 const REQUIRED_SCRIPTS = [
   "check",
   "bootstrap",
@@ -56,11 +61,6 @@ const PENDING_GATES: readonly {
   workItem: string;
   title: string;
 }[] = [
-  {
-    family: "local memory guardrail (check:memory)",
-    workItem: "li-6b6u6m",
-    title: "Local memory guardrail and discipline inventory",
-  },
   {
     family: "ci delegation and workflow verification",
     workItem: "li-xjjeqo",
@@ -470,6 +470,70 @@ function checkToolchainRunners(root: string): GateResult {
   };
 }
 
+// Runs the local memory guardrail through its named script (CI-delegation
+// friendly) — the SAME guard the bootstrap-installed .githooks/pre-commit
+// hook runs on the staged tree, so a bypassed or uninstalled hook is still
+// caught here (§"Local memory guardrails").
+function checkMemoryGuardrail(root: string, pkg: PackageJson): GateResult {
+  const gate = "local memory guardrail (check:memory)";
+  if (!("check:memory" in (pkg.scripts ?? {}))) {
+    return {
+      gate,
+      status: "FAIL",
+      detail: "package.json has no check:memory script",
+    };
+  }
+  const run = Bun.spawnSync({ cmd: ["bun", "run", "check:memory"], cwd: root });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-6)
+      .join(" | ");
+    return { gate, status: "FAIL", detail: tail };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "no prohibited memory paths; .ai notes indexed from AGENTS.md with no dangling references",
+  };
+}
+
+// Verifies the discipline-adoption inventory (§"Discipline adoption
+// inventory") in-process. A tree without the inventory is unprovisioned
+// UNLESS it already carries src/** product source — the inventory is
+// required before the first non-trivial implementation merge, so that
+// combination fail-closes.
+function checkDisciplineInventory(root: string): GateResult {
+  const gate = `discipline-adoption inventory (${INVENTORY_PATH})`;
+  const result = verifyDisciplineInventory(root);
+  if (result.status === "absent") {
+    const srcDir = join(root, "src");
+    if (existsSync(srcDir) && readdirSync(srcDir).length > 0) {
+      return {
+        gate,
+        status: "FAIL",
+        detail: `${INVENTORY_PATH} is missing while first-party product source under src/** is present — the inventory is required before the first non-trivial implementation merge`,
+      };
+    }
+    return {
+      gate,
+      status: "skipped",
+      detail: "inventory not provisioned in this tree (no src/** yet)",
+    };
+  }
+  if (result.failures.length > 0) {
+    return { gate, status: "FAIL", detail: result.failures.join("; ") };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "baseline rows, dispositions, enforcement classes, and citations verified",
+  };
+}
+
 function checkNoPrematureProductSource(root: string): GateResult {
   const gate = "product-source boundary guard";
   const srcDir = join(root, "src");
@@ -505,6 +569,8 @@ const results: GateResult[] = [
   checkToolchainBaseline(root, pkg),
   checkToolchainRunners(root),
   checkTddBranchRange(root),
+  checkMemoryGuardrail(root, pkg),
+  checkDisciplineInventory(root),
   checkNoPrematureProductSource(root),
 ];
 

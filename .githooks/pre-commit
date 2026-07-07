@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# Local memory guardrail: blocks any commit whose staged tree adds a
+# prohibited private-memory / hidden tool-state path, an unindexed .ai/*.md
+# note, or a dangling AGENTS.md reference. Installed by `bun run bootstrap`
+# via core.hooksPath (see .githooks/README.md); `bun run check` runs the
+# same guard so a bypassed or uninstalled hook is still caught.
+set -euo pipefail
+hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+exec bun "$hook_dir/../scripts/check-memory.ts" --staged

@@ -23,7 +23,7 @@
     "test:harness": "bun test scripts",
     "check:scenarios": "bun scripts/not-yet-provisioned.ts check:scenarios",
     "check:result": "bun scripts/not-yet-provisioned.ts check:result",
-    "check:memory": "bun scripts/not-yet-provisioned.ts check:memory",
+    "check:memory": "bun scripts/check-memory.ts",
     "tdd-commit": "bun scripts/tdd-commit.ts"
   },
   "devDependencies": {
