@@ -127,10 +127,9 @@ start implementing here):
 ## Where the loop stands now
 
 Current phase: **NF** (non-functional hardening).
-Latest version **v018**; last reviser **Codex**; pending proposed change:
-`SPECIFICATION/proposed_changes/codex-gpt-5-critique.md` (Phase NF scope).
-→ The next turn is a **Claude revise** of Codex's critique. **Start by pasting
-this handoff path into Claude Code.**
+Latest version **v019**; last reviser **Claude**; `proposed_changes/` empty.
+→ The next turn is a **Claude critique** of `non-functional-requirements.md`
+(Phase NF scope). **Start by pasting this handoff path into Claude Code.**
 
 ## Resume
 
