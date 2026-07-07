@@ -181,7 +181,13 @@ rendering in UI modules, and a standalone import-boundary scan; plus
 effective-enablement verification of `no-floating-promises` and the
 newly enabled `switch-exhaustiveness-check` ESLint rules. The
 standalone-dependency-boundaries inventory row flipped to gate-enforced
-via that import scan. `bun run check` now runs ten
+via that import scan. Watcher fix `li-y31rgl` (merge `72fc1e2`) closed
+two Result-gate bypasses found in `3a21662`: a Result bound to a
+never-read variable is now flagged as ignored (with void/paren/await
+discard unwrapping), and `containsThrow` stops at function/class
+boundaries so a swallowing catch cannot pass by declaring a nested
+throwing function; both watcher repros re-verified rejected at HEAD.
+`bun run check` now runs ten
 operational gates. The commit-msg (TDD) and pre-commit (memory) hooks
 are LIVE for every commit. The `needs-attention` / `drive` operator
 surface does not exist yet — use the git-jsonl fallback (`next` then
