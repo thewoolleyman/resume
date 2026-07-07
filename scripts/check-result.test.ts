@@ -134,6 +134,84 @@ describe("Result/ROP enforcement gate (li-oaxjqm)", () => {
     expect(output).toContain("ignored Result");
   }, 60000);
 
+  test("a Result assigned to a never-read variable fails (li-y31rgl)", () => {
+    const dir = makeFixture({
+      "src/domain/shared.ts": RESULT_PRELUDE,
+      "src/domain/bind.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function parse(raw: string): Result<number, DomainError> {\n" +
+        "  return { ok: true, value: raw.length };\n" +
+        "}\n" +
+        "export function useIt(): Result<number, DomainError> {\n" +
+        '  const ignored = parse("discarded");\n' +
+        '  return parse("kept");\n' +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("ignored Result");
+    expect(output).toContain("src/domain/bind.ts");
+  }, 60000);
+
+  test("a Result binding that IS read later passes", () => {
+    const dir = makeFixture({
+      "src/domain/shared.ts": RESULT_PRELUDE,
+      "src/domain/read.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function parse(raw: string): Result<number, DomainError> {\n" +
+        "  return { ok: true, value: raw.length };\n" +
+        "}\n" +
+        "export function useIt(): Result<number, DomainError> {\n" +
+        '  const kept = parse("kept");\n' +
+        "  return kept;\n" +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(output).not.toContain("FAIL");
+    expect(exitCode).toBe(0);
+  }, 60000);
+
+  test("a void-discarded Result call fails", () => {
+    const dir = makeFixture({
+      "src/domain/shared.ts": RESULT_PRELUDE,
+      "src/domain/voided.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function parse(raw: string): Result<number, DomainError> {\n" +
+        "  return { ok: true, value: raw.length };\n" +
+        "}\n" +
+        "export function useIt(): Result<number, DomainError> {\n" +
+        '  void parse("discarded");\n' +
+        '  return parse("kept");\n' +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("ignored Result");
+  }, 60000);
+
+  test("a swallowing catch whose only throw sits in a nested function fails (li-y31rgl)", () => {
+    const dir = makeFixture({
+      "src/domain/shared.ts": RESULT_PRELUDE,
+      "src/domain/nested.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function risky(): Result<number, DomainError> {\n" +
+        "  try {\n" +
+        "    return { ok: true, value: 1 };\n" +
+        "  } catch {\n" +
+        "    function later(): void {\n" +
+        '      throw new Error("nested");\n' +
+        "    }\n" +
+        "    void later;\n" +
+        '    return { ok: false, error: { kind: "parse-error", detail: "swallowed" } };\n' +
+        "  }\n" +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("src/domain/nested.ts");
+    expect(output).toContain("catch");
+  }, 60000);
+
   test("a catch clause outside approved adapters that does not rethrow fails", () => {
     const dir = makeFixture({
       "src/domain/shared.ts": RESULT_PRELUDE,

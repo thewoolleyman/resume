@@ -14,8 +14,9 @@
 // Enforced checks:
 // - Core exports declare Result-referencing return types; boundary exports
 //   declare AsyncResult / Promise<Result<…>>.
-// - No ignored Result return values (an expression statement discarding a
-//   Result-typed call fails).
+// - No ignored Result return values: a bare/void-/paren-discarded
+//   Result-typed call fails, and so does binding one to a variable that is
+//   never read again (watcher fix li-y31rgl).
 // - No floating promises and exhaustive DomainError.kind switches — via
 //   type-aware ESLint (@typescript-eslint/no-floating-promises,
 //   @typescript-eslint/switch-exhaustiveness-check), whose effective error
@@ -137,9 +138,22 @@ function returnTypeViolation(
   return null;
 }
 
+// True only for a throw on the catch clause's own execution path: a throw
+// inside a NESTED function or class body is deferred code, not a rethrow,
+// so recursion stops at function/class boundaries (watcher fix li-y31rgl).
 function containsThrow(node: ts.Node): boolean {
   if (ts.isThrowStatement(node)) {
     return true;
+  }
+  if (
+    ts.isFunctionDeclaration(node) ||
+    ts.isFunctionExpression(node) ||
+    ts.isArrowFunction(node) ||
+    ts.isMethodDeclaration(node) ||
+    ts.isClassDeclaration(node) ||
+    ts.isClassExpression(node)
+  ) {
+    return false;
   }
   let found = false;
   node.forEachChild((child) => {
@@ -148,6 +162,20 @@ function containsThrow(node: ts.Node): boolean {
     }
   });
   return found;
+}
+
+// Peels await/void/parentheses off a discarded expression so `void f()` and
+// `(f())` cannot smuggle a Result past the ignored-Result check.
+function unwrapDiscard(expression: ts.Expression): ts.Expression {
+  let current = expression;
+  while (
+    ts.isAwaitExpression(current) ||
+    ts.isVoidExpression(current) ||
+    ts.isParenthesizedExpression(current)
+  ) {
+    current = current.expression;
+  }
+  return current;
 }
 
 export function findResultViolations(
@@ -182,6 +210,17 @@ export function findResultViolations(
       );
       violations.push({ file: relPath, line: line + 1, message });
     };
+
+    // Result-typed variable bindings, checked after the walk: a binding
+    // whose symbol is never referenced again discards the Result just as
+    // surely as a bare expression statement (watcher fix li-y31rgl).
+    const resultBindings: {
+      declaration: ts.VariableDeclaration;
+      symbol: ts.Symbol;
+      typeText: string;
+      exported: boolean;
+    }[] = [];
+    const referencedSymbols = new Set<ts.Symbol>();
 
     const visit = (node: ts.Node): void => {
       // Exported function declarations in core/boundary modules.
@@ -219,14 +258,12 @@ export function findResultViolations(
           }
         }
       }
-      // Ignored Result return values.
+      // Ignored Result return values — bare, void-, or paren-discarded.
       if (ts.isExpressionStatement(node)) {
-        const expression = ts.isAwaitExpression(node.expression)
-          ? node.expression.expression
-          : node.expression;
+        const expression = unwrapDiscard(node.expression);
         if (ts.isCallExpression(expression)) {
           const typeText = checker.typeToString(
-            checker.getTypeAtLocation(node.expression),
+            checker.getTypeAtLocation(expression),
           );
           if (/\bResult</.test(typeText)) {
             record(
@@ -234,6 +271,45 @@ export function findResultViolations(
               `ignored Result return value (${typeText}) — handle both variants or propagate it`,
             );
           }
+        }
+      }
+      // Ignored Result return values — bound to a variable: collect the
+      // binding here, decide after the walk whether it is ever read.
+      if (
+        ts.isVariableDeclaration(node) &&
+        ts.isIdentifier(node.name) &&
+        node.initializer !== undefined
+      ) {
+        const initializer = unwrapDiscard(node.initializer);
+        if (ts.isCallExpression(initializer)) {
+          const typeText = checker.typeToString(
+            checker.getTypeAtLocation(initializer),
+          );
+          const symbol = checker.getSymbolAtLocation(node.name);
+          if (/\bResult</.test(typeText) && symbol !== undefined) {
+            const statement = node.parent.parent;
+            resultBindings.push({
+              declaration: node,
+              symbol,
+              typeText,
+              exported:
+                ts.isVariableStatement(statement) && isExported(statement),
+            });
+          }
+        }
+      }
+      // Track identifier references so never-read bindings surface. The
+      // declaration's own name node is excluded; shorthand properties
+      // resolve to the value symbol they reference.
+      if (
+        ts.isIdentifier(node) &&
+        !(ts.isVariableDeclaration(node.parent) && node.parent.name === node)
+      ) {
+        const symbol = ts.isShorthandPropertyAssignment(node.parent)
+          ? checker.getShorthandAssignmentValueSymbol(node.parent)
+          : checker.getSymbolAtLocation(node);
+        if (symbol !== undefined) {
+          referencedSymbols.add(symbol);
         }
       }
       // Blanket catch outside approved boundary adapters.
@@ -294,6 +370,14 @@ export function findResultViolations(
       node.forEachChild(visit);
     };
     visit(sourceFile);
+    for (const binding of resultBindings) {
+      if (!binding.exported && !referencedSymbols.has(binding.symbol)) {
+        record(
+          binding.declaration,
+          `ignored Result return value (${binding.typeText}) — bound to the never-read variable "${binding.declaration.name.getText(sourceFile)}"`,
+        );
+      }
+    }
   }
   return violations;
 }
