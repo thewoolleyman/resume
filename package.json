@@ -22,7 +22,7 @@
     "test:property": "bun scripts/not-yet-provisioned.ts test:property",
     "test:harness": "bun test scripts",
     "check:scenarios": "bun scripts/not-yet-provisioned.ts check:scenarios",
-    "check:result": "bun scripts/not-yet-provisioned.ts check:result",
+    "check:result": "bun scripts/check-result.ts",
     "check:memory": "bun scripts/check-memory.ts",
     "tdd-commit": "bun scripts/tdd-commit.ts"
   },

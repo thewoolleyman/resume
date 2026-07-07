@@ -101,13 +101,13 @@ describe("not-yet-provisioned script stubs (exit-code baseline)", () => {
       cmd: [
         "bun",
         join(repoRoot, "scripts", "not-yet-provisioned.ts"),
-        "check:result",
+        "check:scenarios",
       ],
       cwd: repoRoot,
     });
     const output = run.stdout.toString() + run.stderr.toString();
     expect(run.exitCode).toBe(3);
-    expect(output).toContain("li-oaxjqm");
+    expect(output).toContain("li-hb77ad");
     expect(output).toContain("not yet provisioned");
   });
 

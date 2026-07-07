@@ -128,21 +128,22 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     });
     expect(output).toContain("package-script surface");
     expect(exitCode).toBe(0);
-  });
+  }, 240000);
 
   test("reports not-yet-provisioned gate families with their work items", () => {
     const { output } = runCheck(repoRoot, {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
     });
-    expect(output).toContain("li-oaxjqm");
     expect(output).toContain("li-m2trzv");
-    // The memory guardrail + discipline inventory (li-6b6u6m) and the CI
-    // workflow verification (li-xjjeqo) are operational gates now, no
-    // longer pending families.
+    expect(output).toContain("li-hb77ad");
+    // The memory guardrail + discipline inventory (li-6b6u6m), the CI
+    // workflow verification (li-xjjeqo), and the Result/ROP gate
+    // (li-oaxjqm) are operational gates now, no longer pending families.
     expect(output).not.toContain("li-6b6u6m");
     expect(output).not.toContain("li-xjjeqo");
-  });
+    expect(output).not.toContain("li-oaxjqm");
+  }, 240000);
 
   test("is non-mutating on the repository tree", () => {
     const before = Bun.spawnSync({
@@ -158,7 +159,7 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       cwd: repoRoot,
     }).stdout.toString();
     expect(after).toBe(before);
-  });
+  }, 240000);
 
   test("fails when a required script is missing, naming it", () => {
     const { exitCode, output } = runCheck(

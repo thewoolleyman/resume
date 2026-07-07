@@ -44,6 +44,10 @@ export default tseslint.config(
       // Svelte compiler diagnostics — including accessibility (a11y_*)
       // warnings — fail the lint rather than passing silently.
       "svelte/valid-compile": "error",
+      // Result/ROP discipline (scripts/check-result.ts verifies this stays
+      // effectively enabled): switches over DomainError.kind must be
+      // exhaustive.
+      "@typescript-eslint/switch-exhaustiveness-check": "error",
       // First-party import-boundary placeholder: deep-importing across
       // future src/** layer boundaries is rejected; the concrete layer map
       // activates with the product source it governs.

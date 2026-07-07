@@ -63,11 +63,6 @@ const PENDING_GATES: readonly {
   title: string;
 }[] = [
   {
-    family: "result/rop enforcement (check:result)",
-    workItem: "li-oaxjqm",
-    title: "Result/ROP enforcement gate",
-  },
-  {
     family: "coverage and property/fuzz (test:coverage, test:property)",
     workItem: "li-m2trzv",
     title: "Coverage and property/fuzz gates",
@@ -530,6 +525,36 @@ function checkDisciplineInventory(root: string): GateResult {
   };
 }
 
+// Runs the Result/ROP discipline gate through its named script
+// (§"Result and railway-oriented programming discipline"): AST checks over
+// first-party src/** (armed-but-vacuous until product source lands) plus
+// effective enablement of the type-aware ESLint result rules.
+function checkResultDiscipline(root: string, pkg: PackageJson): GateResult {
+  const gate = "result/rop enforcement (check:result)";
+  if (!("check:result" in (pkg.scripts ?? {}))) {
+    return {
+      gate,
+      status: "FAIL",
+      detail: "package.json has no check:result script",
+    };
+  }
+  const run = Bun.spawnSync({ cmd: ["bun", "run", "check:result"], cwd: root });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-6)
+      .join(" | ");
+    return { gate, status: "FAIL", detail: tail };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "Result/DomainError discipline verified (AST checks armed over src/**, ESLint result rules effective)",
+  };
+}
+
 // Verifies the CI workflows, named-script delegation, and the documented
 // branch-protection/merge-method settings (§"GitHub CI and pull request
 // discipline", §"Pull request landing automation"). Local verification
@@ -607,6 +632,7 @@ const results: GateResult[] = [
   checkMemoryGuardrail(root, pkg),
   checkDisciplineInventory(root),
   checkCiProvisioning(root),
+  checkResultDiscipline(root, pkg),
   checkNoPrematureProductSource(root),
 ];
 

@@ -132,6 +132,28 @@ methods, auto-merge, the required `check` status (non-strict), and the
 no-bypass linear-history ruleset. A tree without `.github/workflows/`
 is unprovisioned unless it already carries `src/**`, which fail-closes.
 
+## Result/ROP enforcement gate (`check:result`)
+
+`check-result.ts` enforces §"Result and railway-oriented programming
+discipline" with standalone TypeScript compiler-API AST checks over
+first-party `src/**` (armed-but-vacuous until product source lands;
+each check activates with the first product commit): core modules
+(`src/data|domain|search|grounding|mcp-contracts`) must export
+Result-returning functions, boundary modules (`src/adapters|server|api`)
+must export `AsyncResult`/`Promise<Result<…>>`, Result return values
+may not be ignored, catch clauses outside the approved boundary
+adapters must rethrow, `DomainError` is never thrown, UI modules
+(`src/routes|components`) must not render raw `Error`
+`.message`/`.stack` payloads, and `src/**` relative imports must not
+resolve outside the repository (standalone import boundary). It also
+verifies the type-aware ESLint result rules
+(`@typescript-eslint/no-floating-promises`,
+`@typescript-eslint/switch-exhaustiveness-check`) stay effectively
+enabled via `eslint --print-config`. The documented `Result` /
+`DomainError` shape lives in the NFR §"Result and railway-oriented
+programming discipline"; the layer split is repeated in the script
+header.
+
 ## Package-script surface
 
 `package.json` names every script required by §"Package script

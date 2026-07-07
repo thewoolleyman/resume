@@ -49,10 +49,6 @@ const PROVISIONERS: Record<string, Provisioner> = {
     workItem: "li-hb77ad",
     provider: "Scenario coverage gate (`check:scenarios`)",
   },
-  "check:result": {
-    workItem: "li-oaxjqm",
-    provider: "Result/ROP enforcement gate (`check:result`)",
-  },
 };
 
 const name = process.argv[2];
