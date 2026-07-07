@@ -130,22 +130,24 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **slice 1 done — bootstrap and script surface provisioned**
-(2026-07-07). Work items were seeded at `b03c271` (`li-ugymfg` through
-`li-gzmujc`, each depending on its predecessor). `li-ugymfg` — repository
-bootstrap and package-script surface — closed at merge `a2cf94e`:
-`package.json` pins Bun and names every required script, `bootstrap` installs
-the committed `.githooks` via `core.hooksPath`, not-yet-provisioned scripts
-exit 3 naming their provisioning work item, and harness tests run via
-`bun run test:harness`. The `needs-attention` / `drive` operator surface does
-not exist yet — use the git-jsonl fallback (`next` then `implement`). The
-loop is autonomous: sessions drive items continuously and stop only for
-maintainer blockers, plan completion, or session limits.
+Current state: **slices 1–2 done — bootstrap, script surface, and aggregate
+check skeleton provisioned** (2026-07-07). Work items were seeded at
+`b03c271` (`li-ugymfg` through `li-gzmujc`, each depending on its
+predecessor). `li-ugymfg` (bootstrap + script surface) closed at merge
+`a2cf94e`; `li-w6mvog` (aggregate check skeleton) closed at merge `e6f5206`:
+`bun run check` runs scripts/check.ts — script-surface verification, harness
+tests, and fail-closed additivity guards for toolchain config and `src/**`
+product source, with pending gate families reported alongside their work
+items. The `needs-attention` / `drive` operator surface does not exist yet —
+use the git-jsonl fallback (`next` then `implement`). The loop is autonomous:
+sessions drive items continuously and stop only for maintainer blockers, plan
+completion, or session limits.
 
-Next ripe action: implement `li-w6mvog` — "Aggregate check skeleton
-(`bun run check`)": make `bun run check` the single non-mutating quality
-gate, verifying the required script surface, toolchain configuration, and CI
-delegation as those artifacts appear.
+Next ripe action: implement `li-tagohm` — "TypeScript, Svelte, lint, and
+format gates": strict TypeScript configuration, `svelte-check` or documented
+equivalent, Svelte-aware linting with accessibility rules, Prettier format
+checks, zero lint warnings, import-order/boundary rules, and baseline
+weakening protection wired into `bun run check`.
 
 ## Resume
 
