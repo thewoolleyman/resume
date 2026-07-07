@@ -14,6 +14,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -83,6 +84,7 @@ export default [
   {
     plugins: { perfectionist },
     rules: {
+      "perfectionist/sort-imports": "error",
       "svelte/valid-compile": "error",
       "no-restricted-imports": ["error", {}],
     },
@@ -131,6 +133,9 @@ function makeToolchainFixture(options: ToolchainFixtureOptions = {}): string {
     options.eslintConfig ?? "export default [];\n",
   );
   writeFileSync(join(dir, ".prettierrc.json"), "{}\n");
+  // The effective-rule verification loads the fixture's eslint.config.js
+  // through ESLint itself, so plugin imports must resolve.
+  symlinkSync(join(repoRoot, "node_modules"), join(dir, "node_modules"), "dir");
   return dir;
 }
 
@@ -253,6 +258,54 @@ describe("toolchain configuration baseline (li-tagohm)", () => {
     expect(spoofed).toContain("no-restricted-imports");
     const { exitCode, output } = runCheck(
       makeToolchainFixture({ eslintConfig: spoofed }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("no-restricted-imports");
+  });
+
+  test("a required rule disabled with severity off fails by name (svelte/valid-compile)", () => {
+    const disabled = BASELINE_ESLINT_CONFIG.replace(
+      '"svelte/valid-compile": "error"',
+      '"svelte/valid-compile": "off"',
+    );
+    const { exitCode, output } = runCheck(
+      makeToolchainFixture({ eslintConfig: disabled }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("svelte/valid-compile");
+  });
+
+  test("a required rule disabled with severity off fails by name (no-restricted-imports)", () => {
+    const disabled = BASELINE_ESLINT_CONFIG.replace(
+      '"no-restricted-imports": ["error", {}]',
+      '"no-restricted-imports": "off"',
+    );
+    const { exitCode, output } = runCheck(
+      makeToolchainFixture({ eslintConfig: disabled }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("no-restricted-imports");
+  });
+
+  test("a required rule demoted to warn fails by name", () => {
+    const demoted = BASELINE_ESLINT_CONFIG.replace(
+      '"svelte/valid-compile": "error"',
+      '"svelte/valid-compile": "warn"',
+    );
+    const { exitCode, output } = runCheck(
+      makeToolchainFixture({ eslintConfig: demoted }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("svelte/valid-compile");
+  });
+
+  test("a later config block overriding a required rule to off fails by name", () => {
+    const overridden = BASELINE_ESLINT_CONFIG.replace(
+      "  prettier,\n",
+      '  { rules: { "no-restricted-imports": "off" } },\n  prettier,\n',
+    );
+    const { exitCode, output } = runCheck(
+      makeToolchainFixture({ eslintConfig: overridden }),
     );
     expect(exitCode).toBe(1);
     expect(output).toContain("no-restricted-imports");
