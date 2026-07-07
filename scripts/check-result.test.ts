@@ -153,6 +153,37 @@ describe("Result/ROP enforcement gate (li-oaxjqm)", () => {
     expect(output).toContain("src/domain/bind.ts");
   }, 60000);
 
+  test("a Result binding whose only reads are pure discards fails (li-y31rgl reopen)", () => {
+    const dir = makeFixture({
+      "src/domain/shared.ts": RESULT_PRELUDE,
+      "src/domain/void-read.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function parse(raw: string): Result<number, DomainError> {\n" +
+        "  return { ok: true, value: raw.length };\n" +
+        "}\n" +
+        "export function useIt(): Result<number, DomainError> {\n" +
+        '  const result = parse("discarded");\n' +
+        "  void result;\n" +
+        "  return { ok: true, value: 1 };\n" +
+        "}\n",
+      "src/domain/bare-read.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function parse(raw: string): Result<number, DomainError> {\n" +
+        "  return { ok: true, value: raw.length };\n" +
+        "}\n" +
+        "export function useIt(): Result<number, DomainError> {\n" +
+        '  const result = parse("discarded");\n' +
+        "  result;\n" +
+        "  return { ok: true, value: 1 };\n" +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("ignored Result");
+    expect(output).toContain("src/domain/void-read.ts");
+    expect(output).toContain("src/domain/bare-read.ts");
+  }, 60000);
+
   test("a Result binding that IS read later passes", () => {
     const dir = makeFixture({
       "src/domain/shared.ts": RESULT_PRELUDE,

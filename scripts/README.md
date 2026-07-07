@@ -141,8 +141,9 @@ each check activates with the first product commit): core modules
 (`src/data|domain|search|grounding|mcp-contracts`) must export
 Result-returning functions, boundary modules (`src/adapters|server|api`)
 must export `AsyncResult`/`Promise<Result<…>>`, Result return values
-may not be ignored (bare/void-discarded statements and never-read
-variable bindings both fail), catch clauses outside the approved
+may not be ignored (bare/void-discarded statements fail, and so do
+bindings never meaningfully read — `void result` or a bare `result;`
+does not count as a read), catch clauses outside the approved
 boundary adapters must rethrow on their own execution path (a throw
 inside a nested function does not count), `DomainError` is never
 thrown, UI modules

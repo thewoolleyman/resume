@@ -16,7 +16,8 @@
 //   declare AsyncResult / Promise<Result<…>>.
 // - No ignored Result return values: a bare/void-/paren-discarded
 //   Result-typed call fails, and so does binding one to a variable that is
-//   never read again (watcher fix li-y31rgl).
+//   never meaningfully read — pure discards like `void result` or a bare
+//   `result;` statement do not count as reads (watcher fix li-y31rgl).
 // - No floating promises and exhaustive DomainError.kind switches — via
 //   type-aware ESLint (@typescript-eslint/no-floating-promises,
 //   @typescript-eslint/switch-exhaustiveness-check), whose effective error
@@ -164,6 +165,23 @@ function containsThrow(node: ts.Node): boolean {
   return found;
 }
 
+// True when an identifier usage is a pure discard rather than a read: the
+// operand of a `void` expression, or a bare/paren-wrapped expression
+// statement. Such usages must not count as "reading" a Result binding, or
+// `const result = f(); void result;` would launder the ignored Result
+// (watcher follow-up on li-y31rgl).
+function isDiscardedReference(identifier: ts.Identifier): boolean {
+  let parent: ts.Node = identifier.parent;
+  while (
+    ts.isParenthesizedExpression(parent) ||
+    ts.isAwaitExpression(parent) ||
+    ts.isNonNullExpression(parent)
+  ) {
+    parent = parent.parent;
+  }
+  return ts.isVoidExpression(parent) || ts.isExpressionStatement(parent);
+}
+
 // Peels await/void/parentheses off a discarded expression so `void f()` and
 // `(f())` cannot smuggle a Result past the ignored-Result check.
 function unwrapDiscard(expression: ts.Expression): ts.Expression {
@@ -299,11 +317,13 @@ export function findResultViolations(
         }
       }
       // Track identifier references so never-read bindings surface. The
-      // declaration's own name node is excluded; shorthand properties
+      // declaration's own name node and pure-discard usages (void operand,
+      // bare expression statement) are excluded; shorthand properties
       // resolve to the value symbol they reference.
       if (
         ts.isIdentifier(node) &&
-        !(ts.isVariableDeclaration(node.parent) && node.parent.name === node)
+        !(ts.isVariableDeclaration(node.parent) && node.parent.name === node) &&
+        !isDiscardedReference(node)
       ) {
         const symbol = ts.isShorthandPropertyAssignment(node.parent)
           ? checker.getShorthandAssignmentValueSymbol(node.parent)
@@ -374,7 +394,7 @@ export function findResultViolations(
       if (!binding.exported && !referencedSymbols.has(binding.symbol)) {
         record(
           binding.declaration,
-          `ignored Result return value (${binding.typeText}) — bound to the never-read variable "${binding.declaration.name.getText(sourceFile)}"`,
+          `ignored Result return value (${binding.typeText}) — the variable "${binding.declaration.name.getText(sourceFile)}" is never meaningfully read (void/bare discards do not count)`,
         );
       }
     }
