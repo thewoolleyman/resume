@@ -53,6 +53,7 @@ interface FixtureOptions {
   readonly withFailingHarnessTest?: boolean;
   readonly withPassingHarnessTest?: boolean;
   readonly withoutPackageJson?: boolean;
+  readonly devDependencies?: Record<string, string>;
 }
 
 function makeFixture(options: FixtureOptions = {}): string {
@@ -77,6 +78,7 @@ function makeFixture(options: FixtureOptions = {}): string {
           type: "module",
           engines: { bun: "1.3.6" },
           scripts,
+          devDependencies: options.devDependencies ?? {},
         },
         null,
         2,
@@ -166,6 +168,39 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
   test("fails when a harness test fails", () => {
     const { exitCode } = runCheck(makeFixture({ withFailingHarnessTest: true }));
     expect(exitCode).toBe(1);
+  });
+
+  test("rejects every non-exact dependency spec, including ranges that start with an exact version", () => {
+    const { exitCode, output } = runCheck(
+      makeFixture({
+        devDependencies: {
+          "bad-or-range": "1.2.3 || 2.0.0",
+          "bad-hyphen-range": "1.2.3 - 2.0.0",
+          "bad-caret": "^1.2.3",
+          "bad-tilde": "~1.2.3",
+          "bad-tag": "latest",
+        },
+      }),
+    );
+    expect(exitCode).toBe(1);
+    for (const name of [
+      "bad-or-range",
+      "bad-hyphen-range",
+      "bad-caret",
+      "bad-tilde",
+      "bad-tag",
+    ]) {
+      expect(output).toContain(name);
+    }
+  });
+
+  test("accepts exact versions with prerelease or build metadata", () => {
+    const { exitCode } = runCheck(
+      makeFixture({
+        devDependencies: { "ok-exact": "1.2.3", "ok-prerelease": "1.2.3-beta.1" },
+      }),
+    );
+    expect(exitCode).toBe(0);
   });
 
   test("fail-closes on product source before the guardrails are complete", () => {
