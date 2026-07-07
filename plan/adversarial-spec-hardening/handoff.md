@@ -124,12 +124,63 @@ start implementing here):
 - **Phase-scoped sweep** — finish NF before opening FN; never critique
   out-of-phase files.
 
+## Convergence guardrails (READ before any coverage/TDD critique)
+
+Two areas caused repeated critique/revise thrashing and were **converged by
+maintainer ratification at v020**. Every critique pass — Claude or Codex — is
+bound by these:
+
+- **Coverage is a flat, non-negotiable 100%.** First-party `src/**` product
+  source MUST be 100% line and 100% branch. No tiers, no framework-glue
+  exemption, no per-module carve-outs, no tunable percentages. Well-factored,
+  loosely coupled, highly cohesive code with dependency injection and module
+  mocking makes 100% always achievable at the unit level. Do NOT reintroduce
+  floors/tiers or propose "coverage exceptions."
+
+- **The TDD gate is content-triggered — and it is a transcription of the fleet.**
+  `non-functional-requirements.md` §"Mechanically enforced Red -> Green commit
+  protocol" is a **faithful standalone transcription** of the livespec fleet's
+  proven `red_green_replay` commit-msg gate
+  (`/data/projects/livespec-dev-tooling/livespec_dev_tooling/checks/red_green_replay.py`
+  and its sibling `_red_green_replay_modes.py`). The spec states it as our own
+  standalone rules and **MUST NOT reference the fleet** — this provenance lives
+  here only. The model: the leg is selected by the staged buckets (first-party
+  product source vs test files) + HEAD trailer state; no `TDD-Intent` marker; the
+  subject prefix never rejects a commit for containing product code; commits
+  staging neither product source nor tests pass immediately with no leg; the
+  Suite-Green leg runs the FULL suite in the hook; a branch-range gate validates
+  `origin/master..HEAD`. **Do NOT re-derive or re-design this mechanism.** If a
+  critique believes the spec diverges from the fleet's actual behavior, the fix
+  is to **conform the spec to the fleet** (confirmed by reading those two files,
+  and ultimately by building the harness in `plan/guardrail`) — never to invent a
+  new variant. Low-level realizations (exact trailer spellings, which check runs
+  in the commit-msg hook vs. the range validation, cold-start ordering of test
+  infrastructure) are validated when the harness is built in `plan/guardrail` via
+  propose-change, **not** by more spec critique.
+
+- **Critique-justification requirement.** A critique pass MUST NOT file a
+  coverage or TDD-mechanism finding unless its `motivation` explicitly justifies
+  (a) that it is not re-litigating either converged decision above, (b) that it
+  is not a low-level realization deferred to `plan/guardrail`, and (c) the
+  concrete failure the ambiguity would cause. A finding that cannot clear this
+  bar is out of scope; **prefer advancing the phase over manufacturing a
+  coverage/TDD finding.** If a full NF sweep surfaces only such can't-justify
+  items on coverage/TDD (and only nits elsewhere), treat Phase NF as converged
+  and advance per the decision procedure.
+
 ## Where the loop stands now
 
 Current phase: **NF** (non-functional hardening).
-Latest version **v019**; last reviser **Claude**; `proposed_changes/` empty.
-→ The next turn is a **Claude critique** of `non-functional-requirements.md`
-(Phase NF scope). **Start by pasting this handoff path into Claude Code.**
+Latest version **v020** — a **maintainer-directed reset** authored + landed by
+Claude (coverage → non-negotiable 100%; TDD → standalone content-triggered gate;
+reverses Settled v016/v017). `proposed_changes/` empty.
+→ Because the v020 reset was **Claude-authored**, the next turn is a **Codex
+critique** of the reset — an adversarial check of the rewritten coverage + TDD
+sections (Phase NF scope). This is an explicit one-turn **override** of the
+mechanical "last reviser critiques next" rule (which would otherwise hand Claude
+a critique of its own reset). Read the **Convergence guardrails** above first,
+then **paste this handoff path into Codex**. Normal critique↔revise alternation
+resumes after the Codex critique.
 
 ## Resume
 

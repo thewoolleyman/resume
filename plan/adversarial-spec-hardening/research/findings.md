@@ -163,6 +163,13 @@ must act and the phase-advancement / terminal branches.
   prioritizing load-bearing findings over style. Do not re-open settled
   decisions to manufacture findings, and do not critique out-of-phase files
   (finish NF before opening FN).
+- **Coverage & TDD are converged — justify or defer.** The non-negotiable 100%
+  coverage rule and the content-triggered TDD gate are ratified (v020). A
+  critique MUST NOT file a coverage or TDD-mechanism finding unless its
+  `motivation` first justifies why the point is genuinely load-bearing and is
+  NOT (a) re-litigating those settled rules, nor (b) a low-level realization
+  deferred to `plan/guardrail` (exact trailer spellings, commit-hook-vs-range
+  timing, and the like). See the **convergence guardrails** in `handoff.md`.
 
 ## Settled — do NOT re-litigate (undoing these needs maintainer sign-off)
 
@@ -181,14 +188,25 @@ their *edges*, but reversing them is a maintainer decision, not a loop move:
   maintainer rejected the chicken-and-egg framing: correct additive ordering,
   owned by `plan/guardrail`, keeps the build additive rather than circular
   (`non-functional-requirements.md` §"Guardrail provisioning boundary").
-- **TDD is `gate-enforced` via a standalone Bun/Vitest/Playwright adaptation of
-  the fleet's `red_green_replay`** — checksummed `TDD-Red-*`/`TDD-Green-*`/
-  `TDD-Suite-Green-*` trailers, an explicit `TDD-Intent` leg discriminator
-  (Red/Green/Suite-Green; the durable amended Red→Green commit carries a single
-  `TDD-Intent: Green` alongside both trailer sets), a per-commit commit-msg hook
-  + `origin/master..HEAD` range validation. NOT a "process-enforced evidence
-  record" (rejected v014); leg selection is NOT the commit subject prefix
-  (settled v016).
+- **TDD is `gate-enforced` via a standalone Bun/Vitest/Playwright commit-msg
+  gate that is CONTENT-TRIGGERED** — the leg is selected by the staged buckets
+  (first-party `src/**` product source vs test files) plus the repository's HEAD
+  trailer state, NOT by an explicit intent marker and NOT by the commit subject
+  prefix. Checksummed `TDD-Red-*`/`TDD-Green-*`/`TDD-Suite-Green-*` trailers; a
+  singular anchor-test checksum; a per-commit commit-msg hook +
+  `origin/master..HEAD` range validation; the Suite-Green leg runs the FULL
+  suite in the hook; commits staging neither product source nor tests pass
+  immediately with no leg. NOT a "process-enforced evidence record" (rejected
+  v014). **v020 reset (maintainer-directed) REVERSED** the v016 explicit
+  `TDD-Intent` discriminator and the "leg selection is NOT the subject prefix"
+  framing; the spec now states the proven content-triggered model as its own
+  standalone rules. Provenance — that this is a faithful transcription of the
+  livespec fleet's `red_green_replay` commit-msg gate
+  (`livespec-dev-tooling/.../checks/red_green_replay.py` +
+  `_red_green_replay_modes.py`) — lives ONLY here and in `handoff.md`, **never
+  in the spec**. Do NOT re-derive or re-design this mechanism; where it diverges
+  from the fleet, conform to the fleet (validated by building the harness in
+  `plan/guardrail`), do not reinvent.
 - **Multi-file TDD uses the fleet's proven single ANCHOR-test model** (verified
   in Python `livespec-dev-tooling` and Rust `livespec-console-beads-fabro`): one
   anchor test staged alone + checksummed; impl and supporting/updated tests ride
@@ -212,9 +230,13 @@ their *edges*, but reversing them is a maintainer decision, not a loop move:
   alone never counts as enforcement.
 - **PR path is fully gate-enforced before first impl merge**, reconciled with
   the **sanctioned direct-owner-commit path** via the on-push aggregate check.
-- **Coverage floors are non-trivial** (settled v017): core ≥ 90/90/85
-  line/function/branch, glue ≥ 60 line, core strictly > glue; exact percentages
-  tunable via propose-change but the floor stays non-trivial.
+- **Coverage is a non-negotiable 100%** line and branch for first-party `src/**`
+  product source (**v020 reset, maintainer-directed; REVERSES the v017 tiered
+  non-trivial-floor decision**). No core/glue tiers, no glue exemption, no
+  per-module carve-out, no tunable percentages: well-factored + loosely coupled
+  + highly cohesive code with dependency injection + module mocking makes 100%
+  always achievable at the unit level. Generated artifacts and harness/tooling
+  are outside the product-source set and are not counted.
 - **Standalone boundary** (`constraints.md`): no runtime/check-time dependency on
   sibling livespec repos or the Python enforcement suite — adaptations are
   reimplemented locally in TS/Bun.
@@ -239,9 +261,20 @@ their *edges*, but reversing them is a maintainer decision, not a loop move:
 - v018 — Codex revised a Claude critique: restored the local-memory scenario
   heading, aligned package-script scenario coverage wording with the two-class
   mapping, and clarified Suite-Green support-infrastructure commits.
-- After v018 — Codex filed a Phase NF critique asking the next reviser to name
-  the integration-test script contract or its documented stricter equivalent.
+- v019 — Claude revised a Codex critique: named the integration-test script
+  contract (`test:integration` in the required Bun script surface, with a
+  documented pass-with-no-tests equivalent).
+- v020 — **Maintainer-directed reset** (Claude authored + landed, OUTSIDE the
+  adversarial alternation, reversing Settled ground with maintainer sign-off, to
+  stop repeated coverage/TDD thrashing): coverage flattened to a non-negotiable
+  **100% line+branch** for first-party `src/**`; the TDD gate rewritten as a
+  standalone **content-triggered** protocol (the invented `TDD-Intent`
+  discriminator and `test-support-genesis` allowance removed), capturing the
+  fleet's proven `red_green_replay` model as our own standalone rules with no
+  fleet reference in the spec. Added the **convergence guardrails** +
+  critique-justification requirement to `handoff.md`.
 
-As of v018 there is a pending **Codex** critique in
-`SPECIFICATION/proposed_changes/codex-gpt-5-critique.md`, so the next turn is a
-**Claude revise**, still in **Phase NF** (non-functional). See `handoff.md`.
+Because the v020 reset was Claude-authored, the next turn is a **Codex critique**
+of the reset (adversarial check of the coverage + TDD rewrite), still in
+**Phase NF** — an explicit one-turn override of the mechanical "last reviser
+critiques next" rule, so Claude does not critique its own reset. See `handoff.md`.
