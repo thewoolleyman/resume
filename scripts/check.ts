@@ -145,8 +145,11 @@ function checkScriptSurface(root: string, pkg: PackageJson): GateResult {
     failures.push("engines.bun must pin an exact Bun version");
   }
   const declared = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) };
+  // Anchored: the ENTIRE spec must be one exact version (optionally with
+  // prerelease/build metadata) — a range that merely starts with an exact
+  // version, e.g. "1.2.3 || 2.0.0", is not a pin.
   const ranged = Object.entries(declared)
-    .filter(([, version]) => !/^\d+\.\d+\.\d+/.test(version))
+    .filter(([, version]) => !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version))
     .map(([name]) => name);
   if (ranged.length > 0) {
     failures.push(`dependencies must be exactly pinned (no ranges): ${ranged.join(", ")}`);

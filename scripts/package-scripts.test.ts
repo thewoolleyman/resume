@@ -89,7 +89,7 @@ describe("required Bun package-script surface (li-ugymfg)", () => {
       ...(pkg?.devDependencies ?? {}),
     };
     const ranged = Object.entries(declared).filter(
-      ([, version]) => !/^\d+\.\d+\.\d+/.test(version),
+      ([, version]) => !/^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/.test(version),
     );
     expect(ranged).toEqual([]);
   });
