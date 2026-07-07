@@ -1,0 +1,49 @@
+# Pull-request landing automation per
+# SPECIFICATION/non-functional-requirements.md §"Pull request landing
+# automation": for eligible pull requests — non-draft, not labeled
+# do-not-merge, opened by the repository owner (extend the job `if`
+# expression to allowlist trusted automation identities) — enable GitHub
+# rebase auto-merge so a green pull request lands without a manual merge
+# step. Uses a short-lived GitHub App installation token minted at runtime:
+# GITHUB_TOKEN does not reliably have permission to enable auto-merge. The
+# APP_ID and APP_PRIVATE_KEY secrets must be provisioned by the maintainer
+# before this workflow is operational (see .github/README.md); until then
+# the guard step emits an actionable notice instead of failing every PR.
+name: auto-enable-merge
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize, unlabeled]
+permissions: {}
+jobs:
+  enable-auto-merge:
+    if: >-
+      github.event.pull_request.draft == false &&
+      !contains(github.event.pull_request.labels.*.name, 'do-not-merge') &&
+      github.event.pull_request.user.login == github.repository_owner
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the GitHub App secrets are provisioned
+        id: secrets
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+        run: |
+          if [ -n "$APP_ID" ]; then
+            echo "provisioned=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "provisioned=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::APP_ID / APP_PRIVATE_KEY secrets are not provisioned; auto-merge was NOT enabled for this PR (see .github/README.md)."
+          fi
+      - name: Mint a short-lived installation token
+        if: steps.secrets.outputs.provisioned == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+      - name: Enable rebase auto-merge
+        if: steps.secrets.outputs.provisioned == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: gh pr merge "$PR" --repo "$REPO" --auto --rebase

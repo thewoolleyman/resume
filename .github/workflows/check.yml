@@ -1,0 +1,36 @@
+# The aggregate-check CI workflow per
+# SPECIFICATION/non-functional-requirements.md §"GitHub CI and pull request
+# discipline": runs `bun run check` for pull requests targeting master and
+# for pushes to master (the sanctioned direct-owner-commit path is gated by
+# this on-push run), delegating to the named Bun scripts — no divergent
+# check logic lives here. The required status-check name for branch
+# protection is the job name: "check" (documented in .github/README.md).
+# Shape is verified locally by scripts/check-ci.ts inside `bun run check`.
+name: check
+on:
+  pull_request:
+    branches: [master]
+  push:
+    branches: [master]
+jobs:
+  check:
+    name: check
+    runs-on: ubuntu-latest
+    steps:
+      # Full history: the TDD branch-range validator resolves
+      # origin/master..HEAD and must not see a shallow, unresolvable base.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Bun is pinned once, in package.json engines.bun; setup-bun reads it
+      # from there so the pin cannot drift between CI and local checks.
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+      - run: bun install --frozen-lockfile
+      # Playwright browsers install once Playwright joins the toolchain (a
+      # later guardrail slice adds playwright.config.ts); hashFiles keeps
+      # this a no-op until then.
+      - if: ${{ hashFiles('playwright.config.ts', 'playwright.config.js') != '' }}
+        run: bunx playwright install --with-deps
+      - run: bun run check

@@ -135,11 +135,13 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
     });
-    expect(output).toContain("li-xjjeqo");
     expect(output).toContain("li-oaxjqm");
-    // The memory guardrail and discipline inventory (li-6b6u6m) are
-    // operational gates now, no longer pending families.
+    expect(output).toContain("li-m2trzv");
+    // The memory guardrail + discipline inventory (li-6b6u6m) and the CI
+    // workflow verification (li-xjjeqo) are operational gates now, no
+    // longer pending families.
     expect(output).not.toContain("li-6b6u6m");
+    expect(output).not.toContain("li-xjjeqo");
   });
 
   test("is non-mutating on the repository tree", () => {

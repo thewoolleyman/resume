@@ -113,6 +113,25 @@ ecosystem tooling adoption" enumeration. Runs in-process inside
 inventory is unprovisioned unless it already carries `src/**` product
 source, which fail-closes.
 
+## GitHub CI and pull-request automation gate
+
+`check-ci.ts` verifies §"GitHub CI and pull request discipline" and
+§"Pull request landing automation" locally:
+`.github/workflows/check.yml` (pull_request→master + push→master,
+full-history checkout for the TDD range base, pinned Bun via
+`bun-version-file`, `--frozen-lockfile` install, `bun run check`, and
+named-script-only delegation), `.github/workflows/auto-enable-merge.yml`
+(the five PR trigger types, draft and `do-not-merge` skips,
+owner/allowlist eligibility, GitHub App token mint via
+`secrets.APP_ID`/`secrets.APP_PRIVATE_KEY`, `gh pr merge --auto
+--rebase`), the absence of any auto-update-branches mechanism, and the
+settings documentation in `.github/README.md`. Runs in-process inside
+`check.ts`; `CHECK_LIVE_GITHUB=1` (or `bun scripts/check-ci.ts --live`)
+additionally verifies the real GitHub settings via `gh` — merge
+methods, auto-merge, the required `check` status (non-strict), and the
+no-bypass linear-history ruleset. A tree without `.github/workflows/`
+is unprovisioned unless it already carries `src/**`, which fail-closes.
+
 ## Package-script surface
 
 `package.json` names every script required by §"Package script

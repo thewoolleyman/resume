@@ -17,6 +17,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
+import { verifyCiProvisioning, verifyLiveGitHubSettings } from "./check-ci";
 import {
   INVENTORY_PATH,
   verifyDisciplineInventory,
@@ -61,11 +62,6 @@ const PENDING_GATES: readonly {
   workItem: string;
   title: string;
 }[] = [
-  {
-    family: "ci delegation and workflow verification",
-    workItem: "li-xjjeqo",
-    title: "GitHub CI and pull-request automation",
-  },
   {
     family: "result/rop enforcement (check:result)",
     workItem: "li-oaxjqm",
@@ -534,6 +530,45 @@ function checkDisciplineInventory(root: string): GateResult {
   };
 }
 
+// Verifies the CI workflows, named-script delegation, and the documented
+// branch-protection/merge-method settings (§"GitHub CI and pull request
+// discipline", §"Pull request landing automation"). Local verification
+// always runs; live GitHub API verification joins when CHECK_LIVE_GITHUB=1
+// and gh credentials are available (the spec makes live checks optional).
+function checkCiProvisioning(root: string): GateResult {
+  const gate = "ci delegation and workflow verification (.github/workflows)";
+  const result = verifyCiProvisioning(root);
+  if (result.status === "absent") {
+    const srcDir = join(root, "src");
+    if (existsSync(srcDir) && readdirSync(srcDir).length > 0) {
+      return {
+        gate,
+        status: "FAIL",
+        detail:
+          ".github/workflows/ is missing while first-party product source under src/** is present — CI and PR automation are required before the first non-trivial implementation merge",
+      };
+    }
+    return {
+      gate,
+      status: "skipped",
+      detail: "CI workflows not provisioned in this tree (no src/** yet)",
+    };
+  }
+  const failures = [...result.failures];
+  if (process.env["CHECK_LIVE_GITHUB"] === "1") {
+    failures.push(...verifyLiveGitHubSettings(root));
+  }
+  if (failures.length > 0) {
+    return { gate, status: "FAIL", detail: failures.join("; ") };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "check.yml, auto-enable-merge.yml, named-script delegation, and settings documentation verified",
+  };
+}
+
 function checkNoPrematureProductSource(root: string): GateResult {
   const gate = "product-source boundary guard";
   const srcDir = join(root, "src");
@@ -571,6 +606,7 @@ const results: GateResult[] = [
   checkTddBranchRange(root),
   checkMemoryGuardrail(root, pkg),
   checkDisciplineInventory(root),
+  checkCiProvisioning(root),
   checkNoPrematureProductSource(root),
 ];
 
