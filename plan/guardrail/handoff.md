@@ -130,28 +130,34 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **slices 1–3 done — bootstrap, script surface, aggregate
-check, and TypeScript/Svelte/lint/format gates provisioned** (2026-07-07).
-Work items were seeded at `b03c271` (`li-ugymfg` through `li-gzmujc`, each
-depending on its predecessor). Closed so far: `li-ugymfg` (bootstrap +
-script surface, merge `a2cf94e`), `li-w6mvog` (aggregate check skeleton,
-merge `e6f5206`), `li-3gtzzs` (adversarial-review fix anchoring the
-exact-pin dependency predicate, merge `058fb07`), and `li-tagohm`
-(strict TypeScript + svelte-check + strict-type-checked ESLint + Prettier
-gates with baseline-weakening protection, merge `b3b047f`). `bun run check`
-now runs five operational gates: script surface, harness tests, toolchain
-configuration baseline, toolchain runners (typecheck/lint/format:check), and
-the product-source boundary guard. The `needs-attention` / `drive` operator
-surface does not exist yet — use the git-jsonl fallback (`next` then
-`implement`). The loop is autonomous: sessions drive items continuously and
-stop only for maintainer blockers, plan completion, or session limits.
+Current state: **slices 1–4 done — bootstrap, script surface, aggregate
+check, toolchain gates, and the Red -> Green TDD gate provisioned**
+(2026-07-07). Work items were seeded at `b03c271` (`li-ugymfg` through
+`li-gzmujc`, each depending on its predecessor). Closed so far: `li-ugymfg`
+(bootstrap + script surface, merge `a2cf94e`), `li-w6mvog` (aggregate check
+skeleton, merge `e6f5206`), `li-3gtzzs` (watcher fix: anchored exact-pin
+dependency predicate, merge `058fb07`), `li-tagohm` (TypeScript/Svelte/
+lint/format gates, merge `b3b047f`), `li-mhwzqt` (watcher fix: effective
+ESLint rule enablement via eslint --print-config, merge `a3959fc`), and
+`li-avk7d7` (content-triggered Red -> Green TDD commit-msg hook,
+`TDD-*` trailer grammar with sha256 anchor checksums, origin/master..HEAD
+range validation in `bun run check`, and the `tdd-commit` helper, merge
+`6969e4e` — self-hosting: that commit carries its own
+`TDD-Suite-Green-*` trailers). `bun run check` now runs six operational
+gates. The commit-msg hook is LIVE for every commit in this repo from
+`6969e4e` onward. The `needs-attention` / `drive` operator surface does not
+exist yet — use the git-jsonl fallback (`next` then `implement`). The loop
+is autonomous: sessions drive items continuously and stop only for
+maintainer blockers, plan completion, or session limits.
 
-Next ripe action: implement `li-avk7d7` — "Content-triggered Red -> Green
-TDD commit gate": the standalone Bun/TypeScript commit-msg hook (Red, Green,
-and Suite-Green legs selected by staged content plus HEAD trailer state),
-`TDD-*` trailer grammar with anchor-test SHA-256 checksums, the
-`origin/master..HEAD` branch-range validator wired into `bun run check`, and
-the `tdd-commit` helper.
+Next ripe action: implement `li-6b6u6m` — "Local memory guardrail and
+discipline inventory": the committed, bootstrap-installed hook and
+`check:memory` gate rejecting prohibited hidden memory/tool-state paths,
+unindexed `.ai/*.md` notes, and dangling `AGENTS.md` links, plus
+`.ai/discipline-adoption.md` with the required baseline rows, indexed from
+`AGENTS.md` (note: `.claude/` and `.idea/` are already committed in this
+repo and will need the documented ordinary-tool-configuration exception or
+removal).
 
 ## Resume
 
