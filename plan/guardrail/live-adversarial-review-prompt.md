@@ -48,6 +48,11 @@ Important operating rules:
   a green closure that leaves the bypass open is a blocker.
 - Do not revert or overwrite the driver session's uncommitted work. If you need
   to coordinate, message the driver rather than editing over it.
+- When sending a blocker note to the driver, treat delivery as incomplete until
+  you have verified it was submitted. Prefer loading long notes into a tmux
+  buffer, paste the buffer, send Enter as a separate action, then capture the
+  pane. If the note is still visible at the input prompt, send Enter again
+  before doing anything else.
 - Keep the user informed with short status updates while watching.
 
 Useful commands/patterns:
@@ -77,8 +82,18 @@ done
 # Capture a small driver-session tail without flooding context.
 tmux capture-pane -t <PANE_TARGET> -p -S -8
 
-# Send a concise blocker note to the driver.
-tmux send-keys -t <PANE_TARGET> "<BLOCKING NOTE>" C-m
+# Send a concise blocker note to the driver. For long notes, use a tmux buffer
+# rather than raw send-keys text, then verify the prompt is not still holding
+# unsubmitted input.
+tmux set-buffer "<BLOCKING NOTE>"
+tmux paste-buffer -t <PANE_TARGET>
+tmux send-keys -t <PANE_TARGET> C-m
+sleep 1
+tmux capture-pane -t <PANE_TARGET> -p -S -8
+
+# If the captured pane still shows the blocker note sitting at the input prompt,
+# submit it immediately before continuing:
+# tmux send-keys -t <PANE_TARGET> C-m
 ```
 
 Review heuristics learned from prior guardrail-watch runs:
