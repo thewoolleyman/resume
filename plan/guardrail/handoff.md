@@ -53,6 +53,18 @@ Fallback while git-jsonl does not expose the full operator surface:
 3. After each coherent unit, commit and push to `master` automatically, matching
    the repository's `AGENTS.md` convention.
 
+After the action, report in human-readable terms what was done and which files,
+gates, or behavior it affects; update §"Where the loop stands now" when the
+non-derivable state changed; and END the report with the next handoff prompt
+line from §"Resume" plus a description of the next ripe action, e.g.:
+
+> Next: implement `li-XXXXXX` — <title> (<what it provisions>). Paste this into
+> Claude Code or Codex:
+>
+> ```text
+> plan/guardrail/handoff.md
+> ```
+
 Do not start product implementation under `src/**` until this plan's completion
 criteria are met.
 
@@ -98,6 +110,29 @@ When the full guardrail harness is present, operational, and green:
 - NEVER talk to the maintainer using only an opaque phase code, work-item id,
   action id, version id, or command token. Always include a human-readable
   description of the task and the files, behavior, or gate it affects.
+- ALWAYS end the session report with the next handoff prompt line from
+  §"Resume" plus a human-readable description of the next ripe action, so the
+  maintainer can paste it directly into the next Claude Code or Codex session.
+
+## Where the loop stands now
+
+Only non-derivable state is recorded here; the current ripe work item is
+derivable by running the livespec-orchestrator-git-jsonl `next` skill against
+`work-items.jsonl`.
+
+Current state: **work items seeded** (commit `b03c271`, 2026-07-07). The 11
+dependency-ordered guardrail slices from
+`plan/guardrail/research/findings.md` §"Work slices" are filed in
+`work-items.jsonl` as `li-ugymfg` through `li-gzmujc`, each depending on its
+predecessor so exactly one item is ripe at a time. The `needs-attention` /
+`drive` operator surface does not exist yet — use the git-jsonl fallback
+(`next` then `implement`). No guardrail artifact (no `package.json`) exists
+yet.
+
+Next ripe action: implement `li-ugymfg` — "Repository bootstrap and
+package-script surface" (pinned Bun/SvelteKit project metadata, the required
+Bun script surface including `bootstrap`/`check`/`tdd-commit`, and a
+`bootstrap` that installs the committed hooks).
 
 ## Resume
 

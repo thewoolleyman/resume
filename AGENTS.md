@@ -22,6 +22,23 @@ Use conventional-commit messages matching the established pattern:
 - `docs(spec): propose <topic>` for filing a proposed change.
 - `docs(spec): critique <topic>` for a critique.
 
+### Plan handoff discipline
+
+Plans live under `plan/<name>/` with `research/findings.md` (the design
+of record) and `handoff.md` (the paste-driven session entry point),
+following the `plan/adversarial-spec-hardening/` convention:
+
+- `handoff.md` tells a driver to do exactly ONE action per session and
+  ends with a `## Resume` section holding the exact paste line.
+- Non-derivable loop state lives in a "Where the loop stands now"
+  section of `handoff.md`, updated by the turn that changes it. State
+  derivable from the repo (e.g. the git-jsonl `next` ranking) is not
+  duplicated there.
+- Every session report MUST end with the next handoff prompt line —
+  the exact text to paste into the next Claude Code or Codex session
+  (normally the handoff path in a fenced code block) — paired with a
+  human-readable description of the next ripe action.
+
 ### Functional vs. non-functional taxonomy
 
 In this repo the split is **product vs. process**, NOT the textbook
