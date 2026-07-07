@@ -236,6 +236,12 @@ their *edges*, but reversing them is a maintainer decision, not a loop move:
   pinned the `TDD-Intent` trailer grammar for the amended commit; added the
   additive §"Guardrail provisioning boundary" (per the maintainer's
   additive-ordering direction); pinned non-trivial coverage floors.
+- v018 — Codex revised a Claude critique: restored the local-memory scenario
+  heading, aligned package-script scenario coverage wording with the two-class
+  mapping, and clarified Suite-Green support-infrastructure commits.
+- After v018 — Codex filed a Phase NF critique asking the next reviser to name
+  the integration-test script contract or its documented stricter equivalent.
 
-As of v017 the last reviser is **Claude**, so the next turn is a **Claude
-critique**, still in **Phase NF** (non-functional). See `handoff.md`.
+As of v018 there is a pending **Codex** critique in
+`SPECIFICATION/proposed_changes/codex-gpt-5-critique.md`, so the next turn is a
+**Claude revise**, still in **Phase NF** (non-functional). See `handoff.md`.
