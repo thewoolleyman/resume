@@ -190,6 +190,126 @@ function checkHarnessTests(root: string): GateResult {
   return { gate, status: "ok", detail: "all harness tests pass" };
 }
 
+// Removes JS line and block comments while preserving string and template
+// literals, so the rule-family scan below cannot be satisfied by a comment
+// that merely mentions a removed rule. Not a full JS parser — regex literals
+// containing "//" inside character classes are out of scope for the config
+// files this scans.
+function stripJsComments(source: string): string {
+  type Mode = "block" | "code" | "double" | "line" | "single" | "template";
+  let mode: Mode = "code";
+  let out = "";
+  let i = 0;
+  while (i < source.length) {
+    const ch = source.charAt(i);
+    const next = source.charAt(i + 1);
+    if (mode === "code") {
+      if (ch === "/" && next === "/") {
+        mode = "line";
+        i += 2;
+        continue;
+      }
+      if (ch === "/" && next === "*") {
+        mode = "block";
+        i += 2;
+        continue;
+      }
+      if (ch === "'") mode = "single";
+      else if (ch === '"') mode = "double";
+      else if (ch === "`") mode = "template";
+      out += ch;
+      i += 1;
+      continue;
+    }
+    if (mode === "line") {
+      if (ch === "\n") {
+        mode = "code";
+        out += ch;
+      }
+      i += 1;
+      continue;
+    }
+    if (mode === "block") {
+      if (ch === "*" && next === "/") {
+        mode = "code";
+        i += 2;
+        continue;
+      }
+      i += 1;
+      continue;
+    }
+    // Inside a string or template literal: copy verbatim, honoring escapes.
+    out += ch;
+    if (ch === "\\") {
+      out += next;
+      i += 2;
+      continue;
+    }
+    if (
+      (mode === "single" && ch === "'") ||
+      (mode === "double" && ch === '"') ||
+      (mode === "template" && ch === "`")
+    ) {
+      mode = "code";
+    }
+    i += 1;
+  }
+  return out;
+}
+
+// The rules that must be effectively enabled at error severity for
+// TypeScript sources: a sentinel from the strict-type-checked preset, the
+// import-order rule, the Svelte compiler/accessibility diagnostics rule, and
+// the first-party import-boundary rule.
+const REQUIRED_ERROR_RULES: readonly [string, string][] = [
+  [
+    "@typescript-eslint/no-floating-promises",
+    "typescript-eslint strict-type-checked (type-aware) baseline",
+  ],
+  ["perfectionist/sort-imports", "import-order rules"],
+  ["svelte/valid-compile", "Svelte compiler (incl. accessibility) diagnostics"],
+  ["no-restricted-imports", "first-party import-boundary rules"],
+];
+
+function isErrorSeverity(entry: unknown): boolean {
+  const severity = Array.isArray(entry) ? (entry as unknown[])[0] : entry;
+  return severity === 2 || severity === "error";
+}
+
+function verifyEffectiveEslintRules(root: string): string[] {
+  const probe = "eslint-baseline-probe.ts";
+  const run = Bun.spawnSync({
+    cmd: ["bunx", "eslint", "--print-config", probe],
+    cwd: root,
+  });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-2)
+      .join(" | ");
+    return [`eslint --print-config failed to resolve the config: ${tail}`];
+  }
+  let rules: Record<string, unknown>;
+  try {
+    const parsed = JSON.parse(run.stdout.toString()) as {
+      rules?: Record<string, unknown>;
+    };
+    rules = parsed.rules ?? {};
+  } catch {
+    return ["eslint --print-config emitted unparseable output"];
+  }
+  const failures: string[] = [];
+  for (const [rule, family] of REQUIRED_ERROR_RULES) {
+    if (!isErrorSeverity(rules[rule])) {
+      failures.push(
+        `effective ESLint config must enable "${rule}" at error severity (${family})`,
+      );
+    }
+  }
+  return failures;
+}
+
 // Static verification that the committed toolchain configuration is at the
 // pinned baseline — §"TypeScript quality gates" requires the aggregate check
 // to fail when the configuration drops below it. Activation is keyed on
@@ -244,23 +364,29 @@ function checkToolchainBaseline(root: string, pkg: PackageJson): GateResult {
   if (!existsSync(eslintConfigPath)) {
     failures.push("eslint.config.js is missing");
   } else {
-    const eslintConfig = readFileSync(eslintConfigPath, "utf8");
+    // Presence scan for preset/plugin wiring, comment-stripped so a comment
+    // mentioning a removed entry cannot satisfy it (li-mhwzqt). Effective
+    // enablement is verified separately below.
+    const eslintConfig = stripJsComments(
+      readFileSync(eslintConfigPath, "utf8"),
+    );
     const requiredRuleFamilies: readonly [string, string][] = [
       ["strictTypeChecked", "typescript-eslint strict-type-checked baseline"],
       ["eslint-plugin-svelte", "Svelte-aware linting"],
-      [
-        "svelte/valid-compile",
-        "Svelte compiler (incl. accessibility) diagnostics",
-      ],
-      ["perfectionist", "import-order rules"],
       ["eslint-config-prettier", "Prettier compatibility"],
-      ["no-restricted-imports", "first-party import-boundary rules"],
     ];
     for (const [needle, family] of requiredRuleFamilies) {
       if (!eslintConfig.includes(needle)) {
         failures.push(`eslint.config.js must retain ${family} ("${needle}")`);
       }
     }
+    // Effective-severity verification (li-mhwzqt): resolve the config the
+    // way ESLint itself does and require the load-bearing rules to be
+    // enabled at error severity for TypeScript sources — a rule that is
+    // absent, 'off', 'warn', or overridden to 'off' by a later flat-config
+    // block fails here by name. The probe path is virtual; --print-config
+    // only needs it to match the config's file patterns.
+    failures.push(...verifyEffectiveEslintRules(root));
   }
   if (!existsSync(join(root, ".prettierrc.json"))) {
     failures.push(".prettierrc.json is missing");
