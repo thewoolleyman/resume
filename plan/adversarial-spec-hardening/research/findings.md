@@ -38,15 +38,18 @@ handing off to the next. Ordering the work this way is what makes guardrail
 provisioning **additive rather than circular** — see §"Settled".
 
 1. **`plan/adversarial-spec-hardening` (this thread).** Two hardening phases:
-   - **Phase NF — non-functional hardening.** Critique/revise scope is
-     `SPECIFICATION/non-functional-requirements.md`. This is the current phase.
-   - **Phase FN — functional hardening.** After Phase NF converges (an
-     adversarial critique of the non-functional file finds only nits), the loop
-     advances and its scope becomes the **functional** files: `spec.md`,
-     `contracts.md`, `constraints.md`, `scenarios.md`.
-   - **Terminal.** When Phase FN converges, this thread's final act is to create
-     `plan/guardrail/` (below) and hand off. adversarial-spec-hardening is then
-     **done**.
+   - **Phase NF — non-functional/process hardening.** Critique/revise scope is
+     `SPECIFICATION/non-functional-requirements.md`.
+   - **Phase FN — functional/product hardening.** After Phase NF —
+     non-functional/process hardening of `non-functional-requirements.md` —
+     converges (an adversarial critique of the non-functional/process file finds
+     only nits), the loop advances and its scope becomes the
+     **functional/product** files: `spec.md`, `contracts.md`, `constraints.md`,
+     `scenarios.md`.
+   - **Terminal.** When Phase FN — functional/product hardening of `spec.md`,
+     `contracts.md`, `constraints.md`, and `scenarios.md` — converges, this
+     thread's final act is to create `plan/guardrail/` (below) and hand off.
+     adversarial-spec-hardening is then **done**.
 
 2. **`plan/guardrail` (created at this thread's terminal step).** Drives the
    **initial guardrail harness implementation** — `bootstrap`, `bun run check`,
@@ -291,8 +294,14 @@ their *edges*, but reversing them is a maintainer decision, not a loop move:
   advanced to Phase FN (functional/product hardening of `spec.md`,
   `contracts.md`, `constraints.md`, and `scenarios.md`).
 
-Because the v020 reset was Claude-authored and the NF phase advance happened
-during the explicit Codex override rather than after a normal Codex revise, the
-next turn is a **Codex critique** of the functional/product specification files
-in Phase FN — functional/product hardening of `spec.md`, `contracts.md`,
-`constraints.md`, and `scenarios.md`. See `handoff.md`.
+- v021 — Claude revised a Codex functional/product critique by pinning stable
+  item-anchor composition and present-end date rendering.
+- v022 — Codex revised a Claude functional/product critique by pinning inline
+  code span rendering and bare URL autolinking against the hash-pinned
+  predecessor production source and renderer behavior.
+- Terminal Phase FN convergence — Codex performed the final functional/product
+  hardening sweep of `spec.md`, `contracts.md`, `constraints.md`, and
+  `scenarios.md` and found no new load-bearing ambiguity, contradiction,
+  missing rule, or missing scenario. Remaining observations were nits or
+  implementation-realization details. `plan/guardrail/` was created as the next
+  plan in the chain, and `plan/adversarial-spec-hardening` is complete.

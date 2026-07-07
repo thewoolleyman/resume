@@ -1,9 +1,16 @@
 # Handoff — adversarial-spec-hardening (resume)
 
-**Thread:** `plan/adversarial-spec-hardening/` · **Driver-agnostic:** paste
-this file's path into **either Claude Code or Codex**; it self-determines the
-turn from `SPECIFICATION/` state (plus the recorded **phase**) and tells you if
-you are the wrong agent.
+**Thread:** `plan/adversarial-spec-hardening/` · **Status: COMPLETE.** The
+adversarial hardening loop finished both Phase NF — non-functional/process
+hardening of `SPECIFICATION/non-functional-requirements.md` — and Phase FN —
+functional/product hardening of `SPECIFICATION/spec.md`, `contracts.md`,
+`constraints.md`, and `scenarios.md`. The next active plan is
+`plan/guardrail/handoff.md` — build the initial guardrail harness before any
+first-party product source under `src/**` lands.
+
+If this file is pasted into Claude Code or Codex again, STOP after reading this
+status and use `plan/guardrail/handoff.md` instead. The rest of this file is
+kept as the completed thread record.
 
 > Turn (critique vs revise) and actor are **derived from `SPECIFICATION/`
 > state**. The one piece of non-derivable state is the **phase** (NF → FN),
@@ -190,22 +197,25 @@ bound by these:
 
 ## Where the loop stands now
 
-Current phase: **FN** (functional/product hardening of `SPECIFICATION/spec.md`,
-`contracts.md`, `constraints.md`, and `scenarios.md`).
-Latest version **v020** — a **maintainer-directed reset** authored + landed by
-Claude (coverage -> non-negotiable 100%; TDD -> standalone content-triggered gate;
-reverses Settled v016/v017). `proposed_changes/` empty.
-→ Codex completed the explicit post-v020 NF critique override — the
-non-functional/process hardening review of `non-functional-requirements.md` —
-and found only nits, so Phase NF is converged. Because that phase advance
-happened during the v020 reset override rather than after a normal Codex revise,
-the next turn is a **Codex critique of the functional/product specification
-files**: `SPECIFICATION/spec.md`, `contracts.md`, `constraints.md`, and
-`scenarios.md`.
-Read the **Convergence guardrails** above first, then **paste this handoff path
-into Codex**. Normal critique↔revise alternation resumes after the Codex
-functional-spec critique is filed or after Phase FN — functional/product
-hardening — converges.
+Current state: **COMPLETE** — Phase NF (non-functional/process hardening of
+`SPECIFICATION/non-functional-requirements.md`) converged, then Phase FN
+(functional/product hardening of `SPECIFICATION/spec.md`, `contracts.md`,
+`constraints.md`, and `scenarios.md`) converged. `plan/guardrail/` has been
+created as the next plan in the chain.
+
+Historical terminal state before completion: **FN** (functional/product
+hardening of `SPECIFICATION/spec.md`, `contracts.md`, `constraints.md`, and
+`scenarios.md`). Latest spec version at completion: **v022** — markdown inline
+code spans and bare-URL autolinks pinned against the hash-pinned predecessor
+production source and predecessor renderer behavior. `proposed_changes/` was
+empty.
+
+Terminal completion — Codex performed the final Phase FN —
+functional/product hardening of `SPECIFICATION/spec.md`, `contracts.md`,
+`constraints.md`, and `scenarios.md` — critique sweep after v022 and found no
+new load-bearing functional/product findings. The remaining observations were
+nits or implementation-realization details. The thread therefore created
+`plan/guardrail/` and stopped.
 
 ## Resume
 
