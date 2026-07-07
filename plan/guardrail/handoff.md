@@ -130,34 +130,46 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **slices 1–4 done — bootstrap, script surface, aggregate
-check, toolchain gates, and the Red -> Green TDD gate provisioned**
-(2026-07-07). Work items were seeded at `b03c271` (`li-ugymfg` through
-`li-gzmujc`, each depending on its predecessor). Closed so far: `li-ugymfg`
-(bootstrap + script surface, merge `a2cf94e`), `li-w6mvog` (aggregate check
-skeleton, merge `e6f5206`), `li-3gtzzs` (watcher fix: anchored exact-pin
-dependency predicate, merge `058fb07`), `li-tagohm` (TypeScript/Svelte/
-lint/format gates, merge `b3b047f`), `li-mhwzqt` (watcher fix: effective
-ESLint rule enablement via eslint --print-config, merge `a3959fc`), and
-`li-avk7d7` (content-triggered Red -> Green TDD commit-msg hook,
-`TDD-*` trailer grammar with sha256 anchor checksums, origin/master..HEAD
-range validation in `bun run check`, and the `tdd-commit` helper, merge
-`6969e4e` — self-hosting: that commit carries its own
-`TDD-Suite-Green-*` trailers). `bun run check` now runs six operational
-gates. The commit-msg hook is LIVE for every commit in this repo from
-`6969e4e` onward. The `needs-attention` / `drive` operator surface does not
+Current state: **slices 1–5 done — bootstrap, script surface, aggregate
+check, toolchain gates, the Red -> Green TDD gate, and the local memory
+guardrail + discipline inventory provisioned** (2026-07-07). Work items
+were seeded at `b03c271` (`li-ugymfg` through `li-gzmujc`, each depending
+on its predecessor). Closed so far: `li-ugymfg` (bootstrap + script
+surface, merge `a2cf94e`), `li-w6mvog` (aggregate check skeleton, merge
+`e6f5206`), `li-3gtzzs` (watcher fix: anchored exact-pin dependency
+predicate, merge `058fb07`), `li-tagohm` (TypeScript/Svelte/lint/format
+gates, merge `b3b047f`), `li-mhwzqt` (watcher fix: effective ESLint rule
+enablement via eslint --print-config, merge `a3959fc`), `li-avk7d7`
+(content-triggered Red -> Green TDD commit-msg hook, `TDD-*` trailer
+grammar with sha256 anchor checksums, origin/master..HEAD range validation
+in `bun run check`, and the `tdd-commit` helper, merge `6969e4e` —
+self-hosting: that commit carries its own `TDD-Suite-Green-*` trailers),
+and `li-6b6u6m` (local memory guardrail + discipline inventory, merge
+`b651ed9`: `scripts/check-memory.ts` wired as `bun run check:memory` AND
+as the bootstrap-installed `.githooks/pre-commit` hook, rejecting
+prohibited hidden tool-state paths with default-deny for undocumented
+hidden paths, unindexed `.ai/*.md` notes, and dangling `AGENTS.md` links;
+the ordinary-tool-configuration policy in `AGENTS.md` documents the
+`.claude/settings.json` and `.idea/**` exceptions;
+`.ai/discipline-adoption.md` carries all twelve baseline rows, verified by
+`scripts/check-discipline-inventory.ts` inside `bun run check`, including
+citation-existence checks). `bun run check` now runs eight operational
+gates. The commit-msg (TDD) and pre-commit (memory) hooks are LIVE for
+every commit. The `needs-attention` / `drive` operator surface does not
 exist yet — use the git-jsonl fallback (`next` then `implement`). The loop
 is autonomous: sessions drive items continuously and stop only for
 maintainer blockers, plan completion, or session limits.
 
-Next ripe action: implement `li-6b6u6m` — "Local memory guardrail and
-discipline inventory": the committed, bootstrap-installed hook and
-`check:memory` gate rejecting prohibited hidden memory/tool-state paths,
-unindexed `.ai/*.md` notes, and dangling `AGENTS.md` links, plus
-`.ai/discipline-adoption.md` with the required baseline rows, indexed from
-`AGENTS.md` (note: `.claude/` and `.idea/` are already committed in this
-repo and will need the documented ordinary-tool-configuration exception or
-removal).
+Next ripe action: implement `li-xjjeqo` — "GitHub CI and pull-request
+automation": `.github/workflows/check.yml` (run `bun run check` on PRs to
+master and pushes to master), `.github/workflows/auto-enable-merge.yml`
+(rebase auto-merge via a short-lived GitHub App token; requires the
+`APP_ID` / `APP_PRIVATE_KEY` secrets, which only the maintainer can
+provision), required status-check and merge-method/branch-protection
+documentation, and repository-local settings verification wired into
+`bun run check` (live `gh` verification only when credentials are
+available). When it lands, flip the discipline inventory's "GitHub CI and
+pull-request discipline" row to gate-enforced citing those workflows.
 
 ## Resume
 
