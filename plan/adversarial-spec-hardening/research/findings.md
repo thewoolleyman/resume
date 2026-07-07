@@ -94,15 +94,16 @@ git-jsonl `next` / `implement` / `capture-*` skills already present and adopt
 NOT "when the critic runs out of things to say" (a precision loop has no natural
 terminus) and NOT "when we start building the resume app." Instead:
 
-- **Phase NF ends** when a full adversarial critique of
-  `non-functional-requirements.md` surfaces **only nits**. The loop then
-  **advances to Phase FN** — it does not stop.
-- **Phase FN ends** when a full adversarial critique of the functional files
-  (`spec.md`, `contracts.md`, `constraints.md`, `scenarios.md`) surfaces **only
-  nits**, AND the guardrail **contracts** are complete enough to implement the
-  guardrail **harness**.
-- **This thread ends** when Phase FN has ended and `plan/guardrail/` has been
-  created and handed off.
+- **Phase NF — non-functional/process hardening — ends** when a full adversarial
+  critique of `non-functional-requirements.md` surfaces **only nits**. The loop
+  then **advances to Phase FN — functional/product hardening of `spec.md`,
+  `contracts.md`, `constraints.md`, and `scenarios.md`** — it does not stop.
+- **Phase FN — functional/product hardening — ends** when a full adversarial
+  critique of the functional files (`spec.md`, `contracts.md`,
+  `constraints.md`, `scenarios.md`) surfaces **only nits**, AND the guardrail
+  **contracts** are complete enough to implement the guardrail **harness**.
+- **This thread ends** when Phase FN — functional/product hardening — has ended
+  and `plan/guardrail/` has been created and handed off.
 
 A few low-level realizations pinned as MUST today (exact script names,
 `fast-check` specifically, the exact `TDD-*` trailer spellings, the concrete
@@ -137,11 +138,14 @@ claude critique → codex revise → codex critique → claude revise → (repea
 ```
 
 **Phase advancement** happens on a critique turn: if the current phase's sweep
-finds only nits and the phase is NF, the critic records the advance to FN
-(updates `handoff.md` + this file's Arc, commits) and stops for that turn — the
-same agent (still the last reviser) opens Phase FN with its next critique. If
-the phase is FN and its sweep finds only nits, the critic performs the
-**terminal step** (create `plan/guardrail/`) instead of filing a critique.
+finds only nits and the phase is NF — non-functional/process hardening of
+`non-functional-requirements.md` — the critic records the advance to FN —
+functional/product hardening of `spec.md`, `contracts.md`, `constraints.md`,
+and `scenarios.md` — (updates `handoff.md` + this file's Arc, commits) and
+stops for that turn. The same agent (still the last reviser) opens the
+functional/product hardening phase with its next critique. If the phase is FN
+and its sweep finds only nits, the critic performs the **terminal step** (create
+`plan/guardrail/`) instead of filing a critique.
 
 `handoff.md` encodes the executable decision procedure, including which agent
 must act and the phase-advancement / terminal branches.
@@ -163,6 +167,13 @@ must act and the phase-advancement / terminal branches.
   prioritizing load-bearing findings over style. Do not re-open settled
   decisions to manufacture findings, and do not critique out-of-phase files
   (finish NF before opening FN).
+- **Human-readable communication.** NEVER talk to the maintainer using only an
+  opaque phase code, work-item id, action id, version id, or other machine token.
+  Always pair the token with a human-readable description of what it means and
+  what files, behavior, proposal, or task it refers to. Examples: say "Phase FN
+  — functional/product hardening of `spec.md`, `contracts.md`, `constraints.md`,
+  and `scenarios.md`", not just "Phase FN"; say "`impl:123` — add the searchable
+  resume index gate", not just "`impl:123`".
 - **Coverage & TDD are converged — justify or defer.** The non-negotiable 100%
   coverage rule and the content-triggered TDD gate are ratified (v020). A
   critique MUST NOT file a coverage or TDD-mechanism finding unless its
@@ -177,7 +188,8 @@ These were decided across v012–v017 with maintainer input. A critique may refi
 their *edges*, but reversing them is a maintainer decision, not a loop move:
 
 - **The plan chain and MVP scope.** adversarial-spec-hardening → `plan/guardrail`
-  → `plan/mvp`, in that order; Phase NF before Phase FN. The MVP is the
+  → `plan/mvp`, in that order; Phase NF — non-functional/process hardening —
+  before Phase FN — functional/product hardening. The MVP is the
   **searchable interactive + static-text** resume only; **AI mode and the MCP
   server are out of MVP scope** and stay later-phase.
 - **Guardrail provisioning is additive, not a bootstrap-mode flag.** The
@@ -275,9 +287,12 @@ their *edges*, but reversing them is a maintainer decision, not a loop move:
   critique-justification requirement to `handoff.md`.
 - Post-v020 NF convergence — Codex performed the explicit adversarial critique
   override of the v020 reset and found only nits in
-  `non-functional-requirements.md`; Phase NF advanced to Phase FN.
+  `non-functional-requirements.md`; Phase NF (non-functional/process hardening)
+  advanced to Phase FN (functional/product hardening of `spec.md`,
+  `contracts.md`, `constraints.md`, and `scenarios.md`).
 
 Because the v020 reset was Claude-authored and the NF phase advance happened
 during the explicit Codex override rather than after a normal Codex revise, the
-next turn is a **Codex critique** of the functional files in Phase FN. See
-`handoff.md`.
+next turn is a **Codex critique** of the functional/product specification files
+in Phase FN — functional/product hardening of `spec.md`, `contracts.md`,
+`constraints.md`, and `scenarios.md`. See `handoff.md`.

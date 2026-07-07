@@ -37,10 +37,13 @@ claude critique → codex revise → codex critique → claude revise → (repea
 `claude-opus-4-8`). If you are Codex → `ME = codex` (author `codex-gpt-5`).
 Family match is by prefix: `claude*` → claude, `codex*` → codex.
 
-**0b. Phase.** Read **Current phase** from §"Where the loop stands now"
-(`NF` or `FN`). It sets the critique **sweep scope**:
-- `NF` → `SPECIFICATION/non-functional-requirements.md`.
-- `FN` → `SPECIFICATION/spec.md`, `contracts.md`, `constraints.md`,
+**0b. Phase.** Read **Current phase** from §"Where the loop stands now".
+The machine codes are `NF` and `FN`, but when talking to a human ALWAYS pair
+the code with its plain-English meaning and file scope:
+- `NF` = non-functional/process hardening →
+  `SPECIFICATION/non-functional-requirements.md`.
+- `FN` = functional/product hardening →
+  `SPECIFICATION/spec.md`, `contracts.md`, `constraints.md`,
   `scenarios.md`.
 
 **1. Detect state.** Count pending proposed changes:
@@ -58,8 +61,11 @@ Family match is by prefix: `claude*` → claude, `codex*` → codex.
      `.livespec.jsonc`), **ask the maintainer** on anything questionable, and do
      NOT undo the **Settled** list without sign-off. Let the CLI cut `vNNN` and
      run its doctor post-steps. Then **commit + push** (`chore(spec): cut vNNN —
-     <summary>`). Report: *"Revised → vNNN (phase `<NF|FN>`). Next: a CRITIQUE by
-     me — paste this handoff into `ME` again."*
+     <summary>`). Report with the phase code AND human-readable scope, e.g.
+     *"Revised → vNNN (Phase `<NF|FN>` — `<non-functional/process hardening of
+     non-functional-requirements.md | functional/product hardening of spec.md,
+     contracts.md, constraints.md, scenarios.md>`). Next: a CRITIQUE by me —
+     paste this handoff into `ME` again."*
 
 **2b. NO pending change → CRITIQUE turn.**
    - Read the newest `SPECIFICATION/history/vNNN/proposed_changes/*-revision.md`
@@ -71,21 +77,27 @@ Family match is by prefix: `claude*` → claude, `codex*` → codex.
      missing/weak enforcement, behavior with no clause or scenario. Defer
      wording/ordering/style. Do NOT sweep out-of-phase files.
      - **If ≥ 1 load-bearing finding:** run **`/livespec:critique`** (author =
-       `ME`), then **commit + push** (`docs(spec): critique <topic>`). Report:
-       *"Critique filed → <file> (phase `<NF|FN>`). Next: a REVISE by the OTHER
-       agent — paste this handoff into `{other}`."*
+       `ME`), then **commit + push** (`docs(spec): critique <topic>`). Report
+       with the phase code AND human-readable scope, e.g.
+       *"Critique filed → <file> (Phase `<NF|FN>` — `<non-functional/process
+       hardening of non-functional-requirements.md | functional/product
+       hardening of spec.md, contracts.md, constraints.md, scenarios.md>`). Next:
+       a REVISE by the OTHER agent — paste this handoff into `{other}`."*
      - **If ONLY nits remain → phase branch:**
        - **Phase `NF`:** do NOT file a critique. **Advance the phase to `FN`:**
          edit this handoff's §"Where the loop stands now" to `Current phase: FN`,
          add a one-line note to findings.md §"Arc so far", then **commit + push**
          (`docs(plan): advance adversarial-spec-hardening to functional phase`).
-         Report: *"Phase NF converged (only nits). Advanced to FN. Next: my (same
-         agent) FN critique — re-paste this handoff into `ME`."* (You remain the
+         Report: *"Phase NF — non-functional/process hardening of
+         `non-functional-requirements.md` — converged (only nits). Advanced to
+         Phase FN — functional/product hardening of `spec.md`, `contracts.md`,
+         `constraints.md`, and `scenarios.md`. Next: my functional-spec critique
+         of those four files — re-paste this handoff into `ME`."* (You remain the
          last reviser, so the next critique is still yours.)
        - **Phase `FN`:** the spec is converged. Do NOT file a critique. Perform
          the **Terminal step** below.
 
-## Terminal step (Phase FN converged → create `plan/guardrail`)
+## Terminal step (Phase FN — functional/product hardening — converged → create `plan/guardrail`)
 
 The spec is hardened. Create the next plan in the chain and hand off (do NOT
 start implementing here):
@@ -123,6 +135,13 @@ start implementing here):
   **Settled** item).
 - **Phase-scoped sweep** — finish NF before opening FN; never critique
   out-of-phase files.
+- **Human-readable communication.** NEVER talk to the maintainer using only an
+  opaque phase code, work-item id, action id, version id, or other machine token.
+  Always pair the token with a human-readable description of what it means and
+  what files, behavior, proposal, or task it refers to. Examples: say "Phase FN
+  — functional/product hardening of `spec.md`, `contracts.md`, `constraints.md`,
+  and `scenarios.md`", not just "Phase FN"; say "`impl:123` — add the searchable
+  resume index gate", not just "`impl:123`".
 
 ## Convergence guardrails (READ before any coverage/TDD critique)
 
@@ -165,23 +184,28 @@ bound by these:
   concrete failure the ambiguity would cause. A finding that cannot clear this
   bar is out of scope; **prefer advancing the phase over manufacturing a
   coverage/TDD finding.** If a full NF sweep surfaces only such can't-justify
-  items on coverage/TDD (and only nits elsewhere), treat Phase NF as converged
-  and advance per the decision procedure.
+  items on coverage/TDD (and only nits elsewhere), treat Phase NF —
+  non-functional/process hardening of `non-functional-requirements.md` — as
+  converged and advance per the decision procedure.
 
 ## Where the loop stands now
 
-Current phase: **FN** (functional hardening).
+Current phase: **FN** (functional/product hardening of `SPECIFICATION/spec.md`,
+`contracts.md`, `constraints.md`, and `scenarios.md`).
 Latest version **v020** — a **maintainer-directed reset** authored + landed by
 Claude (coverage -> non-negotiable 100%; TDD -> standalone content-triggered gate;
 reverses Settled v016/v017). `proposed_changes/` empty.
-→ Codex completed the explicit post-v020 NF critique override and found only
-nits in `non-functional-requirements.md`, so Phase NF is converged. Because that
-phase advance happened during the v020 reset override rather than after a normal
-Codex revise, the next turn is a **Codex critique** of the functional files:
-`SPECIFICATION/spec.md`, `contracts.md`, `constraints.md`, and `scenarios.md`.
+→ Codex completed the explicit post-v020 NF critique override — the
+non-functional/process hardening review of `non-functional-requirements.md` —
+and found only nits, so Phase NF is converged. Because that phase advance
+happened during the v020 reset override rather than after a normal Codex revise,
+the next turn is a **Codex critique of the functional/product specification
+files**: `SPECIFICATION/spec.md`, `contracts.md`, `constraints.md`, and
+`scenarios.md`.
 Read the **Convergence guardrails** above first, then **paste this handoff path
-into Codex**. Normal critique↔revise alternation resumes after the Codex FN
-critique is filed or after Phase FN converges.
+into Codex**. Normal critique↔revise alternation resumes after the Codex
+functional-spec critique is filed or after Phase FN — functional/product
+hardening — converges.
 
 ## Resume
 
