@@ -273,8 +273,11 @@ their *edges*, but reversing them is a maintainer decision, not a loop move:
   fleet's proven `red_green_replay` model as our own standalone rules with no
   fleet reference in the spec. Added the **convergence guardrails** +
   critique-justification requirement to `handoff.md`.
+- Post-v020 NF convergence — Codex performed the explicit adversarial critique
+  override of the v020 reset and found only nits in
+  `non-functional-requirements.md`; Phase NF advanced to Phase FN.
 
-Because the v020 reset was Claude-authored, the next turn is a **Codex critique**
-of the reset (adversarial check of the coverage + TDD rewrite), still in
-**Phase NF** — an explicit one-turn override of the mechanical "last reviser
-critiques next" rule, so Claude does not critique its own reset. See `handoff.md`.
+Because the v020 reset was Claude-authored and the NF phase advance happened
+during the explicit Codex override rather than after a normal Codex revise, the
+next turn is a **Codex critique** of the functional files in Phase FN. See
+`handoff.md`.

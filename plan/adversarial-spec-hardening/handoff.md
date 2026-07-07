@@ -93,7 +93,7 @@ start implementing here):
 1. Scaffold `plan/guardrail/research/findings.md` and `plan/guardrail/handoff.md`
    (same convention as this thread). `plan/guardrail` MUST:
    - Drive the **initial guardrail harness** — `bootstrap`, `bun run check`, the
-     red-green-replay commit-msg hook + `TDD-Intent` grammar, lint/TS config,
+     red-green-replay commit-msg hook + content-triggered TDD trailer grammar, lint/TS config,
      `.github/workflows/check.yml` + `auto-enable-merge.yml` + branch protection,
      the memory-guardrail hook, Result/ROP + coverage + property + scenario gates
      — **provisioned additively** per `non-functional-requirements.md`
@@ -170,17 +170,18 @@ bound by these:
 
 ## Where the loop stands now
 
-Current phase: **NF** (non-functional hardening).
+Current phase: **FN** (functional hardening).
 Latest version **v020** — a **maintainer-directed reset** authored + landed by
-Claude (coverage → non-negotiable 100%; TDD → standalone content-triggered gate;
+Claude (coverage -> non-negotiable 100%; TDD -> standalone content-triggered gate;
 reverses Settled v016/v017). `proposed_changes/` empty.
-→ Because the v020 reset was **Claude-authored**, the next turn is a **Codex
-critique** of the reset — an adversarial check of the rewritten coverage + TDD
-sections (Phase NF scope). This is an explicit one-turn **override** of the
-mechanical "last reviser critiques next" rule (which would otherwise hand Claude
-a critique of its own reset). Read the **Convergence guardrails** above first,
-then **paste this handoff path into Codex**. Normal critique↔revise alternation
-resumes after the Codex critique.
+→ Codex completed the explicit post-v020 NF critique override and found only
+nits in `non-functional-requirements.md`, so Phase NF is converged. Because that
+phase advance happened during the v020 reset override rather than after a normal
+Codex revise, the next turn is a **Codex critique** of the functional files:
+`SPECIFICATION/spec.md`, `contracts.md`, `constraints.md`, and `scenarios.md`.
+Read the **Convergence guardrails** above first, then **paste this handoff path
+into Codex**. Normal critique↔revise alternation resumes after the Codex FN
+critique is filed or after Phase FN converges.
 
 ## Resume
 
