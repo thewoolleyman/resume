@@ -9,7 +9,13 @@
 // rule family is dropped.
 
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -89,14 +95,15 @@ function makeToolchainFixture(options: ToolchainFixtureOptions = {}): string {
       scripts,
     }),
   );
-  const compilerOptions: Record<string, boolean> = {};
-  for (const flag of REQUIRED_TS_FLAGS) {
-    compilerOptions[flag] = true;
-  }
-  if (options.omitTsFlag !== undefined) {
-    delete compilerOptions[options.omitTsFlag];
-  }
-  writeFileSync(join(dir, "tsconfig.json"), JSON.stringify({ compilerOptions }));
+  const compilerOptions = Object.fromEntries(
+    REQUIRED_TS_FLAGS.filter((flag) => flag !== options.omitTsFlag).map(
+      (flag) => [flag, true],
+    ),
+  );
+  writeFileSync(
+    join(dir, "tsconfig.json"),
+    JSON.stringify({ compilerOptions }),
+  );
   writeFileSync(join(dir, "eslint.config.js"), "export default [];\n");
   writeFileSync(join(dir, ".prettierrc.json"), "{}\n");
   return dir;
@@ -130,7 +137,13 @@ describe("toolchain configuration baseline (li-tagohm)", () => {
     const pkg = JSON.parse(
       readFileSync(join(repoRoot, "package.json"), "utf8"),
     ) as { scripts?: Record<string, string> };
-    for (const name of ["typecheck", "lint", "lint:fix", "format", "format:check"]) {
+    for (const name of [
+      "typecheck",
+      "lint",
+      "lint:fix",
+      "format",
+      "format:check",
+    ]) {
       expect(pkg.scripts?.[name] ?? "").not.toContain("not-yet-provisioned");
     }
   });

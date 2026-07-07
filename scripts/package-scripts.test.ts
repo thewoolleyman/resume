@@ -98,7 +98,11 @@ describe("required Bun package-script surface (li-ugymfg)", () => {
 describe("not-yet-provisioned script stubs (exit-code baseline)", () => {
   test("a stubbed script fails with exit 3 and names its provisioning work item", () => {
     const run = Bun.spawnSync({
-      cmd: ["bun", join(repoRoot, "scripts", "not-yet-provisioned.ts"), "tdd-commit"],
+      cmd: [
+        "bun",
+        join(repoRoot, "scripts", "not-yet-provisioned.ts"),
+        "tdd-commit",
+      ],
       cwd: repoRoot,
     });
     const output = run.stdout.toString() + run.stderr.toString();

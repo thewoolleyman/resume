@@ -61,13 +61,15 @@ function makeFixture(options: FixtureOptions = {}): string {
   fixtures.push(dir);
   mkdirSync(join(dir, ".githooks"), { recursive: true });
   if (!options.withoutPackageJson) {
-    const scripts: Record<string, string> = {};
+    let scripts: Record<string, string> = {};
     for (const name of REQUIRED_SCRIPTS) {
       scripts[name] = "true";
     }
     scripts["bootstrap"] = "bun install && bun scripts/install-hooks.ts";
     if (options.omitScript !== undefined) {
-      delete scripts[options.omitScript];
+      scripts = Object.fromEntries(
+        Object.entries(scripts).filter(([name]) => name !== options.omitScript),
+      );
     }
     writeFileSync(
       join(dir, "package.json"),
@@ -91,7 +93,7 @@ function makeFixture(options: FixtureOptions = {}): string {
   }
   if (options.withPassingHarnessTest || options.withFailingHarnessTest) {
     mkdirSync(join(dir, "scripts"), { recursive: true });
-    const expected = options.withFailingHarnessTest ? 2 : 1;
+    const expected = options.withFailingHarnessTest ? "2" : "1";
     writeFileSync(
       join(dir, "scripts", "fixture.test.ts"),
       'import { expect, test } from "bun:test";\n' +
@@ -122,14 +124,18 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     // runs inside `bun test scripts`, which the harness-tests gate spawns.
     const { exitCode, output } = runCheck(repoRoot, {
       CHECK_SKIP_HARNESS_TESTS: "1",
+      CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
     });
     expect(output).toContain("package-script surface");
     expect(exitCode).toBe(0);
   });
 
   test("reports not-yet-provisioned gate families with their work items", () => {
-    const { output } = runCheck(repoRoot, { CHECK_SKIP_HARNESS_TESTS: "1" });
-    expect(output).toContain("li-tagohm");
+    const { output } = runCheck(repoRoot, {
+      CHECK_SKIP_HARNESS_TESTS: "1",
+      CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+    });
+    expect(output).toContain("li-avk7d7");
     expect(output).toContain("li-xjjeqo");
   });
 
@@ -138,7 +144,10 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       cmd: ["git", "status", "--porcelain"],
       cwd: repoRoot,
     }).stdout.toString();
-    runCheck(repoRoot, { CHECK_SKIP_HARNESS_TESTS: "1" });
+    runCheck(repoRoot, {
+      CHECK_SKIP_HARNESS_TESTS: "1",
+      CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+    });
     const after = Bun.spawnSync({
       cmd: ["git", "status", "--porcelain"],
       cwd: repoRoot,
@@ -147,7 +156,9 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
   });
 
   test("fails when a required script is missing, naming it", () => {
-    const { exitCode, output } = runCheck(makeFixture({ omitScript: "tdd-commit" }));
+    const { exitCode, output } = runCheck(
+      makeFixture({ omitScript: "tdd-commit" }),
+    );
     expect(exitCode).toBe(1);
     expect(output).toContain("tdd-commit");
   });
@@ -166,7 +177,9 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
   });
 
   test("fails when a harness test fails", () => {
-    const { exitCode } = runCheck(makeFixture({ withFailingHarnessTest: true }));
+    const { exitCode } = runCheck(
+      makeFixture({ withFailingHarnessTest: true }),
+    );
     expect(exitCode).toBe(1);
   });
 
@@ -197,14 +210,19 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
   test("accepts exact versions with prerelease or build metadata", () => {
     const { exitCode } = runCheck(
       makeFixture({
-        devDependencies: { "ok-exact": "1.2.3", "ok-prerelease": "1.2.3-beta.1" },
+        devDependencies: {
+          "ok-exact": "1.2.3",
+          "ok-prerelease": "1.2.3-beta.1",
+        },
       }),
     );
     expect(exitCode).toBe(0);
   });
 
   test("fail-closes on product source before the guardrails are complete", () => {
-    const { exitCode, output } = runCheck(makeFixture({ withProductSource: true }));
+    const { exitCode, output } = runCheck(
+      makeFixture({ withProductSource: true }),
+    );
     expect(exitCode).toBe(1);
     expect(output).toContain("product source");
   });

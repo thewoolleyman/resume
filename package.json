@@ -10,11 +10,11 @@
     "check": "bun scripts/check.ts",
     "dev": "bun scripts/not-yet-provisioned.ts dev",
     "build": "bun scripts/not-yet-provisioned.ts build",
-    "typecheck": "bun scripts/not-yet-provisioned.ts typecheck",
-    "lint": "bun scripts/not-yet-provisioned.ts lint",
-    "lint:fix": "bun scripts/not-yet-provisioned.ts lint:fix",
-    "format": "bun scripts/not-yet-provisioned.ts format",
-    "format:check": "bun scripts/not-yet-provisioned.ts format:check",
+    "typecheck": "tsc --noEmit && svelte-check --no-tsconfig --fail-on-warnings",
+    "lint": "eslint . --max-warnings 0",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "test:unit": "bun scripts/not-yet-provisioned.ts test:unit",
     "test:integration": "bun scripts/not-yet-provisioned.ts test:integration",
     "test:e2e": "bun scripts/not-yet-provisioned.ts test:e2e",
@@ -25,5 +25,19 @@
     "check:result": "bun scripts/not-yet-provisioned.ts check:result",
     "check:memory": "bun scripts/not-yet-provisioned.ts check:memory",
     "tdd-commit": "bun scripts/not-yet-provisioned.ts tdd-commit"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/bun": "1.3.14",
+    "eslint": "10.6.0",
+    "eslint-config-prettier": "10.1.8",
+    "eslint-plugin-perfectionist": "5.10.0",
+    "eslint-plugin-svelte": "3.20.0",
+    "prettier": "3.9.4",
+    "prettier-plugin-svelte": "4.1.1",
+    "svelte": "5.56.4",
+    "svelte-check": "4.7.1",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.63.0"
   }
 }

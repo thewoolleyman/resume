@@ -22,26 +22,6 @@ const PROVISIONERS: Record<string, Provisioner> = {
     provider:
       "the SvelteKit app scaffold (a later guardrail slice or plan/mvp)",
   },
-  typecheck: {
-    workItem: "li-tagohm",
-    provider: "TypeScript, Svelte, lint, and format gates",
-  },
-  lint: {
-    workItem: "li-tagohm",
-    provider: "TypeScript, Svelte, lint, and format gates",
-  },
-  "lint:fix": {
-    workItem: "li-tagohm",
-    provider: "TypeScript, Svelte, lint, and format gates",
-  },
-  format: {
-    workItem: "li-tagohm",
-    provider: "TypeScript, Svelte, lint, and format gates",
-  },
-  "format:check": {
-    workItem: "li-tagohm",
-    provider: "TypeScript, Svelte, lint, and format gates",
-  },
   "test:unit": {
     workItem: null,
     provider:
@@ -93,11 +73,10 @@ if (name === undefined || !(name in PROVISIONERS)) {
 }
 
 const { workItem, provider } = PROVISIONERS[name] as Provisioner;
-const source =
-  workItem === null ? provider : `${workItem} — ${provider}`;
+const source = workItem === null ? provider : `${workItem} — ${provider}`;
 console.error(
   `\`bun run ${name}\` is not yet provisioned.\n` +
     `It arrives with ${source}.\n` +
-    "Provisioning order: plan/guardrail/research/findings.md §\"Work slices\".",
+    'Provisioning order: plan/guardrail/research/findings.md §"Work slices".',
 );
 process.exit(3);

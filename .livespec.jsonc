@@ -13,5 +13,5 @@
   // .claude/settings.json) makes the orchestrator's skills available; THIS key is
   // what selects it. The git-jsonl store defaults to work-items.jsonl at the project
   // root, so no separate "livespec-orchestrator-git-jsonl" config section is required.
-  "implementation": { "plugin": "livespec-orchestrator-git-jsonl" }
+  "implementation": { "plugin": "livespec-orchestrator-git-jsonl" },
 }

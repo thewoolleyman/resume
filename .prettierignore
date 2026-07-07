@@ -1,0 +1,11 @@
+# Markdown is governed prose (specs, plans, notes) — formatting it would
+# churn spec diffs; it is not part of the format gate.
+*.md
+# Data and lock records, not source.
+work-items.jsonl
+bun.lock
+# Tool configuration directories that are not first-party source.
+.claude/
+.idea/
+.githooks/
+archive/
