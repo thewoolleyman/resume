@@ -6,7 +6,13 @@
 // still scanned so a live reference cannot hide there.
 
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -84,9 +90,17 @@ describe("no-live-git-jsonl gate (slice 4)", () => {
     expect(result.violations.join("\n")).toContain("plan/mvp/handoff.md");
   });
 
-  test("passes on the current repository tree", () => {
-    const result = checkNoGitJsonl(repoRoot);
-    expect(result.violations.join("\n")).toBe("");
-    expect(result.ok).toBe(true);
-  });
+  // This case reads the ambient repository tree via `git grep`, so it is only
+  // meaningful inside a real git worktree. The Suite-Green commit leg runs the
+  // harness suite against a `git checkout-index` temp tree that carries no
+  // `.git`, where `git grep` would fail the precondition — the in-process gate
+  // (scripts/check.ts) skips that case, and so must this test.
+  test.skipIf(!existsSync(join(repoRoot, ".git")))(
+    "passes on the current repository tree",
+    () => {
+      const result = checkNoGitJsonl(repoRoot);
+      expect(result.violations.join("\n")).toBe("");
+      expect(result.ok).toBe(true);
+    },
+  );
 });
