@@ -130,11 +130,12 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **slices 1–7 done — bootstrap, script surface, aggregate
+Current state: **slices 1–8 done — bootstrap, script surface, aggregate
 check, toolchain gates, the Red -> Green TDD gate, the local memory
 guardrail + discipline inventory, GitHub CI + pull-request automation
-(auto-merge NOW PROVEN OPERATIONAL via PR #2 — see below), and the
-Result/ROP enforcement gate provisioned** (2026-07-08). Work items
+(auto-merge NOW PROVEN OPERATIONAL via PR #2 — see below), the
+Result/ROP enforcement gate, and the coverage + property/fuzz gates
+provisioned** (2026-07-08). Work items
 were seeded at `b03c271` (`li-ugymfg` through `li-gzmujc`, each depending
 on its predecessor). Closed so far: `li-ugymfg` (bootstrap + script
 surface, merge `a2cf94e`), `li-w6mvog` (aggregate check skeleton, merge
@@ -190,7 +191,23 @@ count as reads — with void/paren/await discard unwrapping on call
 statements, and `containsThrow` stops at function/class boundaries so
 a swallowing catch cannot pass by declaring a nested throwing
 function; all three watcher repros re-verified rejected at HEAD.
-`bun run check` now runs ten
+Slice 8 closed as `li-m2trzv` (merge `15d9b21`): the coverage gate
+`scripts/check-coverage.ts` (`bun run test:coverage`) enforces the
+committed 100% line/branch threshold floor from `coverage.config.json`
+(kept separate from the gate so lowering it is caught), a per-file 100%
+floor over any `coverage/coverage-summary.json` report, and — after
+watcher fix `li-cvp8rq` (merge `b766aa5`) — that present first-party
+`src/**` product source is actually MEASURED (a report must exist and
+cover every src file, so `test:coverage` cannot pass while measuring
+nothing once the product-source boundary relaxes); the property/fuzz
+reproducibility gate `scripts/check-property.ts` (`bun run test:property`)
+verifies the committed `property.config.json` metadata — fast-check
+runner, fixed/logged seed, fast/CI run counts, replay command,
+shrunk-counterexample capture, the five generator classes, and (also via
+`li-cvp8rq`) that `phase1Targets` enumerates every spec-named phase-1
+target. Both gates are armed-but-vacuous until product source lands. The
+"fuzzing and property checks" discipline-inventory row flipped to
+adopted/gate-enforced. `bun run check` now runs twelve
 operational gates. The commit-msg (TDD) and pre-commit (memory) hooks
 are LIVE for every commit. The `needs-attention` / `drive` operator
 surface does not exist yet — use the git-jsonl fallback (`next` then
@@ -250,12 +267,21 @@ the rendered `with-resume-env.sh` at the repo root, REMOVES the
 a stale marker), verifies wrapper injection works, and closes
 `li-2o7eza` with merge evidence.
 
-After it: `li-m2trzv` — coverage (100% line/branch for `src/**`,
-`test:coverage`) and reproducible fast-check property/fuzz gates
-(`test:property`), armed additively per NFR §"Test coverage
-expectations" and §"Fuzzing and property checks". (`li-m2trzv` does NOT
-depend on the blocker; a session may drive it while the maintainer
-completes the 1Password bootstrap.)
+Next ripe (non-blocked) action: `li-hb77ad` — the scenario coverage
+gate (`check:scenarios`, slice 9). Per NFR §"Top-of-pyramid discipline"
+and the scenario "Scenario coverage gate protects acceptance behavior":
+add the committed scenario-to-test mapping data for every load-bearing
+scenario in `SPECIFICATION/scenarios.md` and a `check:scenarios` gate
+wired into `bun run check`, classifying each scenario as
+browser-observable (a Playwright identifier) or non-browser-exercisable
+(a named non-Playwright category plus rationale), and failing on a
+missing, stale, mis-typed, or class-dodging mapping. Armed additively
+like the other gates until product scenarios/tests land. `li-hb77ad`
+depends only on `li-m2trzv` (done), NOT on the maintainer blocker
+`li-2o7eza`, so a session may drive it now. `li-2o7eza` (GitHub App
+credentials via the 1Password wrapper render) remains OPEN on the
+maintainer 1Password bootstrap described above and is `next`'s
+top-ranked item, but it is not agent-actionable.
 
 ## Resume
 
