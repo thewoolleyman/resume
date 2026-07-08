@@ -21,10 +21,13 @@ any is dropped), runs the toolchain gates through their named scripts
 enforces the coverage thresholds (`test:coverage`), the property/fuzz
 reproducibility metadata (`test:property`), and the scenario coverage
 mapping (`check:scenarios`),
-fail-closes on `src/**` product source appearing before the guardrails
-are complete, and prints any not-yet-provisioned gate family with the
+and prints any not-yet-provisioned gate family with the
 work item that provisions it (none remain — every guardrail gate is
-operational).
+operational). The dedicated premature-product-source boundary guard was
+removed when product work began (li-eg4w7j); product source under `src/**`
+is now governed by the additive fail-closed gates (discipline inventory,
+CI provisioning, scenario mapping, coverage, and Result/ROP), each of
+which requires its own artifact the moment `src/**` is present.
 Exit codes: `0` pass, `1` gate failure, `2` usage error,
 `3` precondition failure (documented narrower convention: a failing
 gate is `1`, not an internal bug).

@@ -707,27 +707,6 @@ function checkScenarios(root: string): GateResult {
   };
 }
 
-function checkNoPrematureProductSource(root: string): GateResult {
-  const gate = "product-source boundary guard";
-  const srcDir = join(root, "src");
-  if (existsSync(srcDir) && readdirSync(srcDir).length > 0) {
-    return {
-      gate,
-      status: "FAIL",
-      detail:
-        "first-party product source under src/** is present before the guardrail " +
-        "harness is complete (SPECIFICATION/non-functional-requirements.md " +
-        '§"Guardrail provisioning boundary"). The gate that relaxes this lands ' +
-        "with li-eg4w7j — green precondition for product work.",
-    };
-  }
-  return {
-    gate,
-    status: "ok",
-    detail: "no src/** product source before guardrail completion",
-  };
-}
-
 // The no-live-git-jsonl gate (plan/orchestrator-migration slice 4): after the
 // work-item orchestrator migrated to livespec-orchestrator-beads-fabro, no
 // live reference to the retired git-jsonl orchestrator may remain in the
@@ -784,7 +763,6 @@ const results: GateResult[] = [
   checkProperty(root, pkg),
   checkScenarios(root),
   checkNoGitJsonlReferences(root),
-  checkNoPrematureProductSource(root),
 ];
 
 console.log("aggregate check (bun run check) — operational gates:");

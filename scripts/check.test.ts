@@ -271,7 +271,13 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     expect(exitCode).toBe(0);
   });
 
-  test("fail-closes on product source before the guardrails are complete", () => {
+  test("fail-closes on product source that lacks the required guardrail artifacts", () => {
+    // The dedicated premature-product-source boundary guard was removed once
+    // product work began (li-eg4w7j — the green precondition for product
+    // work). Product source under src/** is now permitted, but the additive
+    // fail-closed gates (discipline inventory, CI provisioning, scenario
+    // mapping) still require their artifacts to be present: a bare src/**
+    // tree that lacks them fails, naming the product source.
     const { exitCode, output } = runCheck(
       makeFixture({ withProductSource: true }),
     );
