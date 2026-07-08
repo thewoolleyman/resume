@@ -200,12 +200,29 @@ work through the beads-fabro operator loop — `drive` / `plan` / `needs-attenti
 ### Session update (phase-1 product source built on `feat/phase-1-mvp`)
 
 A working session implemented most of phase-1 on the local branch
-`feat/phase-1-mvp`. **All product source is currently UNCOMMITTED in the working
-tree** (`data/resume.yml`, all `src/**`, and the config/mise changes) — a
-product-source commit can only land as one all-green Suite-Green commit, and
-`bun run check` is not yet fully green (see the gate status below). The only
-committed change on the branch is this handoff doc update. `master` is untouched
-at `faac997`.
+`feat/phase-1-mvp` (merge-base `faac997`). **All product source is currently
+UNCOMMITTED in the working tree** (`data/resume.yml`, all `src/**`, and the
+config/`mise.toml` changes) — a product-source commit can only land as one
+all-green Suite-Green commit, and `bun run check` is not yet fully green (see
+the gate status below).
+
+Repository baseline (keep accurate — the next agent reviews/pushes docs against
+it):
+
+- **Branch `feat/phase-1-mvp`** has TWO committed docs/spec commits, no product
+  source (identify by message — exact SHAs churn on amend/rebase): a
+  `docs(plan): record phase-1 build state…` commit (this handoff update), and a
+  `docs(spec): propose injectable-mocks-unit-coverage + reject-invalid-skill-levels…`
+  commit that adds the two `SPECIFICATION/proposed_changes/` files, the
+  ratified-decisions handoff update, and a
+  `plan/mvp/live-adversarial-review-prompt.md` note. Everything else (data,
+  `src/**`, config, `mise.toml`) is UNCOMMITTED in the working tree.
+- **`origin/master` has advanced to `5027c85`** ("docs(plan): record MVP
+  reviewer restart guidance"); the branch's merge-base with it is `faac997`, so
+  the branch is behind by that one docs commit. **Rebase the branch onto
+  `origin/master` before landing.** `origin/master..HEAD` currently contains
+  only the two docs/spec commits (no product source), so the TDD range gate
+  passes.
 
 **Done and green** (`bun run typecheck`, `lint`, `format:check`, `build` all
 pass; `bunx vitest run` = 104 tests pass; all 14 core `src/lib/**/*.ts` modules
@@ -261,49 +278,73 @@ build, no-git-jsonl. Red:
   `scripts/check.test.ts`'s "passes on the current repository tree" case runs
   the full aggregate. **Fix = author the specs** (the e2e pipeline is proven —
   build → preview → hydrate → live search verified in a real Playwright run).
-  Only ONE of these specs (`skill-levels.e2e.ts` "invalid legacy level") is
-  entangled with governance decision 2 below.
+  Per ratified decision 2, the former `skill-levels.e2e.ts` "invalid legacy
+  level" case is NOT a Playwright spec — that scenario becomes a non-browser
+  "invalid level rejected at load" test, so it drops out of the e2e set.
 - **RED — `test:coverage` (needs MAINTAINER decision 1).** Two Svelte
   components fall below the 100% branch floor: **`SectionView.svelte` 75% (9/12
   branches)** and **`ResumeApp.svelte` ~93%**. The gap is entirely Svelte 5's
   compiler-generated reactive-*update* branches for keyed `{#each}` over the
   static constant lists `SORT_OPTIONS`/`SKILL_LEVELS` (`svelte/require-each-key`
   forces the keys; the lists never change in-place, so those reconciliation/
-  update branches are unreachable). An injectable-prop workaround was **rejected
-  in review as coverage-only fake API**, and the 100% gate has no waiver
-  mechanism. → see decision 1.
+  update branches are unreachable by default). → **Resolved by ratified decision
+  1**: cover them with injected/mocked inputs at the unit level (the earlier
+  "coverage-only fake API" rejection was overruled). No waiver, no gate change.
 
-**Two MAINTAINER / governance decisions (needed for full green):**
+**RATIFIED maintainer decisions (2026-07-09).** Both are recorded as livespec
+proposed changes under `SPECIFICATION/proposed_changes/` (apply them with
+`/livespec:revise` before the implementation relies on them):
 
-1. **Svelte compiler-generated unreachable branches vs. the 100% branch floor.**
-   Add a narrowly-scoped, documented coverage waiver for compiler-generated
-   unreachable Svelte branches (the reviewer flagged this as the acceptable
-   route) — or amend the gate — vs. mandating an in-place-update component-test
-   approach. Blocks `test:coverage`.
-2. **Scenario "Item with an invalid legacy skill level stays visible" is pinned
-   browser-observable** (`scripts/check-scenarios.ts` `EXPECTED_CLASS`, mapped to
-   `e2e/skill-levels.e2e.ts`), but the pinned production data **forbids invalid
-   levels**, so no Playwright test can observe it against the real app — exactly
-   the situation for which the parallel "Invalid sort input" scenario is pinned
-   **non-browser-exercisable** (unit-tested). Recommended: a livespec
-   propose-change reclassifying it non-browser-exercisable, mapped to the
-   existing `src/lib/domain/filter.test.ts` invalid-level test (mirrors
-   invalid-sort). Governs how that one scenario is mapped.
+1. **Injectable mocks/DI at the unit level are legitimate for full coverage —
+   the earlier review rejection was WRONG.** Any mock/DI behavior may be used at
+   the bottom of the test pyramid to reach the non-negotiable 100% floor,
+   including injection seams whose non-default values are exercised only by
+   tests, and including driving framework-compiler-generated branches (e.g.
+   Svelte's reactive-update / keyed-`{#each}` branches). No coverage waiver and
+   no gate weakening. Recorded in
+   `SPECIFICATION/proposed_changes/injectable-mocks-unit-coverage.md` (targets
+   `non-functional-requirements.md` §"Test coverage expectations"). → Implement:
+   cover `ResumeApp.svelte` / `SectionView.svelte` branches via injected/mocked
+   inputs (e.g. inject the sort-options / skill-levels collections, or mock the
+   collaborators, so the update/each branches execute).
+2. **Invalid governed data is NOT allowed — reject at load; migrate legacy.** A
+   present item `level` that is not one of the five defined keys is malformed
+   governed data and MUST be rejected at load (fail build/prerender), exactly
+   like a missing group or nameless item; the "invalid legacy level stays
+   visible / `unknown level`" runtime tolerance is REMOVED from `contracts.md`.
+   Any legacy invalid data is fixed by a planned migration step, not tolerated.
+   Recorded in `SPECIFICATION/proposed_changes/reject-invalid-skill-levels.md`
+   (targets `spec.md`, `contracts.md`, `scenarios.md`: the "invalid legacy skill
+   level stays visible" scenario becomes "Invalid skill level is rejected at
+   load", **non-browser-exercisable**, mapped to the load/transform rejection
+   test — mirroring "Invalid sort input"). → Implement: transform rejects
+   invalid levels; drop the domain `isInvalidLevel` / `unknown level` handling
+   and the "invalid stays visible" filter branch; remap the scenario in
+   `scenario-coverage.json` + `check-scenarios.ts` `EXPECTED_CLASS`.
 
-**Remaining implementation (no decision needed):**
+**Remaining implementation (drive these to full green):**
 
-- Author the ~24 Playwright e2e specs → turns `check:scenarios` and the e2e
-  gate green (resolve decision 2's mapping for the invalid-level one).
+- `/livespec:revise` to ratify the two proposed changes into the spec head, then
+  add a small **legacy-invalid-data migration step** work item (decision 2) —
+  the pinned production snapshot has no invalid levels, so it is a documented
+  no-op path today, but the reject-at-load + migration pipeline must exist.
+- Apply decision 1 (mock/inject to close the two Svelte coverage gaps → green
+  `test:coverage`) and decision 2 (reject invalid levels; re-map the scenario).
+- Author the ~24 browser-observable Playwright specs mapped in
+  `scenario-coverage.json` → green `check:scenarios` + the e2e gate (the e2e
+  pipeline is proven).
 - Wire CI (`.github/workflows/check.yml`) to Node 22 (setup-node@22 or mise) so
   the SvelteKit build runs there.
 - Land the complete phase-1 as **one all-green Suite-Green commit** (`git add
   -A`; the full suite incl. real Playwright must pass) and merge via PR when
   `bun run check` is fully green with all gates ACTIVE.
 
-Next ripe action: **maintainer resolves the two governance decisions above**;
-in parallel an implementation session can author the remaining Playwright e2e
-specs and wire CI Node 22 (no decision needed), then land the green phase-1 via
-PR from `feat/phase-1-mvp`.
+Next ripe action: **`/livespec:revise`** to ratify
+`injectable-mocks-unit-coverage.md` and `reject-invalid-skill-levels.md` into
+the spec head; then an implementation session applies both decisions (mock/inject
+to close the Svelte coverage gaps; reject invalid levels + re-map that scenario
+non-browser), authors the remaining Playwright e2e specs, wires CI Node 22, and
+lands the green phase-1 via PR from `feat/phase-1-mvp`.
 
 ## Resume
 
