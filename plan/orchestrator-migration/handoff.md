@@ -136,23 +136,64 @@ When the migration meets `findings.md` §"Completion criteria":
 Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the active orchestrator's `next` skill.
 
-Current state: **plan scaffold authored; migration not yet started**
-(2026-07-08). `plan/guardrail/` is complete (all thirteen `bun run check`
-gates green). The active orchestrator is still `livespec-orchestrator-git-jsonl`
-(enabled in `.claude/settings.json`; `.livespec.jsonc`
-`implementation.plugin = livespec-orchestrator-git-jsonl`;
-`work-items.jsonl` is the store). `livespec-orchestrator-beads-fabro` is
-installed and functional in this environment (`bd` + `fabro` on PATH; plugin
-cached) but NOT yet enabled or configured. The orchestrator-migration work
-items are seeded in the git-jsonl store (they will migrate into beads during
-slice 2). Nothing about the orchestrator has been cut over yet.
+Current state: **slice 1 complete; slice 2 BLOCKED on maintainer — beads
+store provisioning** (2026-07-08). `plan/guardrail/` is complete. The active
+orchestrator is still `livespec-orchestrator-git-jsonl` (enabled in
+`.claude/settings.json`; `.livespec.jsonc`
+`implementation.plugin = livespec-orchestrator-git-jsonl`; `work-items.jsonl`
+is the store). Nothing about the orchestrator config/store/gate/enablement has
+been cut over — this is the plan's designed pause point between slice 1 (spec)
+and slice 2 (impl), and `bun run check` is green.
 
-Next ripe action: run the git-jsonl `next` skill and drive slice 1 — the
-**spec hardening** that repoints the NFR's git-jsonl orchestrator commitments
-(the dogfood line, the discipline-inventory baseline row, and the ecosystem
-enumeration) to beads-fabro via livespec propose-change then revise, landing a
-new SPECIFICATION history version. git-jsonl stays active through this slice;
-the beads-fabro cutover is slice 2.
+Slice 1 landed: livespec propose-change + revise cut SPECIFICATION history
+**v024**, repointing all four ratified-spec-head git-jsonl references to
+beads-fabro (NFR §"Livespec governance" dogfood line; §"Discipline adoption
+inventory" baseline row `git-jsonl work-item workflow` -> `beads-fabro
+work-item workflow`; §"Livespec ecosystem tooling adoption" enumeration ->
+`orchestrate`/`next`/`implement`/`capture-*`; and `SPECIFICATION/README.md`
+§"Governance"). `constraints.md` §"Standalone boundary" holds unchanged.
+Commits: `7f3b298` (v024) and `53ce88d` (git-jsonl work item `li-cknatr`
+closed with audit merge-evidence). The remaining migration work items
+(`li-mt7gbv`, `li-dkscec`, `li-l2dzsa`, `li-33rr3v`, `li-ywmrpi`) are still
+seeded/ready in the git-jsonl store.
+
+**Blocker (slice 2 — maintainer decision + credentials required).** The plan's
+findings.md assumed beads-fabro is a *local* `.beads/` store that slice 2 could
+"stand up" autonomously. That is factually wrong: `livespec-orchestrator-beads-fabro`
+is a **shared multi-tenant Dolt server** (`dolt-server`, running at
+`127.0.0.1:3307`) with **one tenant database per repo**. `.beads/` holds only
+pointer files (`config.yaml` -> a server tenant); the data lives on the shared
+server. Every sibling fleet repo has its own provisioned tenant; **there is NO
+`resume` tenant** — resume has never been onboarded. Standing one up requires
+`/data/projects/dolt-server/scripts/onboard-tenant.sh --db <DB> --user <USER>`,
+which needs the **Dolt superuser `ROOT_PASSWORD`** (privileged provisioning
+identity), a **tenant/family password secret** (`TENANT_PASSWORD` for an
+external tenant, or `--family` sharing `FAMILY_BEADS_PASSWORD`), and **S3
+backup-remote registration** — none of which are available to an agent session
+(resume wires only `with-resume-env.sh` / 1Password `resume`; no
+`BEADS_DOLT_PASSWORD`, no beads `credential_wrapper`). The plugin's own rule
+forbids agents from doing this: *"Never run `bd init`. Never write to any
+`.beads/` directory"*; tenant provisioning is an explicit "operator-side
+precondition". There is also a **standalone-boundary tension**: resume is
+deliberately standalone from the livespec fleet, yet joining the shared fleet
+Dolt server couples its work-item store to fleet infra — a decision the
+maintainer must adjudicate (join shared server vs. a local/embedded beads mode
+vs. reconsider the target orchestrator).
+
+Next ripe action: **maintainer decision required before slice 2 can proceed.**
+Decide the beads-store architecture for resume (shared fleet Dolt tenant vs.
+local embedded beads vs. reconsider), and if provisioning a shared tenant,
+run `onboard-tenant.sh` (needs `ROOT_PASSWORD` + tenant secret + S3 config)
+and provide the tenant password to resume via a `credential_wrapper`. Once a
+reachable, credentialed `resume` beads tenant exists, slice 2 resumes:
+add the `livespec-orchestrator-beads-fabro` `.livespec.jsonc` connection block
+(tenant/prefix/database/server_user), migrate the 24 materialized
+`work-items.jsonl` heads via `bd import` (native JSONL; `id` preserved,
+`done`->`closed`, `audit`->`metadata.audit`, `rank`->`metadata.rank`,
+origin/gap-id/resolution as labels), enable beads-fabro + disable git-jsonl in
+`.claude/settings.json`, repoint `.livespec.jsonc` `implementation.plugin`,
+archive `work-items.jsonl`, and add `.beads/` to the `check-memory` allowlist +
+AGENTS.md memory policy.
 
 ## Resume
 
