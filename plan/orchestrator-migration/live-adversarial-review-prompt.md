@@ -88,9 +88,17 @@ while true; do
 done
 
 # The migration's own reproductions:
-# 1. No LIVE git-jsonl reference remains (immutable history + archived store excluded).
-grep -rIl -e git-jsonl -e git_jsonl -e livespec-orchestrator-git-jsonl . \
-  | grep -vE 'node_modules|SPECIFICATION/history/|/archive/|work-items\.jsonl'
+# 1. No LIVE git-jsonl reference remains. Excludes only: dependencies, the git
+#    metadata dir, immutable spec history, and the ARCHIVED work-items store
+#    (under archive/). Do NOT blanket-exclude work-items.jsonl: a live root
+#    ./work-items.jsonl left un-retired after slice 2 MUST still be flagged as an
+#    incomplete/dual-homed cutover. Record text that quotes git-jsonl as
+#    migration history inside the archived store or the migrated beads store
+#    (.beads/) is DATA, not a live reference — a match in config, a gate, docs,
+#    or a live root work-items.jsonl is the real finding.
+grep -rIl --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=.beads \
+  -e git-jsonl -e git_jsonl -e livespec-orchestrator-git-jsonl . \
+  | grep -vE 'SPECIFICATION/history/|(^|/)archive/'
 # 2. beads-fabro is the configured, enabled orchestrator.
 grep -n implementation .livespec.jsonc; grep -n beads-fabro .claude/settings.json
 # 3. The beads store exists and holds the migrated records.
