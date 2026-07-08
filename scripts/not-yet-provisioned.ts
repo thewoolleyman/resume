@@ -37,14 +37,6 @@ const PROVISIONERS: Record<string, Provisioner> = {
     provider:
       "the Playwright toolchain provisioned by later guardrail slices (see plan/guardrail/research/findings.md)",
   },
-  "test:coverage": {
-    workItem: "li-m2trzv",
-    provider: "Coverage and property/fuzz gates",
-  },
-  "test:property": {
-    workItem: "li-m2trzv",
-    provider: "Coverage and property/fuzz gates",
-  },
   "check:scenarios": {
     workItem: "li-hb77ad",
     provider: "Scenario coverage gate (`check:scenarios`)",

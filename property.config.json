@@ -1,0 +1,25 @@
+{
+  "runner": "fast-check",
+  "seed": 4242,
+  "runCounts": {
+    "fast": 100,
+    "ci": 1000
+  },
+  "replayCommand": "bun run test:property -- --seed <seed> --path <target>",
+  "captureShrunkCounterexamples": true,
+  "generatorClasses": [
+    "valid-domain",
+    "malformed",
+    "adversarial",
+    "boundary",
+    "legacy-compatibility"
+  ],
+  "phase1Targets": [
+    "governed-yaml-parse-reject",
+    "item-and-section-slug-derivation",
+    "markdown-and-html-strip-for-search",
+    "date-parse-render-sort",
+    "search-filter-sort-composition",
+    "domainerror-presentation-mapping"
+  ]
+}

@@ -18,6 +18,8 @@ any is dropped), runs the toolchain gates through their named scripts
 (`typecheck`, `lint`, `format:check`), validates TDD evidence over
 `origin/master..HEAD`, runs the local memory guardrail
 (`check:memory`) and the discipline-adoption inventory verification,
+enforces the coverage thresholds (`test:coverage`) and the property/fuzz
+reproducibility metadata (`test:property`),
 fail-closes on `src/**` product source appearing before the guardrails
 are complete, and prints every not-yet-provisioned gate family with
 the work item that provisions it.
@@ -191,6 +193,50 @@ enabled via `eslint --print-config`. The documented `Result` /
 `DomainError` shape lives in the NFR §"Result and railway-oriented
 programming discipline"; the layer split is repeated in the script
 header.
+
+## Coverage gate (`test:coverage`)
+
+`check-coverage.ts` enforces §"Test coverage expectations". The committed
+coverage thresholds live in `coverage.config.json` — the source of truth,
+kept SEPARATE from the gate so lowering a threshold below 100% is caught
+by an unchanged gate. The gate fails when any committed threshold (line,
+branch, function, statement) drops below 100%: for first-party product
+source under `src/**` this floor is non-negotiable — no lower tier, no
+framework-glue exemption, no per-module carve-out. When a coverage report
+(`coverage/coverage-summary.json`, the Istanbul json-summary shape a
+`vitest run --coverage` produces) is present, every first-party `src/**`
+file in it must be at 100% line and 100% branch; a single under-covered
+`src/**` file fails. Generated SvelteKit artifacts, generated types, built
+assets, and repository harness/tooling are outside the product-source set
+and are not counted. With no report and no `src/**` the gate is
+armed-but-vacuous and still enforces the committed threshold floor
+(`coverage/` is gitignored, so the per-file check is dormant on a clean
+checkout and runs against a freshly produced report). When the Vitest
+toolchain lands, `test:coverage` becomes
+`vitest run --coverage && bun scripts/check-coverage.ts`: Vitest produces
+the report and enforces the global thresholds, and this gate enforces the
+per-file 100% floor plus the committed threshold floor. Exit codes: `0`
+ok/armed, `1` violations, `2` usage.
+
+## Property/fuzz reproducibility gate (`test:property`)
+
+`check-property.ts` enforces §"Fuzzing and property checks": property and
+fuzz tests must be reproducible, and the aggregate check must fail when the
+required reproducibility metadata is absent. That metadata lives in
+`property.config.json` (the committed source of truth, kept SEPARATE from
+the gate so removing a field is caught): a `fast-check` runner (or a
+documented stricter equivalent carrying a `runnerRationale`), a fixed
+integer or `"logged"` seed, declared fast and CI minimum run counts
+(`runCounts.fast`, `runCounts.ci` with `ci >= fast`), a `replayCommand`
+that re-runs a failed seed deterministically, `captureShrunkCounterexamples`
+for shrunk-counterexample logging, and the
+`valid-domain`/`malformed`/`adversarial`/`boundary`/`legacy-compatibility`
+generator classes so the malformed/adversarial portion cannot collapse
+into happy-path generation. With no `src/**` property targets yet the gate
+is armed-but-vacuous and still enforces the committed reproducibility
+policy; per-target checks (each phase-1 target under `src/**` carries a
+property or fuzz test wired to this policy) activate when product source
+lands. Exit codes: `0` ok/armed, `1` violations, `2` usage.
 
 ## Package-script surface
 

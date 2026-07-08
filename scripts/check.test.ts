@@ -135,14 +135,15 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
     });
-    expect(output).toContain("li-m2trzv");
     expect(output).toContain("li-hb77ad");
     // The memory guardrail + discipline inventory (li-6b6u6m), the CI
-    // workflow verification (li-xjjeqo), and the Result/ROP gate
-    // (li-oaxjqm) are operational gates now, no longer pending families.
+    // workflow verification (li-xjjeqo), the Result/ROP gate (li-oaxjqm),
+    // and the coverage + property/fuzz gates (li-m2trzv) are operational
+    // gates now, no longer pending families.
     expect(output).not.toContain("li-6b6u6m");
     expect(output).not.toContain("li-xjjeqo");
     expect(output).not.toContain("li-oaxjqm");
+    expect(output).not.toContain("li-m2trzv");
   }, 240000);
 
   test("is non-mutating on the repository tree", () => {

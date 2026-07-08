@@ -63,11 +63,6 @@ const PENDING_GATES: readonly {
   title: string;
 }[] = [
   {
-    family: "coverage and property/fuzz (test:coverage, test:property)",
-    workItem: "li-m2trzv",
-    title: "Coverage and property/fuzz gates",
-  },
-  {
     family: "scenario coverage (check:scenarios)",
     workItem: "li-hb77ad",
     title: "Scenario coverage gate",
@@ -594,6 +589,74 @@ function checkCiProvisioning(root: string): GateResult {
   };
 }
 
+// Runs the coverage gate through its named script (§"Test coverage
+// expectations"): the committed coverage thresholds must stay at 100%
+// line/branch and every first-party src/** file in any present coverage
+// report must be at 100% (armed-but-vacuous until product source and a
+// coverage report land).
+function checkCoverage(root: string, pkg: PackageJson): GateResult {
+  const gate = "coverage thresholds (test:coverage)";
+  if (!("test:coverage" in (pkg.scripts ?? {}))) {
+    return {
+      gate,
+      status: "FAIL",
+      detail: "package.json has no test:coverage script",
+    };
+  }
+  const run = Bun.spawnSync({
+    cmd: ["bun", "run", "test:coverage"],
+    cwd: root,
+  });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-6)
+      .join(" | ");
+    return { gate, status: "FAIL", detail: tail };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "committed thresholds pinned at 100% line/branch; per-file src/** coverage floor armed",
+  };
+}
+
+// Runs the property/fuzz reproducibility gate through its named script
+// (§"Fuzzing and property checks"): the committed reproducibility metadata
+// (runner, seed, run counts, replay command, shrink capture, generator
+// classes) must be present and well-formed (armed-but-vacuous until src/**
+// property targets land).
+function checkProperty(root: string, pkg: PackageJson): GateResult {
+  const gate = "property/fuzz reproducibility (test:property)";
+  if (!("test:property" in (pkg.scripts ?? {}))) {
+    return {
+      gate,
+      status: "FAIL",
+      detail: "package.json has no test:property script",
+    };
+  }
+  const run = Bun.spawnSync({
+    cmd: ["bun", "run", "test:property"],
+    cwd: root,
+  });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-6)
+      .join(" | ");
+    return { gate, status: "FAIL", detail: tail };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "reproducibility metadata verified (fast-check runner, seed, run counts, replay, shrink capture, generator classes)",
+  };
+}
+
 function checkNoPrematureProductSource(root: string): GateResult {
   const gate = "product-source boundary guard";
   const srcDir = join(root, "src");
@@ -633,6 +696,8 @@ const results: GateResult[] = [
   checkDisciplineInventory(root),
   checkCiProvisioning(root),
   checkResultDiscipline(root, pkg),
+  checkCoverage(root, pkg),
+  checkProperty(root, pkg),
   checkNoPrematureProductSource(root),
 ];
 
