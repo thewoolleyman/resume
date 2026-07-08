@@ -197,16 +197,113 @@ their audit trail; the retired JSONL work-items store is archived). Drive
 work through the beads-fabro operator loop — `drive` / `plan` / `needs-attention`
 / `next` / `implement` / `capture-work-item`, all backed by the beads store.
 
-Next ripe action: drive **slice 1 (`li-gn6`) — the SvelteKit + Vercel
-toolchain scaffold** — on a NEW feature branch (not `master`; see the
-product-build flow above). Stand up the SvelteKit app with the Vercel adapter
-and prerendering, and replace the `dev`/`build`/`test:unit`/`test:integration`/
-`test:e2e` stubs (`scripts/not-yet-provisioned.ts`) with real Vitest
-(coverage via `vitest run --coverage` feeding `scripts/check-coverage.ts`) and
-Playwright runners. This is the first `src/**` product source and flips the
-armed gates to enforcing; keep `svelte-check` and the strict toolchain green.
-Then continue through slices 2–10 on the branch, landing the complete green
-phase-1 via PR.
+### Session update (phase-1 product source built on `feat/phase-1-mvp`)
+
+A working session implemented most of phase-1 on the local branch
+`feat/phase-1-mvp`. **All product source is currently UNCOMMITTED in the working
+tree** (`data/resume.yml`, all `src/**`, and the config/mise changes) — a
+product-source commit can only land as one all-green Suite-Green commit, and
+`bun run check` is not yet fully green (see the gate status below). The only
+committed change on the branch is this handoff doc update. `master` is untouched
+at `faac997`.
+
+**Done and green** (`bun run typecheck`, `lint`, `format:check`, `build` all
+pass; `bunx vitest run` = 104 tests pass; all 14 core `src/lib/**/*.ts` modules
+at 100% line/branch):
+
+- **Slice 1 toolchain:** SvelteKit 2.69 + `@sveltejs/adapter-vercel` (fully
+  prerendered), Vitest 4 + `@vitest/coverage-v8`, Playwright 1.61, `fast-check`,
+  `marked`, `yaml` — all pinned exactly. Node is pinned to **22.22.0 via
+  `mise.toml`** because SvelteKit's postbuild `analyse` step crashes on Node 26
+  (`internal.js` ESM resolution). `dev`/`build`/`test:unit`/`test:e2e`/
+  `test:coverage` are real runners. Per watcher review, `scripts/check.ts` now
+  has real `production build (bun run build)` and `end-to-end (bun run test:e2e)`
+  aggregate gates (fail-close on a stub in a provisioned tree), with focused
+  `scripts/check.test.ts` coverage.
+- **Slice 2 data:** `data/resume.yml` present in the working tree (uncommitted,
+  like all product source) as the byte-identical predecessor production
+  snapshot (pinned SHA-256 verified from the `---` marker; provenance comments
+  prepended; `data/` is `.prettierignore`d so the hash is preserved).
+- **Slices 3/4/8 core:** `src/lib/data/{transform,slugs,dates,resume,types}`,
+  `src/lib/markdown/render`, `src/lib/search/projection`, `src/lib/{result,
+  errors,skill-levels}` — Result/ROP throughout (infallible steps threaded via
+  `map`/`andThen` to avoid dead branches), 100% covered, malformed-data
+  rejection (incl. non-string date/level scalars per watcher), the six
+  `property.config.json` fast-check targets (seed 4242), and the pinned
+  inventory (18 keys / 16 sections / 74 items) + Pivotal-anchor + `validated`/
+  `theleanstartup` worked example all verified against the real snapshot.
+- **Slice 5 domain:** `src/lib/search/search`, `src/lib/domain/{filter,compose}`,
+  `src/lib/sort/section-sort` — search → filter → sort composition, seven sorts
+  with tie-breaks + missing-date semantics, invalid-sort fallback, invalid-level
+  visibility.
+- **Slices 6/7/9 UI:** `src/routes/{+layout,+page,static/+page}` + server loads
+  (prerendered), `src/lib/components/{ResumeApp,SectionView,ItemRow,LevelBadge,
+  StaticResume}.svelte`, `src/lib/{page,nav,view}.ts`. The app **builds,
+  prerenders both `/` and `/static`, and hydrates** — verified via a real
+  Playwright run that search filters live. Metadata (title, description,
+  canonical, robots, viewport, manifest, 192/512 icons) present. Item + section
+  hash anchors clear the sticky nav via `scroll-margin-top` (watcher fix).
+- **11 non-browser scenario tests** authored at the exact `scenario-coverage.json`
+  identifiers (import/inventory/load/identifiers/slugs/projection/section-sort/
+  markdown) — all present and passing.
+
+**`bun run check` gate status — three RED gates, of two distinct kinds.**
+Green: package-script surface, toolchain baseline, typecheck/lint/format
+runners, TDD range (empty), memory guardrail, Result/ROP, property, production
+build, no-git-jsonl. Red:
+
+- **RED — `check:scenarios` (plain implementation, NO decision needed).** The
+  ~24 browser-observable Playwright specs mapped in `scenario-coverage.json`
+  (`e2e/*.e2e.ts`, ~11 files) are **not authored yet (0 of 11)**, so their
+  identifiers do not resolve to executable tests. The `end-to-end (bun run
+  test:e2e)` gate is red for the same reason (no specs → Playwright finds no
+  tests). This also transitively reddens the harness-tests gate, because
+  `scripts/check.test.ts`'s "passes on the current repository tree" case runs
+  the full aggregate. **Fix = author the specs** (the e2e pipeline is proven —
+  build → preview → hydrate → live search verified in a real Playwright run).
+  Only ONE of these specs (`skill-levels.e2e.ts` "invalid legacy level") is
+  entangled with governance decision 2 below.
+- **RED — `test:coverage` (needs MAINTAINER decision 1).** Two Svelte
+  components fall below the 100% branch floor: **`SectionView.svelte` 75% (9/12
+  branches)** and **`ResumeApp.svelte` ~93%**. The gap is entirely Svelte 5's
+  compiler-generated reactive-*update* branches for keyed `{#each}` over the
+  static constant lists `SORT_OPTIONS`/`SKILL_LEVELS` (`svelte/require-each-key`
+  forces the keys; the lists never change in-place, so those reconciliation/
+  update branches are unreachable). An injectable-prop workaround was **rejected
+  in review as coverage-only fake API**, and the 100% gate has no waiver
+  mechanism. → see decision 1.
+
+**Two MAINTAINER / governance decisions (needed for full green):**
+
+1. **Svelte compiler-generated unreachable branches vs. the 100% branch floor.**
+   Add a narrowly-scoped, documented coverage waiver for compiler-generated
+   unreachable Svelte branches (the reviewer flagged this as the acceptable
+   route) — or amend the gate — vs. mandating an in-place-update component-test
+   approach. Blocks `test:coverage`.
+2. **Scenario "Item with an invalid legacy skill level stays visible" is pinned
+   browser-observable** (`scripts/check-scenarios.ts` `EXPECTED_CLASS`, mapped to
+   `e2e/skill-levels.e2e.ts`), but the pinned production data **forbids invalid
+   levels**, so no Playwright test can observe it against the real app — exactly
+   the situation for which the parallel "Invalid sort input" scenario is pinned
+   **non-browser-exercisable** (unit-tested). Recommended: a livespec
+   propose-change reclassifying it non-browser-exercisable, mapped to the
+   existing `src/lib/domain/filter.test.ts` invalid-level test (mirrors
+   invalid-sort). Governs how that one scenario is mapped.
+
+**Remaining implementation (no decision needed):**
+
+- Author the ~24 Playwright e2e specs → turns `check:scenarios` and the e2e
+  gate green (resolve decision 2's mapping for the invalid-level one).
+- Wire CI (`.github/workflows/check.yml`) to Node 22 (setup-node@22 or mise) so
+  the SvelteKit build runs there.
+- Land the complete phase-1 as **one all-green Suite-Green commit** (`git add
+  -A`; the full suite incl. real Playwright must pass) and merge via PR when
+  `bun run check` is fully green with all gates ACTIVE.
+
+Next ripe action: **maintainer resolves the two governance decisions above**;
+in parallel an implementation session can author the remaining Playwright e2e
+specs and wire CI Node 22 (no decision needed), then land the green phase-1 via
+PR from `feat/phase-1-mvp`.
 
 ## Resume
 
