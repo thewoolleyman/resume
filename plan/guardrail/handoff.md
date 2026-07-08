@@ -216,8 +216,8 @@ and stop only for maintainer blockers, plan completion, or session
 limits.
 
 `li-2o7eza` (GitHub App credentials via the 1Password env-wrapper
-pattern, maintainer-directed) is MOSTLY DONE (2026-07-08) but stays
-OPEN on a maintainer blocker. Landed: spec **v023** adds NFR §"Local
+pattern, maintainer-directed) is DONE (2026-07-08, wrapper render merge
+`06ca377`; closure `8e32fc9`). Landed: spec **v023** adds NFR §"Local
 secret injection" naming the committed `with-resume-env.sh` wrapper as
 the documented local secret-injection mechanism (proposal
 `local-secret-injection-wrapper`, cut at `bd7733c`; the `.livespec.jsonc`
@@ -242,46 +242,47 @@ which also records the operational proof in the discipline-inventory
 GitHub CI row). `.playwright-mcp/` browser artifacts are git- and
 Prettier-ignored so local browser sessions cannot break `format:check`.
 
-MAINTAINER BLOCKER (why `li-2o7eza` is still open): the wrapper render
-needs 1Password state only the maintainer can create. The agent
-verified: `op` CLI has no signed-in account, `op environment` supports
-only `read` (Environments are created in the desktop app), and the
-1Password web sign-in for "Woolley Family" rejects the browser
-extension's saved "1Password Personal Account" password. Maintainer
-steps: (1) in the 1Password desktop app create a **`resume`
-Environment** and import `/tmp/resume-credentials/resume.env`
-(GITHUB_APP_ID + GITHUB_APP_PRIVATE_KEY, file mode 0600 — delete after
-import; the App private key also sits at
-`/tmp/resume-credentials/resume-pr-bot-2026-07-07-private-key.pem`);
-(2) create a **service-account token** with read access to that
-Environment; (3) drop both into
-`/data/projects/1password-env-wrapper/.env.local` as
-`RESUME_1PASSWORD_SERVICE_ACCOUNT_TOKEN` /
-`RESUME_1PASSWORD_ENVIRONMENT_ID` (or tell the next session where they
-are). The next session then runs the factory (`IDENTIFIER=resume`,
-`sudo -E ./create-1password-env-wrapper.sh` — passwordless sudo works;
-create the `resume` Linux group first: `sudo groupadd resume`), commits
-the rendered `with-resume-env.sh` at the repo root, REMOVES the
-"render pending maintainer 1Password bootstrap" markers from
-`.github/README.md`/`scripts/README.md`/`AGENTS.md` (the gate fails on
-a stale marker), verifies wrapper injection works, and closes
-`li-2o7eza` with merge evidence.
+How it was rendered (2026-07-08): the maintainer logged the agent into
+1Password in the Chrome session; the agent created the `resume`
+Environment's **read-only service account** and the `resume` Linux
+group, ran the factory (`IDENTIFIER=resume`,
+`sudo -E ./create-1password-env-wrapper.sh`), and committed the rendered
+`with-resume-env.sh` at the repo root. Installed at
+`/usr/local/bin/with-resume-env.sh` (root:resume 0750); the SA token
+lives in host systemd-creds
+(`/etc/credstore.encrypted/1password-env-wrapper-resume`); bootstrap
+`RESUME_1PASSWORD_*` vars are in the factory's gitignored `.env.local`.
+Env id `fj6btfanxkhmqdrvrtjp2tj5qm`.
 
-Next ripe (non-blocked) action: `li-hb77ad` — the scenario coverage
-gate (`check:scenarios`, slice 9). Per NFR §"Top-of-pyramid discipline"
-and the scenario "Scenario coverage gate protects acceptance behavior":
-add the committed scenario-to-test mapping data for every load-bearing
-scenario in `SPECIFICATION/scenarios.md` and a `check:scenarios` gate
-wired into `bun run check`, classifying each scenario as
-browser-observable (a Playwright identifier) or non-browser-exercisable
-(a named non-Playwright category plus rationale), and failing on a
-missing, stale, mis-typed, or class-dodging mapping. Armed additively
-like the other gates until product scenarios/tests land. `li-hb77ad`
-depends only on `li-m2trzv` (done), NOT on the maintainer blocker
-`li-2o7eza`, so a session may drive it now. `li-2o7eza` (GitHub App
-credentials via the 1Password wrapper render) remains OPEN on the
-maintainer 1Password bootstrap described above and is `next`'s
-top-ranked item, but it is not agent-actionable.
+**KEY FINDING — `op run` flattens multiline secrets.** The wrapper's
+`op run --environment` injects `GITHUB_APP_PRIVATE_KEY` FLATTENED to a
+single line (0 newlines; `-----BEGIN…-----` jammed against the base64
+body) regardless of how the key is stored in the Environment — the
+livespec malformed-key failure mode. `openssl` rejects the raw value.
+Fix: `scripts/normalize-pem.ts` (`normalizePem`), the standalone TS
+realization of livespec's `normalize_pem`, reconstructs the PEM on read
+(an openssl round-trip test proves raw-rejected / normalized-loads).
+Any local consumer of a wrapper-injected key MUST normalize first —
+documented in `.github/README.md`/`scripts/README.md`/`AGENTS.md`. No
+repository command consumes the injected App key yet (the live GitHub
+check uses `gh`); GitHub Actions is unaffected (it reads the
+`APP_PRIVATE_KEY` Actions secret via `actions/create-github-app-token`,
+which normalizes internally). `.playwright-mcp/` browser artifacts are
+git- and Prettier-ignored so local browser sessions cannot break
+`format:check`.
+
+Next ripe action: `li-hb77ad` — the scenario coverage gate
+(`check:scenarios`, slice 9), now `next`'s top-ranked ready item (the
+`li-2o7eza` maintainer blocker is cleared). Per NFR §"Top-of-pyramid
+discipline" and the scenario "Scenario coverage gate protects acceptance
+behavior": add the committed scenario-to-test mapping data for every
+load-bearing scenario in `SPECIFICATION/scenarios.md` and a
+`check:scenarios` gate wired into `bun run check`, classifying each
+scenario as browser-observable (a Playwright identifier) or
+non-browser-exercisable (a named non-Playwright category plus
+rationale), and failing on a missing, stale, mis-typed, or class-dodging
+mapping. Armed additively like the other gates until product
+scenarios/tests land.
 
 ## Resume
 
