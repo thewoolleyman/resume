@@ -12,6 +12,9 @@ coverage/
 test-results/
 playwright-report/
 
+# Local Playwright MCP browser-session artifacts
+.playwright-mcp/
+
 # TypeScript
 *.tsbuildinfo
 

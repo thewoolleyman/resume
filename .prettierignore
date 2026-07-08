@@ -9,3 +9,8 @@ bun.lock
 .idea/
 .githooks/
 archive/
+# livespec config: its strict-JSONC grammar (doctor-livespec-jsonc-valid)
+# forbids the trailing commas Prettier's jsonc style would add.
+.livespec.jsonc
+# Local Playwright MCP browser-session artifacts (untracked scratch).
+.playwright-mcp/
