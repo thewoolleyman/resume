@@ -73,10 +73,10 @@ Required watcher loop:
   waits on checks, or idles at maintainer input.
 - The loop must capture the watched pane, check for new `master` commits and
   local worktree activity, and keep running until the maintainer explicitly
-  stops the review, the watched session is explicitly stood down, or the plan
-  thread closes with independently verified evidence. If foreground output would
-  interrupt your review, run the loop in a separate tmux pane or background
-  process and inspect its log.
+  stops the review or the watched session exits. A closed/completed plan thread,
+  idle input prompt, maintainer decision picker, or blocker prompt is still an
+  active watched session. If foreground output would interrupt your review, run
+  the loop in a separate tmux pane or background process and inspect its log.
 - The `while true` loop below is the minimum starting point; adapt the pane
   target and add plan-specific probes as needed.
 
