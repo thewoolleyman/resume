@@ -80,12 +80,29 @@ Important operating rules:
   before doing anything else.
 - Keep the user informed with short status updates while watching.
 
+Required watcher loop:
+
+- Start a watcher loop as one of your first actions, before waiting on the
+  driver or any child agent. Manual one-off polling is not sufficient for this
+  role; the loop is how the reviewer keeps reviewing while the driver works,
+  waits on checks, or idles at maintainer input.
+- The loop must capture the watched pane, check for new `master` commits and
+  local worktree activity, and keep running until the maintainer explicitly
+  stops the review, the watched session is explicitly stood down, or the plan
+  thread closes with independently verified evidence. If foreground output would
+  interrupt your review, run the loop in a separate tmux pane or background
+  process and inspect its log.
+- The `while true` loop below is the minimum starting point; keep the migration
+  reproductions in the loop or run them on every newly landed commit range.
+
 Useful commands/patterns:
 
 ```sh
 # Watch all commits landing on master.
 last=$(git rev-parse HEAD)
 while true; do
+  printf '\n--- orchestrator-migration-review %s ---\n' "$(date -Is)"
+  tmux capture-pane -t <PANE_TARGET> -p -S -80 2>/dev/null | tail -140 || true
   git fetch origin master --quiet >/dev/null 2>&1 || true
   remote=$(git rev-parse origin/master 2>/dev/null || echo "$last")
   if [ "$remote" != "$(git rev-parse HEAD)" ]; then
@@ -97,7 +114,8 @@ while true; do
     git log --oneline --decorate --reverse "$last".."$cur"
     last="$cur"
   fi
-  sleep 15
+  git worktree list --porcelain | sed -n '1,120p'
+  sleep 120
 done
 
 # The migration's own reproductions:
