@@ -108,11 +108,11 @@ function baselineRows(): Row[] {
       disposition: "locally adapted",
     }),
     row({
-      discipline: "git-jsonl work-item workflow",
+      discipline: "beads-fabro work-item workflow",
       enforcementClass: "process-enforced",
-      artifact: "`work-items.jsonl`",
+      artifact: "`.beads/config.yaml`",
       coverage: "citation presence via this gate",
-      notes: "closure records carry merge evidence",
+      notes: "closure merge-evidence lives in the beads store",
     }),
   ];
 }
@@ -156,7 +156,8 @@ function makeFixture(options: FixtureOptions = {}): string {
   );
   mkdirSync(join(dir, ".githooks"), { recursive: true });
   writeFileSync(join(dir, ".githooks", "commit-msg"), "#!/usr/bin/env bash\n");
-  writeFileSync(join(dir, "work-items.jsonl"), "");
+  mkdirSync(join(dir, ".beads"), { recursive: true });
+  writeFileSync(join(dir, ".beads", "config.yaml"), "dolt.mode: server\n");
   if (!options.withoutInventory) {
     mkdirSync(join(dir, ".ai"), { recursive: true });
     writeFileSync(

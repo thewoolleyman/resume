@@ -14,10 +14,10 @@
         "ref": "release"
       }
     },
-    "livespec-orchestrator-git-jsonl": {
+    "livespec-orchestrator-beads-fabro": {
       "source": {
         "source": "github",
-        "repo": "thewoolleyman/livespec-orchestrator-git-jsonl",
+        "repo": "thewoolleyman/livespec-orchestrator-beads-fabro",
         "ref": "release"
       }
     }
@@ -25,6 +25,6 @@
   "enabledPlugins": {
     "livespec@livespec": true,
     "livespec@livespec-driver-claude": true,
-    "livespec-orchestrator-git-jsonl@livespec-orchestrator-git-jsonl": true
+    "livespec-orchestrator-beads-fabro@livespec-orchestrator-beads-fabro": true
   }
 }

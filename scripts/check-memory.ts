@@ -57,6 +57,14 @@ const ORDINARY_EXACT_PATHS = [
   ".prettierrc.json",
   ".prettierignore",
   ".livespec.jsonc",
+  // The beads work-item tenant store (livespec-orchestrator-beads-fabro):
+  // ordinary orchestrator data, not private memory. ONLY these two committable
+  // pointer files are tracked (per the openbrain-mirrored .beads/.gitignore
+  // policy); the rest of .beads/** (the per-machine metadata.json, the local
+  // Dolt working dir, runtime/backup/lock files) is gitignored and stays
+  // default-denied here, so a force-added hidden .beads path is still caught.
+  ".beads/config.yaml",
+  ".beads/.gitignore",
   ".idea/.gitignore",
   ".idea/modules.xml",
   ".idea/vcs.xml",

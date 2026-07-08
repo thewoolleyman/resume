@@ -13,7 +13,43 @@
   // /livespec:doctor's capture-as-work-item disposition, the auto-memory redirect
   // hook, and /livespec:revise's post-step gap check. Harness enablement (in
   // .claude/settings.json) makes the orchestrator's skills available; THIS key is
-  // what selects it. The git-jsonl store defaults to work-items.jsonl at the project
-  // root, so no separate "livespec-orchestrator-git-jsonl" config section is required.
-  "implementation": { "plugin": "livespec-orchestrator-git-jsonl" }
+  // what selects it.
+  "implementation": { "plugin": "livespec-orchestrator-beads-fabro" },
+  // Credential-injection wrapper prefixed to bd-backed CLIs so a bare invocation
+  // self-heals its tenant secret (BEADS_DOLT_PASSWORD) by re-exec. resume is an
+  // INDEPENDENT tenant (modelled on openbrain), so this names resume's OWN
+  // committed repo-root wrapper (backed by the resume 1Password Environment via
+  // `op run --environment`), NOT the livespec fleet's with-livespec-env.sh. The
+  // relative `./with-resume-env.sh` keeps the reference portable and standalone
+  // (the wrapper is committed in-repo per non-functional-requirements.md
+  // §"Local secret injection"); os.execvp resolves it from the project-root cwd.
+  "credential_wrapper": ["./with-resume-env.sh", "--"],
+  // Per-repo beads tenant for resume's work-item tracking. resume is an
+  // INDEPENDENT (non-family) tenant on the shared dolt-server: tenant ==
+  // database == server_user == "resume", issue-ID prefix "li" (matching the
+  // existing li-* ids migrated from the retired git-jsonl work-items.jsonl
+  // store). Isolation is the per-tenant Dolt SQL user + DB-scoped grant. The
+  // tenant password is injected as BEADS_DOLT_PASSWORD by the credential_wrapper
+  // above and is NEVER committed here. TCP-only (no socket key: the dolt socket
+  // dir is 0750 dolt:dolt, untraversable by non-dolt callers). `fake` is false so
+  // the committed config describes the real connection; CI/tests set
+  // LIVESPEC_BEADS_FAKE=1 to force the hermetic in-memory backend. Mirrors
+  // .beads/config.yaml.
+  "livespec-orchestrator-beads-fabro": {
+    "format": "beads",
+    "compat": {
+      "livespec": ">=0.1.0,<1.0.0",
+      "pinned": "v0.7.1"
+    },
+    "dispatcher": { "wip_cap": 5 },
+    "connection": {
+      "tenant": "resume",
+      "prefix": "li",
+      "database": "resume",
+      "server_user": "resume",
+      "server_host": "127.0.0.1",
+      "server_port": 3307,
+      "fake": false
+    }
+  }
 }

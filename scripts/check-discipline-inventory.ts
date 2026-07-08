@@ -43,7 +43,7 @@ const BASELINE_DISCIPLINES = [
   "local memory guardrails",
   "standalone dependency boundaries",
   "Bun/Vitest/Playwright/Svelte/SvelteKit/Vercel toolchain discipline",
-  "git-jsonl work-item workflow",
+  "beads-fabro work-item workflow",
 ] as const;
 
 const REQUIRED_COLUMNS = [

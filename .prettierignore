@@ -2,13 +2,16 @@
 # churn spec diffs; it is not part of the format gate.
 *.md
 # Data and lock records, not source.
-work-items.jsonl
 bun.lock
 # Tool configuration directories that are not first-party source.
 .claude/
 .idea/
 .githooks/
 archive/
+# The beads work-item tenant store: config.yaml/.gitignore are committed but
+# the rest (metadata.json, the local Dolt dir, runtime files) is tool-managed
+# and not prettier-governed source.
+.beads/
 # livespec config: its strict-JSONC grammar (doctor-livespec-jsonc-valid)
 # forbids the trailing commas Prettier's jsonc style would add.
 .livespec.jsonc

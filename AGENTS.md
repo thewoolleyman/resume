@@ -108,6 +108,13 @@ configuration rather than memory):
   `.livespec.jsonc`, `.prettierrc.json`, `.prettierignore`, and the
   `.gitignore`/`.gitattributes`/`.gitkeep`/`.editorconfig` basenames —
   ordinary repository configuration.
+- `.beads/config.yaml` and `.beads/.gitignore` ONLY — the committable
+  pointer files for the beads work-item tenant
+  (`livespec-orchestrator-beads-fabro`): ordinary orchestrator data (a
+  server-mode Dolt connection descriptor, no secrets), not private memory.
+  The rest of `.beads/**` — the per-machine `metadata.json` (project id),
+  the local Dolt working dir, and runtime/backup/lock files — is gitignored
+  and stays prohibited, so a force-added hidden `.beads` path is still caught.
 
 Agent-facing local notes live under `.ai/*.md` (flat, markdown only)
 and every note MUST have a list entry stating its purpose under

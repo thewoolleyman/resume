@@ -1,0 +1,25 @@
+# Beads configuration for the resume work-item tenant.
+#
+# Server-mode connection to resume's OWN INDEPENDENT beads/Dolt tenant on the
+# shared dolt-server (127.0.0.1:3307). resume is NOT a livespec-family tenant:
+# its tenant password lives in resume's OWN 1Password Environment and is
+# injected as the bare BEADS_DOLT_PASSWORD by with-resume-env.sh at bd-call
+# time (never committed here). Modelled on openbrain's independent-tenant setup
+# (the only other non-fleet tenant). Isolation is the per-tenant Dolt SQL user
+# + DB-scoped grant (`resume`@`%` scoped to the `resume` database).
+#
+# Committable: carries NO per-machine project_id and NO password (those live in
+# the gitignored .beads/metadata.json and 1Password respectively). Mirrors the
+# .livespec.jsonc livespec-orchestrator-beads-fabro.connection block. TCP-only
+# (no socket: the dolt socket dir is 0750 dolt:dolt, untraversable by non-dolt
+# callers). The issue-ID prefix `li` matches the existing li-* ids migrated from
+# the retired git-jsonl work-items.jsonl store. No git-sync remote: the data
+# lives on the shared Dolt server, not in git.
+
+dolt.auto-start: false
+dolt.mode: server
+dolt.server-host: 127.0.0.1
+dolt.server-port: 3307
+dolt.server-user: resume
+dolt.database: resume
+dolt.prefix: li

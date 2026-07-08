@@ -85,6 +85,11 @@ function makeTree(): string {
   );
   mkdirSync(join(dir, ".claude"), { recursive: true });
   writeFileSync(join(dir, ".claude", "settings.json"), "{}\n");
+  // The beads work-item tenant store: ONLY these two committable pointer files
+  // are tracked (ordinary orchestrator data, not private memory).
+  mkdirSync(join(dir, ".beads"), { recursive: true });
+  writeFileSync(join(dir, ".beads", "config.yaml"), "dolt.mode: server\n");
+  writeFileSync(join(dir, ".beads", ".gitignore"), "metadata.json\n");
   return dir;
 }
 
@@ -138,6 +143,18 @@ describe("local memory guardrail — tree mode (li-6b6u6m)", () => {
     const { exitCode, output } = runMemory(dir);
     expect(exitCode).toBe(1);
     expect(output).toContain(".some-agent-cache/state.db");
+  });
+
+  test("allows the two tracked .beads pointer files but default-denies other .beads paths", () => {
+    // config.yaml + .gitignore are in the clean tree (the makeTree fixture) and
+    // the clean-tree test above proves they pass. A force-added per-machine
+    // .beads/metadata.json (or any other hidden .beads path) is NOT allowlisted
+    // — the allowlist is exact-path, not a broad .beads/ prefix.
+    const dir = makeTree();
+    writeFileSync(join(dir, ".beads", "metadata.json"), "{}\n");
+    const { exitCode, output } = runMemory(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain(".beads/metadata.json");
   });
 
   test("rejects an .ai/*.md note that is not indexed from AGENTS.md", () => {
