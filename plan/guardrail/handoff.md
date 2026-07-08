@@ -132,8 +132,9 @@ derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 
 Current state: **slices 1–7 done — bootstrap, script surface, aggregate
 check, toolchain gates, the Red -> Green TDD gate, the local memory
-guardrail + discipline inventory, GitHub CI + pull-request automation,
-and the Result/ROP enforcement gate provisioned** (2026-07-08). Work items
+guardrail + discipline inventory, GitHub CI + pull-request automation
+(auto-merge NOW PROVEN OPERATIONAL via PR #2 — see below), and the
+Result/ROP enforcement gate provisioned** (2026-07-08). Work items
 were seeded at `b03c271` (`li-ugymfg` through `li-gzmujc`, each depending
 on its predecessor). Closed so far: `li-ugymfg` (bootstrap + script
 surface, merge `a2cf94e`), `li-w6mvog` (aggregate check skeleton, merge
@@ -197,37 +198,64 @@ surface does not exist yet — use the git-jsonl fallback (`next` then
 and stop only for maintainer blockers, plan completion, or session
 limits.
 
-The former "outstanding maintainer action" (GitHub App + secrets) was
-converted by maintainer directive (2026-07-08) into the agent-executable
-work item `li-2o7eza`, ranked first (a6V). Chrome on this host is
-logged in to GitHub; the local `gh` auth has repo admin. The task uses
-the standard livespec 1Password env-wrapper pattern — study
-`/data/projects/1password-env-wrapper/` (README.md, SPECIFICATION.md,
-`create-1password-env-wrapper.sh`, rendered examples
-`with-livespec-env.sh` / `with-openbrain-env.sh`) and the prior art in
-`/data/projects/livespec/plan/archive/github-app-auth/` and
-`/data/projects/livespec/plan/archive/credential-wrapper/` BEFORE
-building anything. Credentials destined for the new `resume` 1Password
-Environment are additionally dumped to a `.env` file under the system
-`/tmp` for the maintainer to import (explicit maintainer instruction).
-Verify pattern understanding first and file livespec
-propose-change/revise if the spec must name the wrapper as the
-documented secret-injection mechanism, then implement.
+`li-2o7eza` (GitHub App credentials via the 1Password env-wrapper
+pattern, maintainer-directed) is MOSTLY DONE (2026-07-08) but stays
+OPEN on a maintainer blocker. Landed: spec **v023** adds NFR §"Local
+secret injection" naming the committed `with-resume-env.sh` wrapper as
+the documented local secret-injection mechanism (proposal
+`local-secret-injection-wrapper`, cut at `bd7733c`; the `.livespec.jsonc`
+trailing comma that broke strict-JSONC doctor parsing was fixed at
+`c71f65c`, and `.livespec.jsonc` is Prettier-ignored since its grammar
+forbids Prettier's trailing commas). The GitHub App **resume-pr-bot**
+(app id 4243167) was created via the logged-in Chrome (permissions:
+contents write + pull_requests write; webhook off; installed ONLY on
+`thewoolleyman/resume`, installation 145115216) and the
+`APP_ID`/`APP_PRIVATE_KEY` repo secrets are set. **Pull-request landing
+automation is PROVEN OPERATIONAL:** PR #2 was armed by
+`app/resume-pr-bot` seconds after opening and rebase-merged
+automatically on a green `check` (merge `1804aa4`, branch
+auto-deleted); `bun scripts/check-ci.ts --live` passes. check-ci now
+gates the wrapper contract (docs in `.github/README.md` +
+`scripts/README.md` must document wrapper usage; an absent wrapper
+REQUIRES the documented "render pending maintainer 1Password bootstrap"
+state; a committed wrapper must be the untouched factory artifact for
+IDENTIFIER='resume' with no secret values and no stale pending marker
+— all red-covered, landed `1804aa4` + watcher follow-up `2e2bfcf`,
+which also records the operational proof in the discipline-inventory
+GitHub CI row). `.playwright-mcp/` browser artifacts are git- and
+Prettier-ignored so local browser sessions cannot break `format:check`.
 
-Next ripe action: implement `li-2o7eza` — "GitHub App credentials via
-the 1Password env-wrapper pattern": create the automation GitHub App in
-the logged-in Chrome (permissions: pull_requests write + contents
-write; install on `thewoolleyman/resume`; generate a private key), set
-the `APP_ID` / `APP_PRIVATE_KEY` repo secrets, provision a committed
-`with-resume-env.sh` wrapper via the 1password-env-wrapper factory for
-a new `resume` 1Password Environment, dump those credentials to a
-`/tmp` `.env` file for import, make every secret-needing command
-(e.g. `CHECK_LIVE_GITHUB=1`) documented/tested through the wrapper, and
-prove auto-merge operational (test PR auto-merges on a green `check`).
+MAINTAINER BLOCKER (why `li-2o7eza` is still open): the wrapper render
+needs 1Password state only the maintainer can create. The agent
+verified: `op` CLI has no signed-in account, `op environment` supports
+only `read` (Environments are created in the desktop app), and the
+1Password web sign-in for "Woolley Family" rejects the browser
+extension's saved "1Password Personal Account" password. Maintainer
+steps: (1) in the 1Password desktop app create a **`resume`
+Environment** and import `/tmp/resume-credentials/resume.env`
+(GITHUB_APP_ID + GITHUB_APP_PRIVATE_KEY, file mode 0600 — delete after
+import; the App private key also sits at
+`/tmp/resume-credentials/resume-pr-bot-2026-07-07-private-key.pem`);
+(2) create a **service-account token** with read access to that
+Environment; (3) drop both into
+`/data/projects/1password-env-wrapper/.env.local` as
+`RESUME_1PASSWORD_SERVICE_ACCOUNT_TOKEN` /
+`RESUME_1PASSWORD_ENVIRONMENT_ID` (or tell the next session where they
+are). The next session then runs the factory (`IDENTIFIER=resume`,
+`sudo -E ./create-1password-env-wrapper.sh` — passwordless sudo works;
+create the `resume` Linux group first: `sudo groupadd resume`), commits
+the rendered `with-resume-env.sh` at the repo root, REMOVES the
+"render pending maintainer 1Password bootstrap" markers from
+`.github/README.md`/`scripts/README.md`/`AGENTS.md` (the gate fails on
+a stale marker), verifies wrapper injection works, and closes
+`li-2o7eza` with merge evidence.
+
 After it: `li-m2trzv` — coverage (100% line/branch for `src/**`,
 `test:coverage`) and reproducible fast-check property/fuzz gates
 (`test:property`), armed additively per NFR §"Test coverage
-expectations" and §"Fuzzing and property checks".
+expectations" and §"Fuzzing and property checks". (`li-m2trzv` does NOT
+depend on the blocker; a session may drive it while the maintainer
+completes the 1Password bootstrap.)
 
 ## Resume
 
