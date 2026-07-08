@@ -37,10 +37,6 @@ const PROVISIONERS: Record<string, Provisioner> = {
     provider:
       "the Playwright toolchain provisioned by later guardrail slices (see plan/guardrail/research/findings.md)",
   },
-  "check:scenarios": {
-    workItem: "li-hb77ad",
-    provider: "Scenario coverage gate (`check:scenarios`)",
-  },
 };
 
 const name = process.argv[2];

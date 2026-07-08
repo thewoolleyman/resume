@@ -18,11 +18,13 @@ any is dropped), runs the toolchain gates through their named scripts
 (`typecheck`, `lint`, `format:check`), validates TDD evidence over
 `origin/master..HEAD`, runs the local memory guardrail
 (`check:memory`) and the discipline-adoption inventory verification,
-enforces the coverage thresholds (`test:coverage`) and the property/fuzz
-reproducibility metadata (`test:property`),
+enforces the coverage thresholds (`test:coverage`), the property/fuzz
+reproducibility metadata (`test:property`), and the scenario coverage
+mapping (`check:scenarios`),
 fail-closes on `src/**` product source appearing before the guardrails
-are complete, and prints every not-yet-provisioned gate family with
-the work item that provisions it.
+are complete, and prints any not-yet-provisioned gate family with the
+work item that provisions it (none remain — every guardrail gate is
+operational).
 Exit codes: `0` pass, `1` gate failure, `2` usage error,
 `3` precondition failure (documented narrower convention: a failing
 gate is `1`, not an internal bug).
@@ -253,6 +255,40 @@ is armed-but-vacuous and still enforces the committed reproducibility
 policy; per-target checks (each phase-1 target under `src/**` carries a
 property or fuzz test wired to this policy) activate when product source
 lands. Exit codes: `0` ok/armed, `1` violations, `2` usage.
+
+## Scenario coverage gate (`check:scenarios`)
+
+`check-scenarios.ts` enforces §"Top-of-pyramid discipline". Every
+load-bearing `## Scenario:` heading in `SPECIFICATION/scenarios.md`
+(everything before the `## Later-phase` marker) is classified
+**browser-observable** or **non-browser-exercisable** and mapped by
+class in the committed `scenario-coverage.json`: a browser-observable
+scenario carries at least one Playwright identifier (a file under
+`e2e/` or ending `.e2e.ts`), and a non-browser-exercisable scenario
+carries a named non-Playwright category (`vitest-unit`,
+`vitest-integration`, `fast-check-property`, or `build-prerender-check`),
+at least one `.test.ts`/`.spec.ts` identifier, and a one-line rationale
+for why a Playwright mapping would mislead. Identifier grammar is
+`<repo-relative test file>.ts > <test title>`.
+
+Each scenario's authoritative class is pinned IN the gate
+(`EXPECTED_CLASS`), kept separate from the mapping data so a
+browser-observable scenario cannot be re-declared non-browser-exercisable
+in the JSON to dodge Playwright (or vice versa). The gate fails on: a
+load-bearing scenario with no pinned class (so adding/revising a
+scenario forces a same-change classification) or a pinned class for a
+scenario no longer load-bearing; a missing, duplicate, stale, or
+later-phase mapping; a class that disagrees with the pin; a missing or
+malformed identifier, a browser scenario mapped to a non-e2e file, or a
+non-browser scenario missing its category/rationale. Once first-party
+`src/**` product source lands, every mapped identifier must additionally
+resolve to an **executable** `test(...)` / `it(...)` declaration whose
+title matches — a comment, prose mention, or `test.skip`/`todo`/`fixme`/
+`failing` placeholder does not count. Until then the gate is
+armed-but-vacuous for resolution and still enforces the full
+classification and mapping structure. Playwright and Vitest test
+authoring arrives with the toolchain and `plan/mvp`. Exit codes: `0`
+ok/armed, `1` violations, `2` usage.
 
 ## Package-script surface
 

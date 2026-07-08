@@ -21,7 +21,7 @@
     "test:coverage": "bun scripts/check-coverage.ts",
     "test:property": "bun scripts/check-property.ts",
     "test:harness": "bun test scripts",
-    "check:scenarios": "bun scripts/not-yet-provisioned.ts check:scenarios",
+    "check:scenarios": "bun scripts/check-scenarios.ts",
     "check:result": "bun scripts/check-result.ts",
     "check:memory": "bun scripts/check-memory.ts",
     "tdd-commit": "bun scripts/tdd-commit.ts"

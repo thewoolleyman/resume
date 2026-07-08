@@ -1,0 +1,283 @@
+{
+  "note": "Committed scenario-to-test coverage mapping required by SPECIFICATION/non-functional-requirements.md §\"Top-of-pyramid discipline\". Each load-bearing scenario in SPECIFICATION/scenarios.md is classified browser-observable (>=1 Playwright identifier) or non-browser-exercisable (a named non-Playwright category, >=1 test identifier, and a rationale for why a Playwright mapping would mislead). Verified by scripts/check-scenarios.ts (bun run check:scenarios) inside bun run check. Later-phase scenarios are excluded until a future proposed change activates them. Identifier grammar: \"<repo-relative test file>.ts > <test title>\"; Playwright files live under e2e/ or end in .e2e.ts, non-browser tests end in .test.ts/.spec.ts. Test identifiers are armed: their file resolution activates when first-party src/** product source lands.",
+  "nonBrowserCategories": [
+    "vitest-unit",
+    "vitest-integration",
+    "fast-check-property",
+    "build-prerender-check"
+  ],
+  "mappings": [
+    {
+      "scenario": "Governed data preserves the predecessor data shape",
+      "class": "non-browser-exercisable",
+      "category": "vitest-integration",
+      "tests": [
+        "src/lib/data/import.test.ts > preserves the predecessor about/header/section data shape"
+      ],
+      "rationale": "The predecessor-to-governed data-shape mapping is a transform invariant over the data source with no faithful browser rendering; a Playwright mapping would exercise the UI instead of the shape."
+    },
+    {
+      "scenario": "Import transcribes the predecessor production content",
+      "class": "non-browser-exercisable",
+      "category": "vitest-integration",
+      "tests": [
+        "src/lib/data/import.test.ts > transcribes the predecessor production content into data/resume.yml"
+      ],
+      "rationale": "Import transcription is a data-source fidelity invariant verified by comparing the governed source against the predecessor content; no visitor gesture exercises the import, so Playwright would mislead."
+    },
+    {
+      "scenario": "Malformed governed data is rejected at load",
+      "class": "non-browser-exercisable",
+      "category": "build-prerender-check",
+      "tests": [
+        "src/lib/data/load.test.ts > malformed governed data fails the phase-1 build-time load"
+      ],
+      "rationale": "Under the phase-1 build-time load a malformed source fails the build/prerender so it never ships; the rejection happens before any page renders, so a Playwright test could never observe it."
+    },
+    {
+      "scenario": "Import derives stable item anchors deterministically",
+      "class": "non-browser-exercisable",
+      "category": "vitest-unit",
+      "tests": [
+        "src/lib/data/identifiers.test.ts > derives stable item anchors deterministically with collision suffixes"
+      ],
+      "rationale": "Deterministic anchor derivation is a pure-function invariant (also a property target); its visitor-observable use is covered by the deep-link scenarios, so a Playwright mapping here would misattribute the derivation to the UI."
+    },
+    {
+      "scenario": "Committed governed source round-trips the pinned production inventory",
+      "class": "non-browser-exercisable",
+      "category": "vitest-integration",
+      "tests": [
+        "src/lib/data/inventory.test.ts > round-trips the pinned production inventory (18 keys, 16 sections, 74 items)"
+      ],
+      "rationale": "Round-tripping the pinned 18-key/16-section/74-item inventory is a data-fidelity invariant with no faithful browser rendering; Playwright would test presentation, not the round-trip."
+    },
+    {
+      "scenario": "Phase-1 data load tolerates deferred optional collections",
+      "class": "non-browser-exercisable",
+      "category": "vitest-integration",
+      "tests": [
+        "src/lib/data/load.test.ts > tolerates deferred skills/relationships/rich-metadata collections as empty"
+      ],
+      "rationale": "Tolerating absent skills/relationships/rich-metadata collections is a load/transform invariant asserted at the data contract, not through a visitor gesture."
+    },
+    {
+      "scenario": "Search projection is generated without a browser DOM",
+      "class": "non-browser-exercisable",
+      "category": "vitest-unit",
+      "tests": [
+        "src/lib/search/projection.test.ts > generates the plain-text projection without document or window"
+      ],
+      "rationale": "The projection is generated where document and window are unavailable; mapping it to a Playwright (browser DOM) test would contradict the very property under test."
+    },
+    {
+      "scenario": "Sections derive stable slugs used by Contents and offset anchors",
+      "class": "non-browser-exercisable",
+      "category": "vitest-unit",
+      "tests": [
+        "src/lib/data/slugs.test.ts > derives stable section slugs with -2/-3 collision suffixes"
+      ],
+      "rationale": "Slug derivation is a DOM-free deterministic function (also a property target); its use as a Contents link target and offset-anchor id is exercised by the interactive-render scenarios, so a Playwright mapping here would misattribute the derivation to the UI."
+    },
+    {
+      "scenario": "Visitor opens the interactive resume",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/interactive-resume.e2e.ts > visitor opens the interactive resume and sees profile, navigation, and items"
+      ]
+    },
+    {
+      "scenario": "Interactive mode renders prerendered content without a blank page",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/interactive-resume.e2e.ts > renders prerendered navigation, header shell, and sections without a blank page"
+      ]
+    },
+    {
+      "scenario": "Interactive mode preserves section names and order",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/interactive-resume.e2e.ts > preserves governed section names and order"
+      ]
+    },
+    {
+      "scenario": "Navigation shell collapses responsively",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/navigation.e2e.ts > navigation shell collapses on a narrow viewport and expands inline when widened"
+      ]
+    },
+    {
+      "scenario": "Visitor uses the About and Instructions controls",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/navigation.e2e.ts > About and Instructions controls open with governed content"
+      ]
+    },
+    {
+      "scenario": "Visitor navigates to a stable resume item",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/deep-link.e2e.ts > navigates to a stable resume item after data loads"
+      ]
+    },
+    {
+      "scenario": "Hash navigation to a missing anchor is a no-op",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/deep-link.e2e.ts > a missing anchor hash is a no-op with no scroll or error"
+      ]
+    },
+    {
+      "scenario": "Revealed section clears the sticky navigation bar",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/deep-link.e2e.ts > a revealed section heading clears the sticky navigation bar"
+      ]
+    },
+    {
+      "scenario": "Visitor follows a legacy section anchor",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/deep-link.e2e.ts > a legacy list-ordinal hash reveals the matching section"
+      ]
+    },
+    {
+      "scenario": "Visitor searches the interactive resume",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/search.e2e.ts > case-insensitive search filters items in canonical order with a no-results state"
+      ]
+    },
+    {
+      "scenario": "Search matches markdown-stripped description text",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/search.e2e.ts > search matches markdown-stripped prose but not markdown/HTML syntax"
+      ]
+    },
+    {
+      "scenario": "Search matches the governed dataset's worked example",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/search.e2e.ts > validated matches only Growth / Lean and theleanstartup matches nothing"
+      ]
+    },
+    {
+      "scenario": "No-match search preserves section structure",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/search.e2e.ts > a no-match search keeps section headers with empty rows and a no-results state"
+      ]
+    },
+    {
+      "scenario": "Search composes with skill filter and section sort",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/search.e2e.ts > search then skill-level filter then section sort compose in that order"
+      ]
+    },
+    {
+      "scenario": "Visitor filters by skill level",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/skill-levels.e2e.ts > toggling skill levels shows and hides only items at that level"
+      ]
+    },
+    {
+      "scenario": "Item with an invalid legacy skill level stays visible",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/skill-levels.e2e.ts > an item with an invalid legacy skill level stays visible with an unknown-level explanation"
+      ]
+    },
+    {
+      "scenario": "Visitor sorts a section",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/sort.e2e.ts > the seven sort options reorder a section's items"
+      ]
+    },
+    {
+      "scenario": "Missing start date sorts as earliest",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/sort.e2e.ts > items with no start date sort as the earliest instant"
+      ]
+    },
+    {
+      "scenario": "Missing end date sorts as current",
+      "class": "browser-observable",
+      "playwright": ["e2e/sort.e2e.ts > items with no end date sort as current"]
+    },
+    {
+      "scenario": "Equal dates break ties by item name",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/sort.e2e.ts > items with equal dates break ties by item name"
+      ]
+    },
+    {
+      "scenario": "Invalid sort input falls back to default order",
+      "class": "non-browser-exercisable",
+      "category": "vitest-unit",
+      "tests": [
+        "src/lib/sort/section-sort.test.ts > an invalid sort selection falls back to canonical default order"
+      ],
+      "rationale": "An invalid sort selection is unreachable through the seven-option sort control, so no visitor gesture produces it; the fallback is a component-level guard best tested by a unit test."
+    },
+    {
+      "scenario": "Visitor collapses and expands a section",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/section-collapse.e2e.ts > collapsing hides section rows while keeping the header, and expanding restores them"
+      ]
+    },
+    {
+      "scenario": "Visitor resets interactive state",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/reset.e2e.ts > Reset clears search, restores skill levels and sorts, expands sections, scrolls to top, and clears the hash"
+      ]
+    },
+    {
+      "scenario": "Item dates render in predecessor format",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/rendering.e2e.ts > item dates render in the predecessor M.YYYY format with until/current fallbacks"
+      ]
+    },
+    {
+      "scenario": "Markdown renders consistently across modes",
+      "class": "non-browser-exercisable",
+      "category": "vitest-integration",
+      "tests": [
+        "src/lib/markdown/render.test.ts > interactive and static modes render byte-identical markdown"
+      ],
+      "rationale": "Byte-identical output across interactive and static modes is a cross-mode equivalence invariant asserted by comparing renderer output; a single visitor cannot observe both modes' bytes, so Playwright would mislead."
+    },
+    {
+      "scenario": "Governed data failure never ships a broken resume",
+      "class": "non-browser-exercisable",
+      "category": "build-prerender-check",
+      "tests": [
+        "src/lib/data/load.test.ts > a governed data failure fails the build so the broken resume never ships"
+      ],
+      "rationale": "Under the phase-1 build-time load a data failure fails the build so the broken resume never reaches production; the guarantee is a build invariant with no rendered page for Playwright to observe."
+    },
+    {
+      "scenario": "Visitor renders the static resume",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/static-resume.e2e.ts > static mode renders all governed data in canonical order, fully expanded"
+      ]
+    },
+    {
+      "scenario": "Surfaces expose predecessor browser metadata",
+      "class": "browser-observable",
+      "playwright": [
+        "e2e/metadata.e2e.ts > interactive and static surfaces expose predecessor title, description, viewport, icons, and manifest"
+      ]
+    }
+  ]
+}

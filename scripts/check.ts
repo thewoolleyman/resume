@@ -56,18 +56,14 @@ const REQUIRED_TS_FLAGS = [
 ] as const;
 
 // Gate families that later guardrail slices provision. Reported on every
-// run so the aggregate's current coverage is always visible.
+// run so the aggregate's current coverage is always visible. Empty now that
+// the scenario coverage gate (li-hb77ad) is operational — every guardrail
+// gate family is provisioned.
 const PENDING_GATES: readonly {
   family: string;
   workItem: string;
   title: string;
-}[] = [
-  {
-    family: "scenario coverage (check:scenarios)",
-    workItem: "li-hb77ad",
-    title: "Scenario coverage gate",
-  },
-];
+}[] = [];
 
 interface GateResult {
   readonly gate: string;
@@ -657,6 +653,40 @@ function checkProperty(root: string, pkg: PackageJson): GateResult {
   };
 }
 
+// Runs the scenario coverage gate through its named script (§"Top-of-pyramid
+// discipline"): every load-bearing scenario in SPECIFICATION/scenarios.md is
+// classified browser-observable or non-browser-exercisable and carries a
+// mapping of that class in scenario-coverage.json (armed-but-vacuous for
+// test-identifier resolution until src/** product source lands).
+function checkScenarios(root: string, pkg: PackageJson): GateResult {
+  const gate = "scenario coverage (check:scenarios)";
+  if (!("check:scenarios" in (pkg.scripts ?? {}))) {
+    return {
+      gate,
+      status: "FAIL",
+      detail: "package.json has no check:scenarios script",
+    };
+  }
+  const run = Bun.spawnSync({
+    cmd: ["bun", "run", "check:scenarios"],
+    cwd: root,
+  });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-6)
+      .join(" | ");
+    return { gate, status: "FAIL", detail: tail };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "every load-bearing scenario classified and mapped by class (Playwright vs named non-Playwright category); identifier resolution armed until src/** lands",
+  };
+}
+
 function checkNoPrematureProductSource(root: string): GateResult {
   const gate = "product-source boundary guard";
   const srcDir = join(root, "src");
@@ -698,6 +728,7 @@ const results: GateResult[] = [
   checkResultDiscipline(root, pkg),
   checkCoverage(root, pkg),
   checkProperty(root, pkg),
+  checkScenarios(root, pkg),
   checkNoPrematureProductSource(root),
 ];
 
@@ -705,10 +736,16 @@ console.log("aggregate check (bun run check) — operational gates:");
 for (const result of results) {
   console.log(`  [${result.status}] ${result.gate} — ${result.detail}`);
 }
-console.log("not-yet-provisioned gate families (additive provisioning):");
-for (const pending of PENDING_GATES) {
+if (PENDING_GATES.length > 0) {
+  console.log("not-yet-provisioned gate families (additive provisioning):");
+  for (const pending of PENDING_GATES) {
+    console.log(
+      `  [pending] ${pending.family} — arrives with ${pending.workItem} (${pending.title})`,
+    );
+  }
+} else {
   console.log(
-    `  [pending] ${pending.family} — arrives with ${pending.workItem} (${pending.title})`,
+    "not-yet-provisioned gate families: none — every guardrail gate is operational.",
   );
 }
 

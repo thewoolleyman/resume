@@ -96,18 +96,20 @@ describe("required Bun package-script surface (li-ugymfg)", () => {
 });
 
 describe("not-yet-provisioned script stubs (exit-code baseline)", () => {
-  test("a stubbed script fails with exit 3 and names its provisioning work item", () => {
+  test("a stubbed script fails with exit 3 and names what provisions it", () => {
+    // check:scenarios graduated to a real gate (li-hb77ad); test:e2e is a
+    // still-stubbed script whose gate/toolchain artifact has not landed.
     const run = Bun.spawnSync({
       cmd: [
         "bun",
         join(repoRoot, "scripts", "not-yet-provisioned.ts"),
-        "check:scenarios",
+        "test:e2e",
       ],
       cwd: repoRoot,
     });
     const output = run.stdout.toString() + run.stderr.toString();
     expect(run.exitCode).toBe(3);
-    expect(output).toContain("li-hb77ad");
+    expect(output).toContain("Playwright");
     expect(output).toContain("not yet provisioned");
   });
 

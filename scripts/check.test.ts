@@ -130,20 +130,29 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     expect(exitCode).toBe(0);
   }, 240000);
 
-  test("reports not-yet-provisioned gate families with their work items", () => {
+  test("every guardrail gate family is operational, none pending", () => {
     const { output } = runCheck(repoRoot, {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
     });
-    expect(output).toContain("li-hb77ad");
-    // The memory guardrail + discipline inventory (li-6b6u6m), the CI
-    // workflow verification (li-xjjeqo), the Result/ROP gate (li-oaxjqm),
-    // and the coverage + property/fuzz gates (li-m2trzv) are operational
-    // gates now, no longer pending families.
-    expect(output).not.toContain("li-6b6u6m");
-    expect(output).not.toContain("li-xjjeqo");
-    expect(output).not.toContain("li-oaxjqm");
-    expect(output).not.toContain("li-m2trzv");
+    // The scenario coverage gate (li-hb77ad) was the last pending family; it
+    // is operational now alongside the memory guardrail + discipline
+    // inventory (li-6b6u6m), the CI workflow verification (li-xjjeqo), the
+    // Result/ROP gate (li-oaxjqm), and the coverage + property/fuzz gates
+    // (li-m2trzv). No pending gate families remain.
+    expect(output).toContain("scenario coverage");
+    expect(output).toContain(
+      "not-yet-provisioned gate families: none — every guardrail gate is operational.",
+    );
+    for (const workItem of [
+      "li-hb77ad",
+      "li-6b6u6m",
+      "li-xjjeqo",
+      "li-oaxjqm",
+      "li-m2trzv",
+    ]) {
+      expect(output).not.toContain(workItem);
+    }
   }, 240000);
 
   test("is non-mutating on the repository tree", () => {
