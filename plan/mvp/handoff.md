@@ -134,15 +134,61 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-beads-fabro `next` skill
 against the beads store.
 
-Current state: **plan just created; no MVP work items seeded yet.** The
-`plan/guardrail/` thread is complete — all thirteen `bun run check` gates are
-operational and green, the commit-msg (TDD) and pre-commit (memory) hooks are
-live, CI and PR auto-merge are operational, and `scenario-coverage.json` maps
-all 36 load-bearing phase-1 scenarios by class (the mapped test identifiers
-are armed and must be authored as this plan lands `src/**`). No first-party
-`src/**` product source exists yet, so the coverage, Result/ROP,
-property/fuzz, and scenario-resolution gates are armed-but-vacuous and
-activate on the first product-source merge.
+Current state: **harness preconditions for product work landed; the ten
+phase-1 MVP work items are seeded in the beads store (slice 1 is ready).**
+The `plan/guardrail/` thread was already complete (all thirteen `bun run check`
+gates operational and green; TDD + memory hooks live; CI and PR auto-merge
+operational; `scenario-coverage.json` maps all 36 load-bearing scenarios by
+class). This session landed three harness commits on `master` (all gates
+green, CI green) as the sanctioned preconditions to writing `src/**`:
+
+- A `test(harness):` fix to the orchestrator-migration gate's harness test —
+  its "passes on the current repository tree" case read the ambient repo via
+  `git grep`, which crashed under the Suite-Green commit leg's `.git`-less
+  `checkout-index` tree and had silently blocked EVERY Suite-Green commit (now
+  guarded with `test.skipIf`).
+- `chore(harness): relax premature-product-source guard for product work
+  (li-eg4w7j)` — removed the `checkNoPrematureProductSource` boundary veto;
+  `src/**` is now permitted and governed by the additive fail-closed gates
+  (discipline inventory, CI, scenario mapping, coverage, Result/ROP).
+- `chore(harness): enforce Result/ROP in the selected src/lib core dirs` —
+  resolved a blocking watcher note: the Result/ROP gate only enforced
+  Result-returning core exports under `src/data|domain|search|grounding|
+  mcp-contracts`, but phase-1 core logic lives under the SvelteKit `$lib`
+  layout (`src/lib/{data,search,sort,markdown}` per scenario-coverage.json),
+  so core logic there could have exported raw values and still reported
+  "result/rop discipline: ok". Extended the gate's layer split symmetrically
+  under `src/lib` (core + boundary + UI), with red coverage proving a planted
+  `src/lib/data` non-Result export now fails.
+
+The ten work items are `li-gn6` (slice 1) … `li-1eh` (slice 10) — a
+blocks-chain in `findings.md` §"Work slices" order; slice 1 is the only ready
+item. No first-party `src/**` product source exists yet, so the coverage,
+Result/ROP, property/fuzz, and scenario-resolution gates remain armed and
+activate on the first product-source commit.
+
+**Product-build flow (load-bearing — read before touching `src/**`):** the
+scenario gate (`scripts/check-scenarios.ts`) sets `armed = !src/** present`, so
+the instant the first `src/**` file exists it requires ALL 36
+`scenario-coverage.json` identifiers to resolve to executable, non-skipped
+tests; the coverage gate then requires every `src/**` file (including
+`.svelte`) at 100% line+branch, and the inventory/CI gates already require
+their artifacts. So `bun run check` only returns fully green once the ENTIRE
+phase-1 exists. `master` must stay green and branch protection requires the
+`check` status, so the phase-1 product MUST be built on a feature branch and
+merged via PR when `bun run check` is fully green — the first `src/**` merge is
+a complete, green phase-1, not an incremental scaffold. Per-commit, the TDD
+Red→Green legs enable incremental work (the Green leg runs only the recorded
+anchor test, so commits land while the aggregate is still red on the branch);
+the Suite-Green leg requires the whole provisioned suite green. The Result/ROP
+layer split is now: core `src/lib/{data,domain,search,sort,markdown}` return
+`Result<T,DomainError>`; boundary `src/lib/{server,adapters,api}` return
+`Promise<Result<…>>` and are the only dirs allowed to catch-without-rethrow
+(e.g. the build-time YAML read/parse adapter); UI `src/routes|components|
+src/lib/components` unwrap Result. The predecessor data source is fetchable
+(pinned SHA-256 in `spec.md`), so slice 2 is not a maintainer blocker; Vercel
+deploy credentials are only needed for actual deployment, not for phase-1
+completion (which needs the local adapter build to prerender).
 
 The `plan/orchestrator-migration/` thread is also complete: the work-item
 orchestrator is now `livespec-orchestrator-beads-fabro`, backed by the `resume`
@@ -151,12 +197,16 @@ their audit trail; the retired JSONL work-items store is archived). Drive
 work through the beads-fabro operator loop — `drive` / `plan` / `needs-attention`
 / `next` / `implement` / `capture-work-item`, all backed by the beads store.
 
-Next ripe action: seed the phase-1 work items from `findings.md` §"Work
-slices" (dependency-ordered), then drive slice 1 — the **SvelteKit + Vercel
-toolchain scaffold**: stand up the SvelteKit app with the Vercel adapter and
-prerendering and replace the `dev`/`build`/`test:unit`/`test:integration`/
-`test:e2e` stubs with real Vitest and Playwright runners. This is the first
-`src/**` product source and activates the armed gates.
+Next ripe action: drive **slice 1 (`li-gn6`) — the SvelteKit + Vercel
+toolchain scaffold** — on a NEW feature branch (not `master`; see the
+product-build flow above). Stand up the SvelteKit app with the Vercel adapter
+and prerendering, and replace the `dev`/`build`/`test:unit`/`test:integration`/
+`test:e2e` stubs (`scripts/not-yet-provisioned.ts`) with real Vitest
+(coverage via `vitest run --coverage` feeding `scripts/check-coverage.ts`) and
+Playwright runners. This is the first `src/**` product source and flips the
+armed gates to enforcing; keep `svelte-check` and the strict toolchain green.
+Then continue through slices 2–10 on the branch, landing the complete green
+phase-1 via PR.
 
 ## Resume
 
