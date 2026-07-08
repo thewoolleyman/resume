@@ -40,6 +40,14 @@ function validConfig(): Record<string, unknown> {
       "boundary",
       "legacy-compatibility",
     ],
+    phase1Targets: [
+      "governed-yaml-parse-reject",
+      "item-and-section-slug-derivation",
+      "markdown-and-html-strip-for-search",
+      "date-parse-render-sort",
+      "search-filter-sort-composition",
+      "domainerror-presentation-mapping",
+    ],
   };
 }
 
@@ -150,6 +158,23 @@ describe("property/fuzz reproducibility gate (li-m2trzv)", () => {
       "custom-fuzzer supersets fast-check's shrinking with coverage-guided generation";
     const passed = runProperty(makeFixture(justified));
     expect(passed.exitCode).toBe(0);
+  }, 60000);
+
+  test("a missing phase1Targets list fails", () => {
+    const config = validConfig();
+    delete config["phase1Targets"];
+    const { exitCode, output } = runProperty(makeFixture(config));
+    expect(exitCode).toBe(1);
+    expect(output).toContain("phase1Targets");
+  }, 60000);
+
+  test("an incomplete phase1Targets list fails", () => {
+    const config = validConfig();
+    config["phase1Targets"] = ["governed-yaml-parse-reject"];
+    const { exitCode, output } = runProperty(makeFixture(config));
+    expect(exitCode).toBe(1);
+    expect(output).toContain("phase1Targets");
+    expect(output).toContain("date-parse-render-sort");
   }, 60000);
 
   test("the aggregate check runs the property gate as operational", () => {

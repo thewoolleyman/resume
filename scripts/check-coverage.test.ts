@@ -159,6 +159,45 @@ describe("coverage gate (li-m2trzv)", () => {
     expect(exitCode).toBe(0);
   }, 60000);
 
+  test("first-party src/** source present with NO coverage report fails (coverage unproven)", () => {
+    const dir = makeFixture({
+      "coverage.config.json": FULL_THRESHOLDS,
+      "src/domain/parse.ts": "export const x = 1;\n",
+    });
+    const { exitCode, output } = runCoverage(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("no coverage report");
+    expect(output).toContain("src/**");
+  }, 60000);
+
+  test("first-party src/** source present but omitted from the report fails", () => {
+    const dir = makeFixture({
+      "coverage.config.json": FULL_THRESHOLDS,
+      "src/domain/parse.ts": "export const x = 1;\n",
+      "coverage/coverage-summary.json": JSON.stringify({
+        total: fileEntry(100, 100),
+      }),
+    });
+    const { exitCode, output } = runCoverage(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("src/domain/parse.ts");
+    expect(output).toContain("not present in the coverage report");
+  }, 60000);
+
+  test("first-party src/** source measured at 100% in the report passes", () => {
+    const dir = makeFixture({
+      "coverage.config.json": FULL_THRESHOLDS,
+      "src/domain/parse.ts": "export const x = 1;\n",
+      "coverage/coverage-summary.json": JSON.stringify({
+        total: fileEntry(100, 100),
+        "src/domain/parse.ts": fileEntry(100, 100),
+      }),
+    });
+    const { exitCode, output } = runCoverage(dir);
+    expect(output).not.toContain("FAIL");
+    expect(exitCode).toBe(0);
+  }, 60000);
+
   test("the aggregate check runs the coverage gate as operational", () => {
     const run = Bun.spawnSync({
       cmd: [

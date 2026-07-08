@@ -206,10 +206,15 @@ framework-glue exemption, no per-module carve-out. When a coverage report
 (`coverage/coverage-summary.json`, the Istanbul json-summary shape a
 `vitest run --coverage` produces) is present, every first-party `src/**`
 file in it must be at 100% line and 100% branch; a single under-covered
-`src/**` file fails. Generated SvelteKit artifacts, generated types, built
-assets, and repository harness/tooling are outside the product-source set
-and are not counted. With no report and no `src/**` the gate is
-armed-but-vacuous and still enforces the committed threshold floor
+`src/**` file fails. Coverage must also be PROVEN: when first-party
+`src/**` product source exists on disk, a report must be present and every
+`src/**` source file must appear in it — present source with no report, or
+a report that omits a source file, fails, so `test:coverage` can never
+pass while measuring nothing. Generated SvelteKit artifacts, generated
+types, built assets, and repository harness/tooling are outside the
+product-source set and are not counted. With no `src/**` source and no
+report the gate is armed-but-vacuous and still enforces the committed
+threshold floor
 (`coverage/` is gitignored, so the per-file check is dormant on a clean
 checkout and runs against a freshly produced report). When the Vitest
 toolchain lands, `test:coverage` becomes
@@ -232,7 +237,12 @@ that re-runs a failed seed deterministically, `captureShrunkCounterexamples`
 for shrunk-counterexample logging, and the
 `valid-domain`/`malformed`/`adversarial`/`boundary`/`legacy-compatibility`
 generator classes so the malformed/adversarial portion cannot collapse
-into happy-path generation. With no `src/**` property targets yet the gate
+into happy-path generation, and a `phase1Targets` list that must enumerate
+every phase-1 property/fuzz target the spec names (governed YAML
+parse/transform rejection, item/section slug derivation, markdown/HTML
+strip for search, date parse/render/sort, search/filter/sort composition,
+and DomainError presentation mapping) so a target cannot silently drop out
+of scope. With no `src/**` property targets yet the gate
 is armed-but-vacuous and still enforces the committed reproducibility
 policy; per-target checks (each phase-1 target under `src/**` carries a
 property or fuzz test wired to this policy) activate when product source

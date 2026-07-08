@@ -47,6 +47,22 @@ const REQUIRED_GENERATOR_CLASSES = [
   "legacy-compatibility",
 ] as const;
 
+// The phase-1 property/fuzz targets the spec names: governed YAML
+// parse/transform rejection; stable item and section slug derivation
+// (including collision suffixes); markdown and HTML syntax stripping for
+// search; date parse/render/sort edge cases; deterministic
+// search/filter/sort composition; and visitor-safe presentation mapping
+// from DomainError. The committed target list must enumerate all of them so
+// a phase-1 target cannot silently drop out of scope.
+const REQUIRED_PHASE1_TARGETS = [
+  "governed-yaml-parse-reject",
+  "item-and-section-slug-derivation",
+  "markdown-and-html-strip-for-search",
+  "date-parse-render-sort",
+  "search-filter-sort-composition",
+  "domainerror-presentation-mapping",
+] as const;
+
 export interface PropertyVerification {
   readonly failures: readonly string[];
 }
@@ -144,6 +160,30 @@ function verifyGeneratorClasses(
   }
 }
 
+function verifyPhase1Targets(
+  config: Record<string, unknown>,
+  failures: string[],
+): void {
+  const targets = config["phase1Targets"];
+  if (!Array.isArray(targets)) {
+    failures.push(
+      `${PROPERTY_CONFIG_PATH} must list "phase1Targets" — the spec-named phase-1 property/fuzz targets`,
+    );
+    return;
+  }
+  const present = new Set(
+    targets.filter((t): t is string => typeof t === "string"),
+  );
+  const missing = REQUIRED_PHASE1_TARGETS.filter(
+    (required) => !present.has(required),
+  );
+  if (missing.length > 0) {
+    failures.push(
+      `${PROPERTY_CONFIG_PATH} phase1Targets is missing required target(s): ${missing.join(", ")} — every phase-1 property/fuzz target the spec names must stay in scope`,
+    );
+  }
+}
+
 export function verifyProperty(root: string): PropertyVerification {
   const configPath = resolve(root, PROPERTY_CONFIG_PATH);
   if (!existsSync(configPath)) {
@@ -186,6 +226,7 @@ export function verifyProperty(root: string): PropertyVerification {
     );
   }
   verifyGeneratorClasses(config, failures);
+  verifyPhase1Targets(config, failures);
   return { failures };
 }
 
