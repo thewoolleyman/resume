@@ -132,6 +132,36 @@ methods, auto-merge, the required `check` status (non-strict), and the
 no-bypass linear-history ruleset. A tree without `.github/workflows/`
 is unprovisioned unless it already carries `src/**`, which fail-closes.
 
+Per NFR §"Local secret injection" it also verifies that this file and
+`.github/README.md` document the committed `with-resume-env.sh`
+wrapper, and — once that wrapper is committed at the repository root —
+that it is the untouched factory artifact for the `resume` identifier
+(generated-artifact header, `op run --environment` injection) carrying
+no secret values.
+
+## Secrets (local commands)
+
+Secret-needing local commands inject their secrets through the
+committed `with-resume-env.sh` wrapper (NFR §"Local secret injection"),
+which loads the `resume` 1Password Environment via `op run`:
+
+```sh
+with-resume-env.sh -- env CHECK_LIVE_GITHUB=1 bun run check
+```
+
+(The `gh`-backed live check also works with plain local `gh`
+credentials; the wrapper is the documented path for any command that
+needs environment-injected secrets — GitHub App credentials, future
+Vercel/AI keys.) The wrapper is rendered and installed by the external
+[1password-env-wrapper](https://github.com/thewoolleyman/1password-env-wrapper)
+factory (`OP_SERVICE_ACCOUNT_TOKEN=… IDENTIFIER=resume
+ONEPASSWORD_ENVIRONMENT_ID=… sudo -E ./create-1password-env-wrapper.sh`
+from that repo; bootstrap inputs live in its gitignored `.env.local`).
+It carries no secret values — the service-account token lives in the
+host secure store (systemd-creds on Linux, login Keychain on macOS) —
+and must never be hand-edited. The default `bun run check` needs no
+secrets; secret-needing verification stays opt-in.
+
 ## Result/ROP enforcement gate (`check:result`)
 
 `check-result.ts` enforces §"Result and railway-oriented programming

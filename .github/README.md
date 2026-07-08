@@ -64,16 +64,32 @@ token minted at runtime by `actions/create-github-app-token`, because
 `github-actions[bot]`'s `GITHUB_TOKEN` does not reliably have permission
 to enable auto-merge.
 
-### Required secrets (maintainer-provisioned)
+### Required secrets (provisioned 2026-07-08)
 
 | Secret | Purpose |
 | --- | --- |
-| `APP_ID` | The GitHub App id of the maintainer-created automation App (needs `pull_requests: write` + `contents: write` permissions, installed on this repository). |
+| `APP_ID` | The GitHub App id of the automation App `resume-pr-bot` (app id `4243167`; `pull_requests: write` + `contents: write`; installed on this repository only, installation `145115216`). |
 | `APP_PRIVATE_KEY` | A private key generated for that App. |
 
-Until both secrets exist, the workflow emits an actionable notice and
-does NOT enable auto-merge — the pull-request landing automation is not
-claimed operational before the maintainer provisions them.
+Both repository secrets are set. The canonical copy of these
+credentials lives in the maintainer's `resume` 1Password Environment;
+GitHub Actions reads them ONLY from the repository secrets above, never
+from the wrapper.
+
+### Local secret injection (NFR §"Local secret injection")
+
+Repository-local commands that need secrets — the live GitHub settings
+verification (`CHECK_LIVE_GITHUB=1` with `bun run check`, or
+`bun scripts/check-ci.ts --live`) and future Vercel/AI credentials —
+inject them through the committed `with-resume-env.sh` wrapper at the
+repository root, which loads the `resume` 1Password Environment via
+`op run`. The wrapper contains no secret values and is a generated
+artifact of the external
+[1password-env-wrapper](https://github.com/thewoolleyman/1password-env-wrapper)
+factory — never hand-edit it; re-render via the factory. Secrets are
+never passed as command-line arguments and never committed.
+`scripts/check-ci.ts` verifies this documentation and, once the wrapper
+is committed, its rendered shape.
 
 ## Expected landing sequence
 

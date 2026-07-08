@@ -22,6 +22,12 @@
 // - .github/README.md documents the required status-check name, merge
 //   methods, branch-protection/linear-history layout, non-strict policy,
 //   the do-not-merge label, and the App secrets.
+// - Per §"Local secret injection": .github/README.md and scripts/README.md
+//   document the committed with-resume-env.sh wrapper for secret-needing
+//   local commands (e.g. CHECK_LIVE_GITHUB=1), and a committed
+//   with-resume-env.sh, when present, is the rendered factory artifact for
+//   the resume identifier (generated header, op run --environment) and
+//   carries no secret values.
 //
 // Live verification (--live, or CHECK_LIVE_GITHUB=1 through the aggregate
 // check): queries the GitHub API through `gh` for the actual repository
@@ -60,7 +66,14 @@ const REQUIRED_DOC_MENTIONS: readonly [string, string][] = [
   ["APP_ID", "the GitHub App id secret"],
   ["APP_PRIVATE_KEY", "the GitHub App private-key secret"],
   ["do-not-merge", "the auto-merge opt-out label"],
+  [
+    "with-resume-env.sh",
+    'the local secret-injection wrapper (NFR §"Local secret injection")',
+  ],
 ];
+
+const SCRIPTS_DOC_PATH = "scripts/README.md";
+const WRAPPER_BASENAME = "with-resume-env.sh";
 
 export interface CiVerification {
   readonly status: "absent" | "fail" | "ok";
@@ -252,6 +265,62 @@ function verifyDocumentation(root: string): string[] {
   return failures;
 }
 
+// Per NFR §"Local secret injection": scripts/README.md must document
+// running secret-needing commands (the CHECK_LIVE_GITHUB=1 live check
+// today) through the committed wrapper.
+function verifyScriptsDocumentation(root: string): string[] {
+  const path = join(root, SCRIPTS_DOC_PATH);
+  if (!existsSync(path)) {
+    return [
+      `${SCRIPTS_DOC_PATH} is missing — secret-needing command usage through the local wrapper must be documented`,
+    ];
+  }
+  const doc = readFileSync(path, "utf8");
+  const failures: string[] = [];
+  if (!doc.includes(WRAPPER_BASENAME) || !doc.includes("CHECK_LIVE_GITHUB")) {
+    failures.push(
+      `${SCRIPTS_DOC_PATH} must document running secret-needing commands (CHECK_LIVE_GITHUB=1) through the ${WRAPPER_BASENAME} wrapper (NFR §"Local secret injection")`,
+    );
+  }
+  return failures;
+}
+
+// The committed wrapper is optional until the maintainer's 1Password
+// bootstrap renders it; once present it must be the untouched factory
+// artifact for THIS repository and must carry no secret values.
+function verifySecretInjectionWrapper(root: string): string[] {
+  const path = join(root, WRAPPER_BASENAME);
+  if (!existsSync(path)) {
+    return [];
+  }
+  const wrapper = readFileSync(path, "utf8");
+  const failures: string[] = [];
+  if (!wrapper.includes("GENERATED BUILD ARTIFACT")) {
+    failures.push(
+      `${WRAPPER_BASENAME} must be the generated factory artifact (missing the generated-artifact header; never hand-edit the wrapper)`,
+    );
+  }
+  if (!wrapper.includes("IDENTIFIER='resume'")) {
+    failures.push(
+      `${WRAPPER_BASENAME} must be rendered for the resume identifier (IDENTIFIER='resume')`,
+    );
+  }
+  if (!wrapper.includes("op run") || !wrapper.includes("--environment")) {
+    failures.push(
+      `${WRAPPER_BASENAME} must inject its 1Password Environment via op run --environment`,
+    );
+  }
+  if (
+    /ops_[A-Za-z0-9_-]{16,}/.test(wrapper) ||
+    wrapper.includes("PRIVATE KEY-----")
+  ) {
+    failures.push(
+      `${WRAPPER_BASENAME} must not contain secret values (service-account token or key material found)`,
+    );
+  }
+  return failures;
+}
+
 export function verifyCiProvisioning(root: string): CiVerification {
   if (!existsSync(join(root, ".github", "workflows"))) {
     return { status: "absent", failures: [] };
@@ -265,6 +334,8 @@ export function verifyCiProvisioning(root: string): CiVerification {
     ...verifyAutoMergeWorkflow(root),
     ...verifyNoBranchUpdater(root),
     ...verifyDocumentation(root),
+    ...verifyScriptsDocumentation(root),
+    ...verifySecretInjectionWrapper(root),
   ];
   return failures.length > 0
     ? { status: "fail", failures }

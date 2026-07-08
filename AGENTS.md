@@ -43,6 +43,19 @@ following the `plan/adversarial-spec-hardening/` convention:
   (normally the handoff path in a fenced code block) — paired with a
   human-readable description of the next ripe action.
 
+### Local secret injection
+
+Per `SPECIFICATION/non-functional-requirements.md` §"Local secret
+injection": repository-local commands that need secrets (live GitHub
+verification via `CHECK_LIVE_GITHUB=1`, future Vercel/AI keys) run
+through the committed `with-resume-env.sh` wrapper, which injects the
+`resume` 1Password Environment via `op run`. No secret value on a
+command line or in a committed file; the wrapper is a generated
+artifact of the external 1password-env-wrapper factory — never
+hand-edit it. GitHub Actions uses the `APP_ID`/`APP_PRIVATE_KEY`
+repository secrets instead (see `.github/README.md`). The default
+`bun run check` requires no secrets.
+
 ### Functional vs. non-functional taxonomy
 
 In this repo the split is **product vs. process**, NOT the textbook
