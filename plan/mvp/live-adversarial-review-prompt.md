@@ -80,6 +80,18 @@ Important operating rules:
   submit a highlighted/default option.
 - Never refer to work only by opaque ids. Include a human-readable task or gate
   description whenever talking to the maintainer or the driver session.
+- For the current MVP run, the watched Claude/tmux driver session is named
+  `resume`. If it is not already named that way, rename the tmux session to
+  `resume` before watching so future handoffs have a stable target.
+- If the watched `resume` Claude session says it needs to hand off because its
+  context is full, do not let it sit at the handoff prompt. Capture any resume
+  instruction it printed, exit the Claude process cleanly, and restart Claude in
+  that same tmux session from the repository root with
+  `claude --dangerously-skip-permissions` (adding the printed resume flag only
+  when needed).
+- If the reviewer session's own context reaches more than 50%, offer to restart
+  the reviewer session so the watcher does not become the next context-pressure
+  bottleneck.
 - Distinguish "red state because the driver just committed a failing anchor
   test" from a real blocker. A transient Red commit is correct Red -> Green
   evidence; a green closure that leaves a gate weakened or a scenario unmapped
