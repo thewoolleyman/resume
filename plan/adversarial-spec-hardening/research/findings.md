@@ -60,37 +60,35 @@ provisioning **additive rather than circular** — see §"Settled".
    `plan/mvp` (below) and hands off.
 
 3. **`plan/mvp` (created at `plan/guardrail`'s last step).** Drives **gap
-   detection and ordering, via git-jsonl**, for the currently-specified **MVP**:
+   detection and ordering, via beads-fabro**, for the currently-specified **MVP**:
    the interactive **searchable** resume plus the **static-text** resume — and
    **only** those. Deferred AI-driven mode and the MCP server are explicitly
    **out of MVP scope** (they remain later-phase per `spec.md` §"Delivery
-   phases"). It uses the git-jsonl orchestrator's `detect-impl-gaps` /
+   phases"). It uses the beads-fabro orchestrator's `detect-impl-gaps` /
    `capture-impl-gaps` to find and file spec→impl gaps as work-items, orders
    them so each lands additively under the now-live guardrails, and drives them
    Red→Green via `next` / `implement`.
 
 ### Operator surface: `drive` + `needs-attention`
 
-`plan/guardrail` and `plan/mvp` are driven through livespec's emerging operator
-surface — the **`needs-attention`** and **`drive`** skills/commands currently
-being developed under livespec core:
+`plan/guardrail` and `plan/mvp` are driven through livespec's operator
+surface — the **`needs-attention`** and **`drive`** skills/commands:
 
 - **`needs-attention`** composes spec-side, impl-side, human-valve, plan-thread,
   and hygiene "gather" primitives into one attention list — the single triage
-  view of what the project needs next across the spec and the git-jsonl store.
+  view of what the project needs next across the spec and the beads store.
 - **`drive --action <action-id>`** executes exactly one action (dispatch an impl
   work-item, approve/accept/reject a valve, adjust policy). It is the executor;
   it does not plan or rank.
 
 The operator loop is therefore: run `needs-attention` → pick the ripe action →
 `drive --action <id>` → repeat. These are the surface `plan/guardrail` and
-`plan/mvp` MUST specify their day-to-day driving against. They ship first in the
-`livespec-orchestrator-beads-fabro` orchestrator; the **git-jsonl** binding
-(this project's configured orchestrator, per `.livespec.jsonc`
-`implementation.plugin = livespec-orchestrator-git-jsonl`) is in active
-development. Until git-jsonl exposes them, the downstream plans drive via the
-git-jsonl `next` / `implement` / `capture-*` skills already present and adopt
-`needs-attention` / `drive` as soon as git-jsonl advertises them.
+`plan/mvp` MUST specify their day-to-day driving against. They ship in the
+`livespec-orchestrator-beads-fabro` orchestrator — this project's configured
+orchestrator, per `.livespec.jsonc` `implementation.plugin =
+livespec-orchestrator-beads-fabro` — which also ships `plan`, `next`,
+`implement`, `capture-work-item`, and `list-work-items`, so the downstream
+plans drive their day-to-day work via this full operator loop now.
 
 ## Exit criterion (when each phase and this thread stop)
 

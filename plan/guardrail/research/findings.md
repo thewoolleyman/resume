@@ -78,14 +78,15 @@ only for a blocker that needs a human maintainer decision or intervention,
 plan completion, or session limits. See `plan/guardrail/handoff.md`
 §"Loop autonomously until blocked or complete".
 
-Current fallback while the git-jsonl operator surface matures:
+This loop is backed by the livespec-orchestrator-beads-fabro operator
+surface:
 
-- Use the livespec-orchestrator-git-jsonl `next` skill to rank the next
+- Use the livespec-orchestrator-beads-fabro `next` skill to rank the next
   implementation work item.
-- Use the livespec-orchestrator-git-jsonl `implement` skill to drive exactly
+- Use the livespec-orchestrator-beads-fabro `implement` skill to drive exactly
   one work item Red -> Green.
 - If no guardrail work items exist yet, seed them from the work slices below
-  using the livespec-orchestrator-git-jsonl `capture-work-item` skill. Every
+  using the livespec-orchestrator-beads-fabro `capture-work-item` skill. Every
   work item must include a human-readable title and description; never refer to
   it only by an opaque action id or work-item id.
 

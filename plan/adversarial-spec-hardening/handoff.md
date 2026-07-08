@@ -118,11 +118,12 @@ start implementing here):
      — **provisioned additively** per `non-functional-requirements.md`
      §"Guardrail provisioning boundary" (each gate enforced from its introducing
      commit; all green as the precondition of the first `src/**` product merge).
-   - Be **driveable in EITHER Claude or Codex**, via the **`needs-attention`**
-     (triage) + **`drive`** (execute-one-action) operator surface plus the
-     git-jsonl `next` / `implement` skills (see findings.md §"Operator surface").
+   - Be **driveable in EITHER Claude or Codex**, via the
+     livespec-orchestrator-beads-fabro **`needs-attention`** (triage) +
+     **`drive`** (execute-one-action) operator surface, plus its `next` /
+     `implement` skills (see findings.md §"Operator surface").
    - Make its **last step** create `plan/mvp` and hand off.
-2. Note that `plan/mvp` will drive **git-jsonl gap detection + ordering** for the
+2. Note that `plan/mvp` will drive **beads-fabro gap detection + ordering** for the
    **searchable + static-text MVP only** (no AI, no MCP), via `detect-impl-gaps`
    / `capture-impl-gaps` → `next` / `implement`, and that
    `post_step_skip_capture_impl_gaps` in `.livespec.jsonc` flips back to `false`

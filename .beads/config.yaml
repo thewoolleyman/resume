@@ -13,7 +13,7 @@
 # .livespec.jsonc livespec-orchestrator-beads-fabro.connection block. TCP-only
 # (no socket: the dolt socket dir is 0750 dolt:dolt, untraversable by non-dolt
 # callers). The issue-ID prefix `li` matches the existing li-* ids migrated from
-# the retired git-jsonl work-items.jsonl store. No git-sync remote: the data
+# the retired JSONL work-items store. No git-sync remote: the data
 # lives on the shared Dolt server, not in git.
 
 dolt.auto-start: false

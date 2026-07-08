@@ -36,7 +36,7 @@ following the `plan/adversarial-spec-hardening/` convention:
   exact paste line.
 - Non-derivable loop state lives in a "Where the loop stands now"
   section of `handoff.md`, updated by the turn that changes it. State
-  derivable from the repo (e.g. the git-jsonl `next` ranking) is not
+  derivable from the repo (e.g. the beads-fabro `next` ranking) is not
   duplicated there.
 - Every session report MUST end with the next handoff prompt line —
   the exact text to paste into the next Claude Code or Codex session

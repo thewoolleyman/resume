@@ -35,17 +35,18 @@ enforcement suite green from the commit that introduces it.
 Drive work items in a continuous loop within the session — do NOT stop after
 one action. Each iteration:
 
-1. Pick the ripe item: run `needs-attention` when the operator surface
-   exists; until then run the livespec-orchestrator-git-jsonl `next` skill.
-2. Execute it: `drive --action <action-id>` when available; until then run
-   livespec-orchestrator-git-jsonl `implement` for that one item
-   (Red -> Green, close with merge evidence).
+1. Pick the ripe item: run the livespec-orchestrator-beads-fabro
+   `needs-attention` skill for cross-plan triage, or `next` to rank the next
+   work item.
+2. Execute it: run the livespec-orchestrator-beads-fabro `drive --action
+   <action-id>` to dispatch a selected action, or `implement` for that one
+   item (Red -> Green, close with merge evidence).
 3. Commit and push each coherent unit to `master` automatically, matching the
    repository's `AGENTS.md` convention, then continue to the next iteration.
 
 If no MVP work items exist yet, seed them from
 `plan/mvp/research/findings.md` §"Work slices" using
-livespec-orchestrator-git-jsonl `capture-work-item` (small,
+livespec-orchestrator-beads-fabro `capture-work-item` (small,
 dependency-ordered items with human-readable titles), or let
 `capture-impl-gaps` surface spec->impl gaps to file (gap capture is now
 active — the guardrail terminal step removed the
@@ -130,8 +131,8 @@ tests present and green, `bun run check` green with all gates ACTIVE over
 ## Where the loop stands now
 
 Only non-derivable state is recorded here; the current ripe work item is
-derivable by running the livespec-orchestrator-git-jsonl `next` skill against
-`work-items.jsonl`.
+derivable by running the livespec-orchestrator-beads-fabro `next` skill
+against the beads store.
 
 Current state: **plan just created; no MVP work items seeded yet.** The
 `plan/guardrail/` thread is complete — all thirteen `bun run check` gates are

@@ -27,8 +27,8 @@
   // Per-repo beads tenant for resume's work-item tracking. resume is an
   // INDEPENDENT (non-family) tenant on the shared dolt-server: tenant ==
   // database == server_user == "resume", issue-ID prefix "li" (matching the
-  // existing li-* ids migrated from the retired git-jsonl work-items.jsonl
-  // store). Isolation is the per-tenant Dolt SQL user + DB-scoped grant. The
+  // existing li-* ids migrated from the retired JSONL work-items store).
+  // Isolation is the per-tenant Dolt SQL user + DB-scoped grant. The
   // tenant password is injected as BEADS_DOLT_PASSWORD by the credential_wrapper
   // above and is NEVER committed here. TCP-only (no socket key: the dolt socket
   // dir is 0750 dolt:dolt, untraversable by non-dolt callers). `fake` is false so

@@ -73,13 +73,14 @@ re-specify here; drive the spec:
 
 ## Operator surface
 
-Driveable in either Claude Code or Codex. Preferred loop, once the
-`needs-attention` / `drive` operator surface exists: `needs-attention` ->
-`drive --action <id>` -> commit/push. Current fallback while the git-jsonl
-surface matures:
+Driveable in either Claude Code or Codex. Drive the work via the
+livespec-orchestrator-beads-fabro operator loop: `needs-attention` ->
+`drive --action <id>` -> commit/push, with `plan` and `next` to rank the
+next work item and `implement` / `capture-work-item` as the per-item and
+capture front-ends:
 
-- livespec-orchestrator-git-jsonl `next` to rank the next work item.
-- livespec-orchestrator-git-jsonl `implement` to drive exactly one item
+- livespec-orchestrator-beads-fabro `next` to rank the next work item.
+- livespec-orchestrator-beads-fabro `implement` to drive exactly one item
   Red -> Green, closing with merge evidence.
 - If no MVP work items exist yet, seed them from the work slices below with
   `capture-work-item` (small, dependency-ordered, human-readable titles).

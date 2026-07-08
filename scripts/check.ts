@@ -22,6 +22,7 @@ import {
   INVENTORY_PATH,
   verifyDisciplineInventory,
 } from "./check-discipline-inventory";
+import { checkNoGitJsonl } from "./check-no-git-jsonl";
 import {
   COVERAGE_PATH as SCENARIO_COVERAGE_PATH,
   SCENARIOS_PATH,
@@ -727,6 +728,40 @@ function checkNoPrematureProductSource(root: string): GateResult {
   };
 }
 
+// The no-live-git-jsonl gate (plan/orchestrator-migration slice 4): after the
+// work-item orchestrator migrated to livespec-orchestrator-beads-fabro, no
+// live reference to the retired git-jsonl orchestrator may remain in the
+// tracked tree (migration-history locations are excluded — see
+// scripts/check-no-git-jsonl.ts). Skips gracefully when git is unavailable.
+function checkNoGitJsonlReferences(root: string): GateResult {
+  const gate = "no-live-git-jsonl (orchestrator migration)";
+  let result;
+  try {
+    result = checkNoGitJsonl(root);
+  } catch (error) {
+    return {
+      gate,
+      status: "skipped",
+      detail: `git unavailable: ${(error as Error).message}`,
+    };
+  }
+  if (!result.ok) {
+    return {
+      gate,
+      status: "FAIL",
+      detail:
+        `${String(result.violations.length)} live git-jsonl reference(s): ` +
+        result.violations.slice(0, 5).join("; "),
+    };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "no live git-jsonl reference in the tracked tree — beads-fabro is the orchestrator",
+  };
+}
+
 const root = parseProjectRoot(process.argv.slice(2));
 const packageJsonPath = join(root, "package.json");
 if (!existsSync(packageJsonPath)) {
@@ -748,6 +783,7 @@ const results: GateResult[] = [
   checkCoverage(root, pkg),
   checkProperty(root, pkg),
   checkScenarios(root),
+  checkNoGitJsonlReferences(root),
   checkNoPrematureProductSource(root),
 ];
 
