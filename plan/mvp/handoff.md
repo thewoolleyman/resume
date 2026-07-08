@@ -209,20 +209,27 @@ the gate status below).
 Repository baseline (keep accurate — the next agent reviews/pushes docs against
 it):
 
-- **Branch `feat/phase-1-mvp`** has TWO committed docs/spec commits, no product
-  source (identify by message — exact SHAs churn on amend/rebase): a
-  `docs(plan): record phase-1 build state…` commit (this handoff update), and a
-  `docs(spec): propose injectable-mocks-unit-coverage + reject-invalid-skill-levels…`
-  commit that adds the two `SPECIFICATION/proposed_changes/` files, the
-  ratified-decisions handoff update, and a
-  `plan/mvp/live-adversarial-review-prompt.md` note. Everything else (data,
-  `src/**`, config, `mise.toml`) is UNCOMMITTED in the working tree.
-- **`origin/master` has advanced to `5027c85`** ("docs(plan): record MVP
-  reviewer restart guidance"); the branch's merge-base with it is `faac997`, so
-  the branch is behind by that one docs commit. **Rebase the branch onto
-  `origin/master` before landing.** `origin/master..HEAD` currently contains
-  only the two docs/spec commits (no product source), so the TDD range gate
-  passes.
+- **No first-party product source (`src/**`) or governed data
+  (`data/resume.yml`) is committed on the branch.** The branch's committed
+  history over `origin/master` is docs / spec / plugin-config ONLY — the
+  phase-1 handoff updates, the two `SPECIFICATION/proposed_changes/` files, a
+  `plan/mvp/live-adversarial-review-prompt.md` note, and a `.claude/settings.json`
+  livespec-plugin-settings pin (which mirrors the same pin on `origin/master`,
+  so it nets out of `origin/master..HEAD`). Because that committed range carries
+  no `src/**` or governed data, the TDD range gate passes. (Commit counts/SHAs on
+  the branch and `origin/master` churn with small docs/config commits and on
+  rebase — identify commits by message/category, not count or hash.)
+- **All phase-1 product, test, and toolchain-config work is UNCOMMITTED in the
+  working tree**, to land later as one all-green Suite-Green commit: the governed
+  snapshot `data/resume.yml`; all `src/**` (source, `.svelte`, tests, fixtures);
+  the Playwright specs dir `e2e/**`; the harness/tooling edits (`scripts/check.ts`
+  + `scripts/check.test.ts` build/e2e gates, `scripts/tsconfig.json`,
+  `e2e/tsconfig.json`); and toolchain config (`package.json`, `bun.lock`,
+  `tsconfig.json`, `svelte.config.js`, `vite.config.ts`, `playwright.config.ts`,
+  `eslint.config.js`, `mise.toml`, `.prettierignore`, `static/`).
+- **`origin/master` keeps advancing with small docs/config commits** (currently
+  a livespec-plugin-settings pin); the branch's merge-base with it is `faac997`.
+  **Rebase the branch onto `origin/master` before landing.**
 
 **Done and green** (`bun run typecheck`, `lint`, `format:check`, `build` all
 pass; `bunx vitest run` = 104 tests pass; all 14 core `src/lib/**/*.ts` modules
