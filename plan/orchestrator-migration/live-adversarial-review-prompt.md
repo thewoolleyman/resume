@@ -43,9 +43,12 @@ range of commits:
 7. After the active session lands a fix, review the red commit and green commit
    separately. Re-run the adversarial fixture or equivalent check before
    clearing the blocker.
-8. Continue watching until the driver session stops, the plan is complete, or
-   the maintainer tells you to stop. Do not leave watcher processes running
-   after the watched session is idle or stopped.
+8. Continue watching until the driver tmux pane/session exits, the plan is
+   complete, or the maintainer tells you to stop. A driver waiting at a
+   maintainer prompt, blocker prompt, or other idle input prompt is still an
+   active watched session; keep watching `master` until the pane/session is
+   gone or a stop condition is explicit. Do not leave watcher processes running
+   after the watched pane/session has exited.
 
 Important operating rules:
 
