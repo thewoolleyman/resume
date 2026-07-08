@@ -2,10 +2,13 @@
 // plan/guardrail/research/findings.md slice 7).
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"Result and
-// railway-oriented programming discipline": first-party core modules
-// (src/data|domain|search|grounding|mcp-contracts) expose Result-returning
-// public functions; boundary modules (src/adapters|server|api) expose
-// AsyncResult/Promise<Result>; Result return values may not be ignored;
+// railway-oriented programming discipline": first-party core modules — the
+// top-level role dirs (src/data|domain|search|grounding|mcp-contracts) AND the
+// selected phase-1 `$lib` core dirs (src/lib/{data,domain,search,sort,markdown},
+// where scenario-coverage.json maps the phase-1 core tests) — expose
+// Result-returning public functions; boundary modules (src/{adapters,server,api}
+// and src/lib/{server,adapters,api}) expose AsyncResult/Promise<Result>; Result
+// return values may not be ignored;
 // catch clauses outside the approved boundary-adapter directories must
 // rethrow (no blanket catch that hides bugs); DomainError must never be
 // thrown as an exception; UI modules (src/routes|components) must not
@@ -328,6 +331,112 @@ describe("Result/ROP enforcement gate (li-oaxjqm)", () => {
     const { exitCode, output } = runResult(dir);
     expect(exitCode).toBe(1);
     expect(output).toContain("outside the repository");
+  }, 60000);
+
+  test("a src/lib core export not returning Result fails (selected $lib core dir)", () => {
+    // The phase-1 SvelteKit `$lib` layout places core logic under src/lib/**;
+    // scenario-coverage.json maps the phase-1 core tests to
+    // src/lib/{data,search,sort,markdown}. A raw (non-Result) core export there
+    // must fail exactly as it does under the top-level core dirs — otherwise a
+    // "result/rop discipline: ok" report would be weaker than the guardrail
+    // requires (regression guard for the src/lib core-dir gap).
+    const dir = makeFixture({
+      "src/lib/data/load.ts":
+        'export function loadResume(): string { return "ok"; }\n',
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("src/lib/data/load.ts");
+    expect(output).toContain("Result");
+  }, 60000);
+
+  test("every selected $lib core dir enforces Result-returning exports", () => {
+    const dir = makeFixture({
+      "src/lib/search/projection.ts":
+        "export function project(md: string): string {\n  return md;\n}\n",
+      "src/lib/sort/section-sort.ts":
+        "export const sortItems = (xs: number[]): number[] => xs;\n",
+      "src/lib/markdown/render.ts":
+        "export function render(md: string): string {\n  return md;\n}\n",
+      "src/lib/domain/compose.ts":
+        "export function compose(n: number): number {\n  return n;\n}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(exitCode).toBe(1);
+    for (const path of [
+      "src/lib/search/projection.ts",
+      "src/lib/sort/section-sort.ts",
+      "src/lib/markdown/render.ts",
+      "src/lib/domain/compose.ts",
+    ]) {
+      expect(output).toContain(path);
+    }
+  }, 60000);
+
+  test("a compliant src/lib core module returning Result passes", () => {
+    const dir = makeFixture({
+      "src/lib/data/shared.ts": RESULT_PRELUDE,
+      "src/lib/data/load.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function loadResume(raw: string): Result<number, DomainError> {\n" +
+        "  return { ok: true, value: raw.length };\n" +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(output).not.toContain("FAIL");
+    expect(exitCode).toBe(0);
+  }, 60000);
+
+  test("a src/lib/server boundary export returning a bare (non-Promise) value fails", () => {
+    const dir = makeFixture({
+      "src/lib/server/shared.ts": RESULT_PRELUDE,
+      "src/lib/server/read-source.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function readSource(): Result<string, DomainError> {\n" +
+        '  return { ok: true, value: "x" };\n' +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("src/lib/server/read-source.ts");
+    expect(output).toContain("AsyncResult");
+  }, 60000);
+
+  test("a src/lib/server boundary adapter may classify a caught failure without rethrowing", () => {
+    const dir = makeFixture({
+      "src/lib/server/shared.ts": RESULT_PRELUDE,
+      "src/lib/server/read-source.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export async function readSource(): Promise<Result<string, DomainError>> {\n" +
+        "  try {\n" +
+        '    return { ok: true, value: "body" };\n' +
+        "  } catch {\n" +
+        '    return { ok: false, error: { kind: "parse-error", detail: "io" } };\n' +
+        "  }\n" +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(output).not.toContain("FAIL");
+    expect(exitCode).toBe(0);
+  }, 60000);
+
+  test("a non-rethrowing catch in a src/lib core dir (not a boundary) fails", () => {
+    const dir = makeFixture({
+      "src/lib/data/shared.ts": RESULT_PRELUDE,
+      "src/lib/data/parse.ts":
+        'import type { DomainError, Result } from "./shared";\n' +
+        "export function parse(): Result<number, DomainError> {\n" +
+        "  try {\n" +
+        "    return { ok: true, value: 1 };\n" +
+        "  } catch {\n" +
+        '    return { ok: false, error: { kind: "parse-error", detail: "hidden" } };\n' +
+        "  }\n" +
+        "}\n",
+    });
+    const { exitCode, output } = runResult(dir);
+    expect(exitCode).toBe(1);
+    expect(output).toContain("src/lib/data/parse.ts");
+    expect(output).toContain("catch");
   }, 60000);
 
   test("the aggregate check runs the Result/ROP gate as operational", () => {

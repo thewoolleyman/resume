@@ -6,10 +6,18 @@
 // over first-party product source under src/**, plus verification that the
 // type-aware ESLint rules the discipline leans on are effectively enabled.
 //
-// Layer split (the documented contract):
-//   src/data|domain|search|grounding|mcp-contracts -> pure Result<T, DomainError>
-//   src/adapters|server|api                        -> AsyncResult<T, DomainError>
-//   src/routes|components                          -> unwrap Result, no raw errors
+// Layer split (the documented contract). The phase-1 SvelteKit app selects
+// the `$lib` (src/lib/**) layout for its first-party modules, so the same
+// role dirs under src/lib/** are enforced identically — per
+// SPECIFICATION/non-functional-requirements.md §"Result and railway-oriented
+// programming discipline", the gate enforces Result typing in the *selected*
+// first-party core directories, and scenario-coverage.json maps the phase-1
+// core tests to src/lib/{data,search,sort,markdown}:
+//   src/{data|domain|search|grounding|mcp-contracts}, src/lib/{data|domain|search|sort|markdown}
+//                                                  -> pure Result<T, DomainError>
+//   src/{adapters|server|api}, src/lib/{server|adapters|api}
+//                                                  -> AsyncResult<T, DomainError>
+//   src/{routes|components}, src/lib/components     -> unwrap Result, no raw errors
 //
 // Enforced checks:
 // - Core exports declare Result-referencing return types; boundary exports
@@ -44,17 +52,37 @@ import { existsSync, readdirSync } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import ts from "typescript";
 
+// Core dirs: top-level role dirs plus the selected phase-1 `$lib` core dirs.
+// scenario-coverage.json maps phase-1 core tests to src/lib/{data,search,
+// sort,markdown}; src/lib/domain holds the interactive composition logic.
+// Exported functions in these dirs MUST return Result<T, DomainError>.
 const CORE_DIRS = [
   "src/data",
   "src/domain",
   "src/search",
   "src/grounding",
   "src/mcp-contracts",
+  "src/lib/data",
+  "src/lib/domain",
+  "src/lib/search",
+  "src/lib/sort",
+  "src/lib/markdown",
 ] as const;
 
-const BOUNDARY_DIRS = ["src/adapters", "src/server", "src/api"] as const;
+// Boundary dirs: top-level plus the `$lib` server/adapter layer. Exported
+// functions MUST return AsyncResult / Promise<Result<…>>, and these are the
+// only dirs allowed to catch without rethrowing (they classify enumerated
+// expected failures into DomainError variants).
+const BOUNDARY_DIRS = [
+  "src/adapters",
+  "src/server",
+  "src/api",
+  "src/lib/server",
+  "src/lib/adapters",
+  "src/lib/api",
+] as const;
 
-const UI_DIRS = ["src/routes", "src/components"] as const;
+const UI_DIRS = ["src/routes", "src/components", "src/lib/components"] as const;
 
 // Boundary adapters (and future supervisors added here) are the only
 // modules allowed to catch without rethrowing — they classify enumerated
