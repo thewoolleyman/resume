@@ -60,14 +60,16 @@ describe("no-live-git-jsonl gate (slice 4)", () => {
     expect(result.violations.join("\n")).toContain("AGENTS.md");
   });
 
-  test("excludes migration-history locations (history, archive, .beads, migration thread)", () => {
+  test("excludes migration-history locations (history, archive incl. the archived migration thread, .beads)", () => {
     const dir = makeRepo({
       "AGENTS.md": "beads-fabro\n",
       "SPECIFICATION/history/v001/non-functional-requirements.md":
         "the git-jsonl orchestrator\n",
       "archive/work-items.jsonl": '{"note":"git-jsonl store"}\n',
       ".beads/config.yaml": "# migrated from the retired git-jsonl store\n",
-      "plan/orchestrator-migration/handoff.md":
+      // The orchestrator-migration thread is archived under archive/, covered
+      // by the archive/ exclusion (no separate plan-path exclusion needed).
+      "archive/orchestrator-migration/handoff.md":
         "migrate from git-jsonl to beads-fabro\n",
     });
     expect(checkNoGitJsonl(dir).ok).toBe(true);

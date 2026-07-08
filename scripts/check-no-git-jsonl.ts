@@ -6,14 +6,11 @@
 //
 // Scope — what is NOT a live reference (and is excluded):
 // - SPECIFICATION/history/** — immutable ratified-spec snapshots.
-// - archive/** — the archived JSONL work-items store and archived plan threads.
+// - archive/** — the archived JSONL work-items store AND archived plan threads,
+//   including archive/orchestrator-migration/ (the migration thread itself,
+//   which documents the git-jsonl -> beads-fabro migration and was archived on
+//   completion — migration history, not a live orchestrator reference).
 // - .beads/** — the migrated beads tenant pointer/data.
-// - plan/orchestrator-migration/** — the migration thread itself, whose entire
-//   purpose is documenting the git-jsonl -> beads-fabro migration. It is
-//   archived under archive/ on completion (its terminal slice); this explicit
-//   exclusion is removed then, because the archive/ exclusion covers it. It is
-//   listed here for the same reason the archived store is: it is
-//   migration-history, not a live orchestrator reference.
 // - this gate, its test, and scripts/check.ts (which imports + wires it) —
 //   they carry the search term ONLY as the machinery that ENFORCES no-git-jsonl
 //   (a module named for what it forbids), never as a live orchestrator surface.
@@ -33,7 +30,6 @@ const EXCLUDE_PATHSPECS = [
   ":(exclude)SPECIFICATION/history/**",
   ":(exclude)archive/**",
   ":(exclude).beads/**",
-  ":(exclude)plan/orchestrator-migration/**",
   ":(exclude)scripts/check.ts",
   ":(exclude)scripts/check-no-git-jsonl.ts",
   ":(exclude)scripts/check-no-git-jsonl.test.ts",

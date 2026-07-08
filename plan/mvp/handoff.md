@@ -144,6 +144,13 @@ are armed and must be authored as this plan lands `src/**`). No first-party
 property/fuzz, and scenario-resolution gates are armed-but-vacuous and
 activate on the first product-source merge.
 
+The `plan/orchestrator-migration/` thread is also complete: the work-item
+orchestrator is now `livespec-orchestrator-beads-fabro`, backed by the `resume`
+beads/Dolt tenant on the shared dolt-server (all prior work items migrated with
+their audit trail; the retired JSONL work-items store is archived). Drive
+work through the beads-fabro operator loop — `drive` / `plan` / `needs-attention`
+/ `next` / `implement` / `capture-work-item`, all backed by the beads store.
+
 Next ripe action: seed the phase-1 work items from `findings.md` §"Work
 slices" (dependency-ordered), then drive slice 1 — the **SvelteKit + Vercel
 toolchain scaffold**: stand up the SvelteKit app with the Vercel adapter and
