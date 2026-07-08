@@ -130,14 +130,15 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **slices 1–9 done — bootstrap, script surface, aggregate
-check, toolchain gates, the Red -> Green TDD gate, the local memory
-guardrail + discipline inventory, GitHub CI + pull-request automation
-(auto-merge NOW PROVEN OPERATIONAL via PR #2 — see below), the
+Current state: **ALL SLICES 1–11 DONE — the guardrail plan is COMPLETE**
+(2026-07-08). Provisioned and proven: bootstrap, script surface,
+aggregate check, toolchain gates, the Red -> Green TDD gate, the local
+memory guardrail + discipline inventory, GitHub CI + pull-request
+automation (auto-merge PROVEN OPERATIONAL via PR #2 — see below), the
 Result/ROP enforcement gate, the coverage + property/fuzz gates, and the
-scenario coverage gate provisioned** (2026-07-08). `bun run check` now
-runs THIRTEEN operational gates and PENDING_GATES is empty — every
-guardrail gate family is operational. Work items
+scenario coverage gate. `bun run check` runs THIRTEEN operational gates,
+all green; PENDING_GATES is empty. The terminal handoff to `plan/mvp/`
+landed (see the completion note below). Work items
 were seeded at `b03c271` (`li-ugymfg` through `li-gzmujc`, each depending
 on its predecessor). Closed so far: `li-ugymfg` (bootstrap + script
 surface, merge `a2cf94e`), `li-w6mvog` (aggregate check skeleton, merge
@@ -305,19 +306,25 @@ run check` now verifies the mapping IN-PROCESS via `verifyScenarios`
 spec) is skipped. Red coverage proves a broken mapping fails even with a
 no-op `check:scenarios` script.
 
-Next ripe action: `li-eg4w7j` — the green precondition for product work
-(slice 10), now `next`'s top-ranked ready item. Verify `bun run check`
-passes with ALL thirteen guardrail gates present and operational (it
-does as of `e1e3bf1`), then perform the Terminal step: create
-`plan/mvp/research/findings.md` and `plan/mvp/handoff.md`, flip
-`.livespec.jsonc` `post_step_skip_capture_impl_gaps` back to `false` (or
-remove the skip), and hand off to the searchable-interactive-plus-static
-MVP plan. This is the plan-completion milestone.
+**This plan is COMPLETE (2026-07-08).** Slice 10 (`li-eg4w7j`, green
+precondition) was verified — `bun run check` exits 0 with all thirteen
+gates green — and slice 11 (`li-gzmujc`, terminal handoff) landed at
+merge `293e2f3`: `plan/mvp/research/findings.md` and
+`plan/mvp/handoff.md` were created (the phase-1 searchable-interactive +
+static-resume plan; no AI mode, no MCP) and `.livespec.jsonc`
+`post_step_skip_capture_impl_gaps` was flipped to `false` so gap capture
+is active for `plan/mvp`. Running the livespec-orchestrator-git-jsonl
+`next` skill against `work-items.jsonl` now returns no ripe items.
+
+**The active handoff is now `plan/mvp/handoff.md`.** Product
+implementation continues there. There is nothing further to drive in
+`plan/guardrail/`.
 
 ## Resume
 
-Paste this into Claude Code or Codex:
+This plan is complete. To continue with phase-1 product implementation,
+paste the MVP handoff into Claude Code or Codex instead:
 
 ```text
-plan/guardrail/handoff.md
+plan/mvp/handoff.md
 ```
