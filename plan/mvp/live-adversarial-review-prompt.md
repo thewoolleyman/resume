@@ -54,12 +54,13 @@ range of commits:
 7. After the active session lands a fix, review the red commit and green commit
    separately. Re-run the adversarial fixture or equivalent check before
    clearing the blocker.
-8. Continue watching until the driver pane/session exits, the plan is complete,
-   or the maintainer tells you to stop. A driver waiting at a maintainer
-   prompt, blocker prompt, or other idle input prompt is still an active
-   watched session; keep watching `master` until the pane/session is gone or a
-   stop condition is explicit. Do not leave watcher processes running after the
-   watched pane/session has exited.
+8. Continue watching until the maintainer explicitly stops the review or the
+   watched driver pane/session exits — those are the ONLY stop conditions. Plan
+   completion is NOT a stop condition: a closed/completed plan thread, a driver
+   waiting at a maintainer prompt, blocker prompt, or other idle input prompt,
+   and a maintainer decision picker are all still an active watched session, so
+   keep watching `master`. Tear down watcher processes only once the watched
+   pane/session has exited or the maintainer ends the review.
 
 Important operating rules:
 
