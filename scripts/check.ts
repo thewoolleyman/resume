@@ -22,6 +22,11 @@ import {
   INVENTORY_PATH,
   verifyDisciplineInventory,
 } from "./check-discipline-inventory";
+import {
+  COVERAGE_PATH as SCENARIO_COVERAGE_PATH,
+  SCENARIOS_PATH,
+  verifyScenarios,
+} from "./check-scenarios";
 
 const REQUIRED_SCRIPTS = [
   "check",
@@ -653,37 +658,51 @@ function checkProperty(root: string, pkg: PackageJson): GateResult {
   };
 }
 
-// Runs the scenario coverage gate through its named script (§"Top-of-pyramid
-// discipline"): every load-bearing scenario in SPECIFICATION/scenarios.md is
-// classified browser-observable or non-browser-exercisable and carries a
-// mapping of that class in scenario-coverage.json (armed-but-vacuous for
-// test-identifier resolution until src/** product source lands).
-function checkScenarios(root: string, pkg: PackageJson): GateResult {
+// Verifies the scenario coverage mapping IN-PROCESS (§"Top-of-pyramid
+// discipline"), like the discipline-inventory and CI gates. It runs
+// verifyScenarios directly rather than the check:scenarios package script, so
+// a no-op script (e.g. "check:scenarios": "true") cannot launder the gate —
+// the aggregate always validates the committed mapping itself. The committed
+// scenario-coverage.json is the provisioning artifact: a tree without it is
+// unprovisioned UNLESS it already carries the scenarios spec or src/** product
+// source, in which case the missing mapping fail-closes. (The real repo always
+// carries SPECIFICATION/scenarios.md, so it can never reach the skipped path —
+// a deleted mapping there fails; only a bare synthetic fixture is skipped.)
+function checkScenarios(root: string): GateResult {
   const gate = "scenario coverage (check:scenarios)";
-  if (!("check:scenarios" in (pkg.scripts ?? {}))) {
+  if (!existsSync(join(root, SCENARIO_COVERAGE_PATH))) {
+    const specExists = existsSync(join(root, SCENARIOS_PATH));
+    const srcDir = join(root, "src");
+    const srcPresent = existsSync(srcDir) && readdirSync(srcDir).length > 0;
+    if (specExists || srcPresent) {
+      return {
+        gate,
+        status: "FAIL",
+        detail: `${SCENARIO_COVERAGE_PATH} is missing while ${
+          specExists ? SCENARIOS_PATH : "src/** product source"
+        } is present — the committed scenario coverage mapping is required`,
+      };
+    }
     return {
       gate,
-      status: "FAIL",
-      detail: "package.json has no check:scenarios script",
+      status: "skipped",
+      detail: "scenario coverage mapping not provisioned in this tree",
     };
   }
-  const run = Bun.spawnSync({
-    cmd: ["bun", "run", "check:scenarios"],
-    cwd: root,
-  });
-  if (run.exitCode !== 0) {
-    const tail = (run.stdout.toString() + run.stderr.toString())
-      .trim()
-      .split("\n")
-      .slice(-6)
-      .join(" | ");
-    return { gate, status: "FAIL", detail: tail };
+  const { failures, armed, counts } = verifyScenarios(root);
+  if (failures.length > 0) {
+    const shown = failures.slice(0, 3).join("; ");
+    const more =
+      failures.length > 3 ? ` (+${String(failures.length - 3)} more)` : "";
+    return { gate, status: "FAIL", detail: shown + more };
   }
+  const summary = `${String(counts.browserObservable)} browser-observable, ${String(counts.nonBrowser)} non-browser-exercisable`;
   return {
     gate,
     status: "ok",
-    detail:
-      "every load-bearing scenario classified and mapped by class (Playwright vs named non-Playwright category); identifier resolution armed until src/** lands",
+    detail: armed
+      ? `${summary}; every load-bearing scenario classified and mapped (verified in-process); identifier resolution armed until src/** lands`
+      : `${summary}; every load-bearing scenario mapped and every identifier resolves to an executable test`,
   };
 }
 
@@ -728,7 +747,7 @@ const results: GateResult[] = [
   checkResultDiscipline(root, pkg),
   checkCoverage(root, pkg),
   checkProperty(root, pkg),
-  checkScenarios(root, pkg),
+  checkScenarios(root),
   checkNoPrematureProductSource(root),
 ];
 

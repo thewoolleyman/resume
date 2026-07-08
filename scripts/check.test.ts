@@ -11,12 +11,26 @@
 // 3 precondition failure.
 
 import { afterAll, describe, expect, test } from "bun:test";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 const repoRoot = join(import.meta.dir, "..");
 const checkScript = join(repoRoot, "scripts", "check.ts");
+const realScenariosSpec = readFileSync(
+  join(repoRoot, "SPECIFICATION", "scenarios.md"),
+  "utf8",
+);
+const realScenarioCoverage = readFileSync(
+  join(repoRoot, "scenario-coverage.json"),
+  "utf8",
+);
 
 const REQUIRED_SCRIPTS = [
   "check",
@@ -54,6 +68,10 @@ interface FixtureOptions {
   readonly withPassingHarnessTest?: boolean;
   readonly withoutPackageJson?: boolean;
   readonly devDependencies?: Record<string, string>;
+  // Drop the real scenarios spec + coverage mapping into the fixture so the
+  // in-process scenario gate has something to verify. "broken" removes a
+  // mapping so the gate must fail even though check:scenarios is a no-op.
+  readonly scenarioMapping?: "valid" | "broken";
 }
 
 function makeFixture(options: FixtureOptions = {}): string {
@@ -99,6 +117,24 @@ function makeFixture(options: FixtureOptions = {}): string {
       'import { expect, test } from "bun:test";\n' +
         `test("fixture", () => expect(1).toBe(${expected}));\n`,
     );
+  }
+  if (options.scenarioMapping !== undefined) {
+    mkdirSync(join(dir, "SPECIFICATION"), { recursive: true });
+    writeFileSync(
+      join(dir, "SPECIFICATION", "scenarios.md"),
+      realScenariosSpec,
+    );
+    let coverage = realScenarioCoverage;
+    if (options.scenarioMapping === "broken") {
+      const parsed = JSON.parse(realScenarioCoverage) as {
+        mappings: { scenario: string }[];
+      };
+      parsed.mappings = parsed.mappings.filter(
+        (m) => m.scenario !== "Visitor opens the interactive resume",
+      );
+      coverage = JSON.stringify(parsed, null, 2);
+    }
+    writeFileSync(join(dir, "scenario-coverage.json"), coverage);
   }
   return dir;
 }
@@ -242,4 +278,51 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     expect(exitCode).toBe(1);
     expect(output).toContain("product source");
   });
+
+  test("runs the scenario gate in-process, not via the check:scenarios script", () => {
+    // The fixture's check:scenarios script is a no-op ("true"); a valid
+    // committed mapping must still make the aggregate scenario gate pass,
+    // proving the aggregate verifies the mapping in-process.
+    const { exitCode, output } = runCheck(
+      makeFixture({ scenarioMapping: "valid" }),
+      { CHECK_SKIP_HARNESS_TESTS: "1", CHECK_SKIP_TOOLCHAIN_RUNNERS: "1" },
+    );
+    const gateLine = output
+      .split("\n")
+      .find((line) => line.includes("scenario coverage"));
+    expect(gateLine).toContain("[ok]");
+    expect(exitCode).toBe(0);
+  }, 120000);
+
+  test("the scenario gate fails on a broken mapping even when check:scenarios is a no-op", () => {
+    // Reproducer for the aggregate no-op-script bypass: check:scenarios is
+    // "true", so if the aggregate trusted the script it would pass. A broken
+    // mapping must fail because the aggregate verifies it in-process.
+    const { exitCode, output } = runCheck(
+      makeFixture({ scenarioMapping: "broken" }),
+      { CHECK_SKIP_HARNESS_TESTS: "1", CHECK_SKIP_TOOLCHAIN_RUNNERS: "1" },
+    );
+    expect(exitCode).toBe(1);
+    const gateLine = output
+      .split("\n")
+      .find((line) => line.includes("scenario coverage"));
+    expect(gateLine).toContain("[FAIL]");
+    expect(output).toContain("no mapping");
+  }, 120000);
+
+  test("a bare fixture's scenario gate is skipped, never a laundered [ok]", () => {
+    // The watcher's reproducer: no scenario-coverage.json and no scenarios
+    // spec, with check:scenarios a no-op. The gate must not report [ok] — a
+    // tree with no scenarios spec at all is unprovisioned (skipped); the real
+    // repo always carries the spec, so a deleted mapping there fails instead.
+    const { output } = runCheck(makeFixture(), {
+      CHECK_SKIP_HARNESS_TESTS: "1",
+      CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+    });
+    const gateLine = output
+      .split("\n")
+      .find((line) => line.includes("scenario coverage"));
+    expect(gateLine).toContain("[skipped]");
+    expect(gateLine).not.toContain("[ok]");
+  }, 120000);
 });

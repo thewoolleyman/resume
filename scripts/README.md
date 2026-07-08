@@ -284,11 +284,24 @@ non-browser scenario missing its category/rationale. Once first-party
 `src/**` product source lands, every mapped identifier must additionally
 resolve to an **executable** `test(...)` / `it(...)` declaration whose
 title matches — a comment, prose mention, or `test.skip`/`todo`/`fixme`/
-`failing` placeholder does not count. Until then the gate is
-armed-but-vacuous for resolution and still enforces the full
-classification and mapping structure. Playwright and Vitest test
-authoring arrives with the toolchain and `plan/mvp`. Exit codes: `0`
-ok/armed, `1` violations, `2` usage.
+`failing` placeholder does not count (resolution parses the file with the
+TypeScript compiler, so comments and string literals are never seen as
+test declarations). Until then the gate is armed-but-vacuous for
+resolution and still enforces the full classification and mapping
+structure. Playwright and Vitest test authoring arrives with the
+toolchain and `plan/mvp`. Exit codes: `0` ok/armed, `1` violations, `2`
+usage.
+
+`bun run check` verifies this gate **in-process** (it calls
+`verifyScenarios` directly, like the discipline-inventory and CI gates),
+not by running the `check:scenarios` package script — so a no-op script
+(e.g. `"check:scenarios": "true"`) cannot launder the aggregate gate; the
+committed mapping is always validated. `check:scenarios` remains the
+operator entry point for running the gate standalone. A tree with no
+committed `scenario-coverage.json` is unprovisioned (skipped) only when it
+also lacks `SPECIFICATION/scenarios.md` and `src/**`; because the real
+repo always carries the scenarios spec, a deleted mapping there
+fail-closes.
 
 ## Package-script surface
 
