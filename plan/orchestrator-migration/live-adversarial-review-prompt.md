@@ -56,6 +56,16 @@ Important operating rules:
   config (`.livespec.jsonc`, `.claude/settings.json`), the work-item store, and
   hooks. Plan updates can falsely claim completion; a config or store commit
   can silently leave the cutover half-done.
+- Never answer a maintainer decision picker, `AskUserQuestion`, or any prompt
+  presenting choices for the human. This is true even when one option is marked
+  recommended, the correct path looks obvious, or the driver is stalled. The
+  adversarial reviewer provides empirical facts, blockers, contradictions, and
+  recommended reasoning in its own report; it does not select, submit, or type a
+  choice on the maintainer's behalf.
+- If a watched pane is idle at a decision picker or human-choice prompt, capture
+  the prompt, report the exact choice needed in the reviewer session, and keep
+  monitoring. Only the maintainer may answer the picker. Do not press Enter to
+  submit a highlighted/default option.
 - Never refer to work only by opaque ids. Include a human-readable task or gate
   description whenever talking to the maintainer or the driver session.
 - Distinguish "red state because the driver just committed a failing test" from
