@@ -144,16 +144,22 @@ no secret values.
 ## Secrets (local commands)
 
 Secret-needing local commands inject their secrets through the
-`with-resume-env.sh` wrapper (NFR §"Local secret injection"), which
-loads the `resume` 1Password Environment via `op run`. The wrapper is
-not committed yet — see `.github/README.md` §"Local secret injection"
-for the pending maintainer bootstrap; until it lands, no repository
-command requires environment-injected secrets. Once committed, usage
-is:
+committed `with-resume-env.sh` wrapper (NFR §"Local secret injection"),
+which loads the `resume` 1Password Environment (id
+`fj6btfanxkhmqdrvrtjp2tj5qm`) via `op run`. Usage:
 
 ```sh
 with-resume-env.sh -- env CHECK_LIVE_GITHUB=1 bun run check
 ```
+
+**Newline handling.** `op run` delivers a multiline secret such as
+`GITHUB_APP_PRIVATE_KEY` flattened to a single line (newlines stripped,
+regardless of Environment storage), so the raw injected value is not a
+loadable PEM. Consumers MUST normalize it first via
+`scripts/normalize-pem.ts` (`normalizePem`) — see that module and
+`.github/README.md` §"Local secret injection". No repository command
+consumes the injected App key yet (the live GitHub check uses `gh`); the
+normalizer is provisioned for the first consumer that does.
 
 (The `gh`-backed live check also works with plain local `gh`
 credentials; the wrapper is the documented path for any command that

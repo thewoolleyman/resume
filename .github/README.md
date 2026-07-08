@@ -94,17 +94,26 @@ secret values and is a generated artifact of the external
 factory — never hand-edit it; re-render via the factory. Secrets are
 never passed as command-line arguments and never committed.
 
-**Current state:** the wrapper is NOT committed yet — render pending
-maintainer 1Password bootstrap (create the `resume` Environment in the
-1Password desktop app, import the staged credentials from the `/tmp`
-dump, provision a service-account token with read access, then run the
-factory and commit the rendered wrapper at the repository root). Until
-it lands, no repository command requires environment-injected secrets:
-the live GitHub check authenticates through local `gh` credentials.
-`scripts/check-ci.ts` verifies this documentation, fails if the wrapper
-is absent without this documented pending state, and — once the wrapper
-is committed — fails on a stale pending marker and verifies the
-rendered artifact's shape and secret-freedom.
+**Current state:** the wrapper is committed at the repository root
+(`with-resume-env.sh`) — the generated factory artifact for
+`IDENTIFIER='resume'`, injecting the `resume` 1Password Environment
+(id `fj6btfanxkhmqdrvrtjp2tj5qm`) via `op run`. It carries no secret
+values; the service-account token lives in the host secure store
+(systemd-creds on Linux). `scripts/check-ci.ts` verifies this
+documentation and the rendered artifact's shape and secret-freedom.
+
+**Newline handling (important).** `op run` delivers a multiline secret
+such as `GITHUB_APP_PRIVATE_KEY` **flattened to a single line** — the
+newlines are stripped regardless of how the key is stored in the
+Environment — so the raw injected value is NOT a loadable PEM
+(`openssl` rejects it). Any consumer of the injected key MUST normalize
+it first, reconstructing the PEM line structure, via
+`scripts/normalize-pem.ts` (`normalizePem`) — the standalone realization
+of the livespec `normalize_pem` lesson. GitHub Actions is unaffected:
+the auto-merge workflow reads the `APP_PRIVATE_KEY` Actions secret
+through `actions/create-github-app-token`, which normalizes internally.
+The default `bun run check` needs no secrets; the live GitHub check
+authenticates through local `gh` credentials.
 
 ## Expected landing sequence
 
