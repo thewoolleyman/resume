@@ -75,6 +75,12 @@ const REQUIRED_DOC_MENTIONS: readonly [string, string][] = [
 const SCRIPTS_DOC_PATH = "scripts/README.md";
 const WRAPPER_BASENAME = "with-resume-env.sh";
 
+// While the maintainer's 1Password bootstrap has not rendered the wrapper,
+// the docs must say so with this exact marker — docs claiming a committed
+// wrapper that is absent would be untruthful, and a landed wrapper with a
+// leftover marker is stale.
+const PENDING_WRAPPER_MARKER = "render pending maintainer 1Password bootstrap";
+
 export interface CiVerification {
   readonly status: "absent" | "fail" | "ok";
   readonly failures: readonly string[];
@@ -285,16 +291,43 @@ function verifyScriptsDocumentation(root: string): string[] {
   return failures;
 }
 
-// The committed wrapper is optional until the maintainer's 1Password
-// bootstrap renders it; once present it must be the untouched factory
-// artifact for THIS repository and must carry no secret values.
+// Until the maintainer's 1Password bootstrap renders the wrapper, the
+// docs must record that pending state (PENDING_WRAPPER_MARKER) rather
+// than claim a committed wrapper that is absent; once present the marker
+// must be gone and the wrapper must be the untouched factory artifact
+// for THIS repository, carrying no secret values.
 function verifySecretInjectionWrapper(root: string): string[] {
   const path = join(root, WRAPPER_BASENAME);
+  // Markdown hard-wraps prose, so the marker may span lines; match on
+  // whitespace-normalized text.
+  const hasMarker = (doc: string): boolean =>
+    doc.replace(/\s+/g, " ").includes(PENDING_WRAPPER_MARKER);
+  const readDoc = (rel: string): string => {
+    const docPath = join(root, rel);
+    return existsSync(docPath) ? readFileSync(docPath, "utf8") : "";
+  };
+  const githubDoc = readDoc(GITHUB_DOC_PATH);
+  const scriptsDoc = readDoc(SCRIPTS_DOC_PATH);
   if (!existsSync(path)) {
+    if (!hasMarker(githubDoc)) {
+      return [
+        `${WRAPPER_BASENAME} is not committed, and ${GITHUB_DOC_PATH} does not record the pending state ("${PENDING_WRAPPER_MARKER}") — the docs must not claim a committed wrapper that is absent`,
+      ];
+    }
     return [];
   }
   const wrapper = readFileSync(path, "utf8");
   const failures: string[] = [];
+  for (const [doc, rel] of [
+    [githubDoc, GITHUB_DOC_PATH],
+    [scriptsDoc, SCRIPTS_DOC_PATH],
+  ] as const) {
+    if (hasMarker(doc)) {
+      failures.push(
+        `${rel} still calls the wrapper "${PENDING_WRAPPER_MARKER}" but ${WRAPPER_BASENAME} is committed — remove the stale pending marker`,
+      );
+    }
+  }
   if (!wrapper.includes("GENERATED BUILD ARTIFACT")) {
     failures.push(
       `${WRAPPER_BASENAME} must be the generated factory artifact (missing the generated-artifact header; never hand-edit the wrapper)`,

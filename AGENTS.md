@@ -48,7 +48,9 @@ following the `plan/adversarial-spec-hardening/` convention:
 Per `SPECIFICATION/non-functional-requirements.md` §"Local secret
 injection": repository-local commands that need secrets (live GitHub
 verification via `CHECK_LIVE_GITHUB=1`, future Vercel/AI keys) run
-through the committed `with-resume-env.sh` wrapper, which injects the
+through the `with-resume-env.sh` wrapper (not committed yet — see
+`.github/README.md` §"Local secret injection" for the pending
+maintainer bootstrap), which injects the
 `resume` 1Password Environment via `op run`. No secret value on a
 command line or in a committed file; the wrapper is a generated
 artifact of the external 1password-env-wrapper factory — never

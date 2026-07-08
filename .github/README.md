@@ -64,6 +64,12 @@ token minted at runtime by `actions/create-github-app-token`, because
 `github-actions[bot]`'s `GITHUB_TOKEN` does not reliably have permission
 to enable auto-merge.
 
+**Operational — proven 2026-07-08:** PR #2 was armed by
+`app/resume-pr-bot` seconds after opening and rebase-merged
+automatically on a green `check`
+(merge `1804aa4b7b2dcd75aa7cc834ceeecf1f8a87be91`), with the remote
+branch auto-deleted.
+
 ### Required secrets (provisioned 2026-07-08)
 
 | Secret | Purpose |
@@ -81,15 +87,24 @@ from the wrapper.
 Repository-local commands that need secrets — the live GitHub settings
 verification (`CHECK_LIVE_GITHUB=1` with `bun run check`, or
 `bun scripts/check-ci.ts --live`) and future Vercel/AI credentials —
-inject them through the committed `with-resume-env.sh` wrapper at the
-repository root, which loads the `resume` 1Password Environment via
-`op run`. The wrapper contains no secret values and is a generated
-artifact of the external
+inject them through the `with-resume-env.sh` wrapper, which loads the
+`resume` 1Password Environment via `op run`. The wrapper contains no
+secret values and is a generated artifact of the external
 [1password-env-wrapper](https://github.com/thewoolleyman/1password-env-wrapper)
 factory — never hand-edit it; re-render via the factory. Secrets are
 never passed as command-line arguments and never committed.
-`scripts/check-ci.ts` verifies this documentation and, once the wrapper
-is committed, its rendered shape.
+
+**Current state:** the wrapper is NOT committed yet — render pending
+maintainer 1Password bootstrap (create the `resume` Environment in the
+1Password desktop app, import the staged credentials from the `/tmp`
+dump, provision a service-account token with read access, then run the
+factory and commit the rendered wrapper at the repository root). Until
+it lands, no repository command requires environment-injected secrets:
+the live GitHub check authenticates through local `gh` credentials.
+`scripts/check-ci.ts` verifies this documentation, fails if the wrapper
+is absent without this documented pending state, and — once the wrapper
+is committed — fails on a stale pending marker and verifies the
+rendered artifact's shape and secret-freedom.
 
 ## Expected landing sequence
 

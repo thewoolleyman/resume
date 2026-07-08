@@ -142,8 +142,12 @@ no secret values.
 ## Secrets (local commands)
 
 Secret-needing local commands inject their secrets through the
-committed `with-resume-env.sh` wrapper (NFR §"Local secret injection"),
-which loads the `resume` 1Password Environment via `op run`:
+`with-resume-env.sh` wrapper (NFR §"Local secret injection"), which
+loads the `resume` 1Password Environment via `op run`. The wrapper is
+not committed yet — see `.github/README.md` §"Local secret injection"
+for the pending maintainer bootstrap; until it lands, no repository
+command requires environment-injected secrets. Once committed, usage
+is:
 
 ```sh
 with-resume-env.sh -- env CHECK_LIVE_GITHUB=1 bun run check
