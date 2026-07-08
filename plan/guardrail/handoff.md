@@ -130,12 +130,14 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-git-jsonl `next` skill against
 `work-items.jsonl`.
 
-Current state: **slices 1–8 done — bootstrap, script surface, aggregate
+Current state: **slices 1–9 done — bootstrap, script surface, aggregate
 check, toolchain gates, the Red -> Green TDD gate, the local memory
 guardrail + discipline inventory, GitHub CI + pull-request automation
 (auto-merge NOW PROVEN OPERATIONAL via PR #2 — see below), the
-Result/ROP enforcement gate, and the coverage + property/fuzz gates
-provisioned** (2026-07-08). Work items
+Result/ROP enforcement gate, the coverage + property/fuzz gates, and the
+scenario coverage gate provisioned** (2026-07-08). `bun run check` now
+runs THIRTEEN operational gates and PENDING_GATES is empty — every
+guardrail gate family is operational. Work items
 were seeded at `b03c271` (`li-ugymfg` through `li-gzmujc`, each depending
 on its predecessor). Closed so far: `li-ugymfg` (bootstrap + script
 surface, merge `a2cf94e`), `li-w6mvog` (aggregate check skeleton, merge
@@ -271,18 +273,46 @@ which normalizes internally). `.playwright-mcp/` browser artifacts are
 git- and Prettier-ignored so local browser sessions cannot break
 `format:check`.
 
-Next ripe action: `li-hb77ad` — the scenario coverage gate
-(`check:scenarios`, slice 9), now `next`'s top-ranked ready item (the
-`li-2o7eza` maintainer blocker is cleared). Per NFR §"Top-of-pyramid
-discipline" and the scenario "Scenario coverage gate protects acceptance
-behavior": add the committed scenario-to-test mapping data for every
-load-bearing scenario in `SPECIFICATION/scenarios.md` and a
-`check:scenarios` gate wired into `bun run check`, classifying each
-scenario as browser-observable (a Playwright identifier) or
-non-browser-exercisable (a named non-Playwright category plus
-rationale), and failing on a missing, stale, mis-typed, or class-dodging
-mapping. Armed additively like the other gates until product
-scenarios/tests land.
+`li-hb77ad` — the scenario coverage gate (`check:scenarios`, slice 9) —
+is DONE (2026-07-08, merge `e1e3bf1`). Landed: `scenario-coverage.json`
+maps all 36 load-bearing `SPECIFICATION/scenarios.md` scenarios by class
+(25 browser-observable with Playwright identifiers, 11
+non-browser-exercisable with a named non-Playwright category —
+vitest-unit/integration, fast-check-property, or build-prerender-check —
+plus a misleading-Playwright rationale); `scripts/check-scenarios.ts`
+(`bun run check:scenarios`) is the thirteenth operational gate. It pins
+each scenario's authoritative class IN the gate (so a browser-observable
+scenario cannot be re-declared non-browser to dodge Playwright), makes
+the load-bearing set in `scenarios.md` match the pinned set (so
+adding/revising a scenario forces a same-change classification), and
+fails on missing/stale/later-phase/duplicate/mis-typed/malformed
+mappings. Once first-party `src/**` product source lands, each mapped
+identifier must resolve to an EXECUTABLE `test(...)`/`it(...)`
+declaration parsed with the TypeScript compiler — comments,
+commented-out calls, string literals, and skipped/pending tests do NOT
+count (two maintainer watcher bypasses — raw-includes and comment-scan —
+were closed with red coverage). Armed until product source lands. The
+discipline-inventory "top-of-pyramid E2E discipline" row flipped to
+adopted/gate-enforced. 19 fixture-driven harness tests.
+
+A third maintainer watcher bypass was closed as `li-vwrcbn` (merge
+`ffce59d`): the aggregate's `checkScenarios` ran the `check:scenarios`
+package script, so `"check:scenarios": "true"` laundered the gate. `bun
+run check` now verifies the mapping IN-PROCESS via `verifyScenarios`
+(like the discipline-inventory and CI gates); a missing
+`scenario-coverage.json` fail-closes when `SPECIFICATION/scenarios.md` or
+`src/**` is present, and only a bare synthetic fixture (no scenarios
+spec) is skipped. Red coverage proves a broken mapping fails even with a
+no-op `check:scenarios` script.
+
+Next ripe action: `li-eg4w7j` — the green precondition for product work
+(slice 10), now `next`'s top-ranked ready item. Verify `bun run check`
+passes with ALL thirteen guardrail gates present and operational (it
+does as of `e1e3bf1`), then perform the Terminal step: create
+`plan/mvp/research/findings.md` and `plan/mvp/handoff.md`, flip
+`.livespec.jsonc` `post_step_skip_capture_impl_gaps` back to `false` (or
+remove the skip), and hand off to the searchable-interactive-plus-static
+MVP plan. This is the plan-completion milestone.
 
 ## Resume
 
