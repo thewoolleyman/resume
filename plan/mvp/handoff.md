@@ -130,6 +130,27 @@ tests present and green, `bun run check` green with all gates ACTIVE over
 
 ## Where the loop stands now
 
+**PHASE 1 COMPLETE AND MERGED TO `master` (verified 2026-07-09).** The
+`feat/phase-1-mvp` work landed on `master` as `021b857 feat: implement
+phase-1 interactive and static resume` (with four follow-up `test(harness):`
+commits on top, current head `4d7f278`). `src/**` and `data/resume.yml` are
+committed on `master`; the `feat/phase-1-mvp` branch is now content-identical
+to `master`. `bun run check` was re-run on `master` and is **fully green — all
+15 operational gates ACTIVE over `src/**`** (production build prerenders `/`
+and `/static` through the Vercel adapter, coverage 100% line/branch, property/
+fuzz reproducible, 24 browser-observable + 12 non-browser scenarios all
+resolving, Playwright e2e passing, Result/ROP armed). Working tree clean, in
+sync with `origin/master`.
+
+**Next ripe action is a MAINTAINER BLOCKER, not a loop item:** phase 1 meets
+`findings.md` §"Completion criteria", so the loop is complete. Phase 2
+(AI-driven `/ai` answering mode and the MCP server) begins only when a future
+livespec proposed-change activates those later-phase surfaces — a maintainer
+decision. Deploying to Vercel additionally needs maintainer-provided project
+linkage / deploy credentials (not required for phase-1 completion, which only
+needs the local adapter build to prerender). The session log below is retained
+as the historical build record; it predates the merge.
+
 Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-beads-fabro `next` skill
 against the beads store.
