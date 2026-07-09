@@ -287,6 +287,8 @@ describe("content-triggered Red -> Green TDD commit gate (li-avk7d7)", () => {
         ...process.env,
         CHECK_SKIP_HARNESS_TESTS: "1",
         CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+        CHECK_SKIP_BUILD: "1",
+        CHECK_SKIP_E2E: "1",
       },
     });
     const output = run.stdout.toString() + run.stderr.toString();
