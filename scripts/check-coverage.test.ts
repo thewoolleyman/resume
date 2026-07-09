@@ -67,17 +67,15 @@ function fileEntry(linesPct: number, branchesPct: number): unknown {
 }
 
 describe("coverage gate (li-m2trzv)", () => {
-  // The gate passes on the repository whether it reports ACTIVE (a coverage
-  // report present, every src/** file at 100% line/branch) or ARMED (no report
-  // yet — e.g. the isolated staged-tree checkout the Suite-Green leg validates,
-  // which carries no generated coverage/ report). Either way the repository
-  // must pass with no FAIL.
-  test("the repository passes the coverage gate (active with a report, armed without)", () => {
-    const { exitCode, output } = runCoverage(repoRoot);
-    expect(output).not.toContain("FAIL");
-    expect(exitCode).toBe(0);
-  }, 60000);
-
+  // Note: there is intentionally no direct runCoverage(repoRoot) "the
+  // repository passes" smoke test. Once first-party src/** exists, the gate
+  // fail-closes on a report-less tree (coverage must be PROVEN — see the "NO
+  // coverage report fails" fixture below), and a clean checkout has no
+  // generated coverage/ report when this suite runs. The real repository's
+  // coverage passing is proven by "the aggregate check runs the coverage gate
+  // as operational" (which runs the real vitest --coverage + enforcement);
+  // the armed (no-src) and active (report-present) branches are pinned by the
+  // fixtures below.
   test("a config pinned at 100% line/branch passes", () => {
     const dir = makeFixture({ "coverage.config.json": FULL_THRESHOLDS });
     const { exitCode, output } = runCoverage(dir);
