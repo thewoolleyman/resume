@@ -34,6 +34,13 @@ const REQUIRED_TS_FLAGS = [
 const NESTED_ENV = {
   CHECK_SKIP_HARNESS_TESTS: "1",
   CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+  // Skip the build and Playwright e2e gates in these nested aggregate runs:
+  // this suite verifies the toolchain-baseline gate, not build/e2e, and the
+  // e2e gate binds a fixed port (4173) — running it here would collide with
+  // the other operational-gate self-tests' nested e2e under CI, where
+  // reuseExistingServer is off.
+  CHECK_SKIP_BUILD: "1",
+  CHECK_SKIP_E2E: "1",
 };
 
 const fixtures: string[] = [];
