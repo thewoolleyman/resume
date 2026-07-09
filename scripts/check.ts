@@ -17,6 +17,9 @@
 //   CHECK_SKIP_TOOLCHAIN_RUNNERS=1 skip typecheck/lint/format:check runners
 //   CHECK_SKIP_BUILD=1           skip the SvelteKit production build gate
 //   CHECK_SKIP_E2E=1             skip the Playwright end-to-end gate
+//   CHECK_SKIP_COVERAGE=1        skip the coverage gate (its nested vitest
+//                                --coverage write to the shared coverage/ dir
+//                                would clobber concurrent operational self-tests)
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -171,8 +174,14 @@ function checkHarnessTests(root: string): GateResult {
   }
   const run = Bun.spawnSync({ cmd: ["bun", "test", "scripts"], cwd: root });
   if (run.exitCode !== 0) {
-    const tail = run.stderr.toString().trim().split("\n").slice(-3).join(" | ");
-    return { gate, status: "FAIL", detail: tail };
+    // Bun's test runner writes results to stderr. Surface the failing test
+    // names — the `(fail) …` lines — plus the summary tail, so a harness
+    // failure names the culprit instead of only reporting a count.
+    const lines = run.stderr.toString().trim().split("\n");
+    const failing = lines.filter((line) => line.includes("(fail)"));
+    const detailLines =
+      failing.length > 0 ? [...failing, ...lines.slice(-1)] : lines.slice(-3);
+    return { gate, status: "FAIL", detail: detailLines.join(" | ") };
   }
   return { gate, status: "ok", detail: "all harness tests pass" };
 }
@@ -707,6 +716,13 @@ function checkCiProvisioning(root: string): GateResult {
 // coverage report land).
 function checkCoverage(root: string, pkg: PackageJson): GateResult {
   const gate = "coverage thresholds (test:coverage)";
+  if (process.env["CHECK_SKIP_COVERAGE"] === "1") {
+    return {
+      gate,
+      status: "skipped",
+      detail: "CHECK_SKIP_COVERAGE=1 (nested invocation)",
+    };
+  }
   if (!("test:coverage" in (pkg.scripts ?? {}))) {
     return {
       gate,

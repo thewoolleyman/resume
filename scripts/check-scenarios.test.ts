@@ -347,6 +347,7 @@ describe("scenario coverage gate (li-hb77ad)", () => {
         CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
         CHECK_SKIP_BUILD: "1",
         CHECK_SKIP_E2E: "1",
+        CHECK_SKIP_COVERAGE: "1",
       },
     });
     const output = run.stdout.toString() + run.stderr.toString();
