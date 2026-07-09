@@ -1,179 +1,195 @@
-# Research - phase-1 MVP (searchable interactive + static resume)
+# Research - MVP (ported interactive + static resume, redesigned, live, reviewed)
 
 Design of record for `plan/mvp/`. This plan begins after `plan/guardrail/`
-provisioned and proved the repository guardrail harness (all thirteen
-`bun run check` gates operational and green; the content-triggered
-Red -> Green commit-msg hook and the local-memory pre-commit hook live for
-every commit).
+provisioned and proved the repository guardrail harness (all `bun run check`
+gates operational and green; the content-triggered Red -> Green commit-msg hook
+and the local-memory pre-commit hook live for every commit).
 
 The active handoff is `plan/mvp/handoff.md`.
 
-## Goal
+## What the MVP is (read this first)
 
-Implement the **phase-1** product: the searchable/filterable interactive
-resume at `/` and the traditional static-text resume at `/static`, to
-predecessor parity, entirely under the guardrail discipline. Phase-1
-completion is defined by the interactive and static contracts, constraints,
-and scenarios in `SPECIFICATION/` — NOT by any AI route, AI answering
-behavior, or MCP surface.
+The MVP is the **first delivered milestone** of the product, and per the
+ratified `SPECIFICATION/spec.md` §"Delivery phases" it is NOT "code merged with
+the local gates green." The MVP is:
 
-This plan writes first-party product source under `src/**` for the first
-time. The first `src/**` merge activates the armed gates (coverage
-measurement, Result/ROP AST checks, property/fuzz targets, and scenario
-test-identifier resolution), so every slice runs Red -> Green with the full
-enforcement suite green from the commit that introduces it.
+1. The **predecessor site ported** — the searchable/filterable interactive
+   resume at `/` and the traditional static-text resume at `/static`, to
+   predecessor **data and behavior** parity; PLUS
+2. A **deliberate visual redesign** of that ported surface (the maintainer's
+   design pass, performed with Claude Design on the running site) — departing
+   from the predecessor's Bootstrap look is expected, not a regression; PLUS
+3. **Deployed live and reachable across all three environment classes**
+   defined in `contracts.md` §"Environment contract" — Development (local),
+   Preview (Vercel branch/PR deploys), and Production (the public site at
+   `https://resume.thewoolleyweb.com`) — not merely a local adapter build; AND
+4. **Thoroughly reviewed on the running deployed site** by both automated/LLM
+   reviewers and the maintainer.
+
+The MVP is complete only when ALL of 1-4 hold. A green local `bun run check` is
+a **precondition of**, not a substitute for, the live deployment and review.
+
+## What the MVP is NOT
+
+- The MVP does **NOT** include AI-driven mode (`/ai` answering behavior), the
+  AI chat contract, or the MCP server. Those are a **separate, later delivery**
+  planned in `plan/ai/` (see §"Follow-on: the AI delivery"), activated only by
+  a future proposed change, and held to the same live-and-reviewed bar. `/ai`
+  MAY be omitted in the MVP or serve a documented placeholder.
+- The MVP does **NOT** require a native mobile app, recruiter portal, analytics
+  dashboard, or general chatbot (`spec.md` §"Non-goals").
+- The redesign does **NOT** license regressing any load-bearing behavioral
+  scenario, accessibility, responsive, or no-horizontal-scroll requirement.
+  Predecessor parity is a data/behavior requirement; the redesign changes the
+  visual presentation only.
 
 ## Source of truth
 
-The authoritative requirements are the ratified specification. Do not
-re-specify here; drive the spec:
+The authoritative requirements are the ratified specification (head **v026**,
+which redefined the delivery model). Do not re-specify here; drive the spec:
 
-- `SPECIFICATION/spec.md` - product intent, §"Delivery phases" (the phase
-  boundary is load-bearing), §"Resume data" and §"Governed data source and
-  predecessor import (phase 1)" (single canonical `data/resume.yml`,
-  authoring shape, committed production snapshot with pinned provenance, and
-  the pinned production scope: 18 top-level keys, 16 sections in order, 74
-  items), §"Stable item identifiers" and §"Stable section identifiers" (the
-  pinned slug/collision algorithm), and §"Predecessor data model parity".
-- `SPECIFICATION/contracts.md` - §"Web routes" (`/` phase 1, `/static`
-  phase 1, `/ai` later-phase omit/placeholder), the resume data contract and
-  §"Governed data source contract" (authoring shape -> derived contract shape
-  transform, malformed-data rejection), §"Interactive rendering contract"
-  (build-time load, prerendered shell/success/failure states),
-  §"Item rendering" (markdown, trusted raw HTML, dates), §"Search",
-  §"Layout and controls" (Contents, Skill Levels, sort, collapse, Reset,
-  legacy `#list-<ordinal>` aliases), and §"Error payloads".
-- `SPECIFICATION/constraints.md` - §"Framework and deployment" (SvelteKit +
-  Vercel adapter, prerender), §"Performance and availability", and the
-  standalone boundary.
-- `SPECIFICATION/scenarios.md` - the 36 load-bearing phase-1 scenarios. Each
-  is already classified and mapped in `scenario-coverage.json`
-  (browser-observable -> a Playwright identifier; non-browser-exercisable ->
-  a named non-Playwright category identifier + rationale); this plan AUTHORS
-  the mapped tests so `check:scenarios` resolution passes once `src/**` lands.
-- `SPECIFICATION/non-functional-requirements.md` - the guardrail discipline
+- `SPECIFICATION/spec.md` — §"Delivery phases" (the redefined MVP: ported +
+  redesigned + live + reviewed; AI/MCP a separate later delivery), §"Operating
+  modes", §"Resume data", §"Governed data source and predecessor import
+  (phase 1)" (single canonical `data/resume.yml`, committed production snapshot
+  with pinned provenance, and the pinned scope: 18 keys, 16 sections, 74
+  items), §"Stable item identifiers", §"Stable section identifiers", and
+  §"Predecessor data model parity" (parity is data/behavior; the visual
+  presentation is deliberately redesigned).
+- `SPECIFICATION/contracts.md` — §"Web routes" (`/` and `/static` in the MVP,
+  `/ai` a later-delivery route), the resume/governed-data contracts,
+  §"Interactive rendering contract", §"Item rendering", §"Search", §"Layout and
+  controls", §"Error payloads", and §"Environment contract" (Development /
+  Preview / Production and the production URL `https://resume.thewoolleyweb.com`).
+- `SPECIFICATION/constraints.md` — §"Framework and deployment" (SvelteKit +
+  Vercel adapter, prerender, and the requirement that the MVP be deployed live
+  across all environment classes, not merely deployable), §"Browser metadata
+  parity", §"Accessibility and responsive behavior", §"Performance and
+  availability", and the standalone boundary.
+- `SPECIFICATION/scenarios.md` — the 36 load-bearing scenarios, each classified
+  and mapped in `scenario-coverage.json`. The redesign MUST preserve all of
+  them.
+- `SPECIFICATION/non-functional-requirements.md` — the guardrail discipline
   every commit runs under (TDD Red -> Green, strict TS/Svelte/lint/format,
   Result/ROP, 100% line+branch coverage for `src/**`, reproducible
   property/fuzz, scenario coverage, CI + PR automation).
 
-## Non-goals
+## Where the MVP stands (derivable state summary)
 
-- Do NOT implement AI-driven mode (`/ai` answering behavior), the AI chat
-  contract, or the MCP server. They are later-phase and non-load-bearing;
-  `/ai` MAY be omitted or a documented placeholder.
-- Do NOT invent a skills taxonomy, cross-item relationships, or rich
-  metadata beyond simple provenance; the optional forward-looking collections
-  MUST default to empty (`spec.md` §"Resume data").
-- Do NOT split resume facts across multiple sources; `data/resume.yml` is the
-  single canonical governed source.
-- Do NOT regress the interactive or static surfaces to stand up AI/MCP
-  scaffolding.
-- Do NOT weaken any guardrail gate to land product source; the gates are
-  additive and non-negotiable.
+The **port (item 1 above) is built and merged to `master`** — `src/**`,
+`data/resume.yml`, both routes prerender, all `bun run check` gates green, e2e
+passing. What REMAINS for MVP completion is items 2-4: the visual redesign,
+live deployment across all environment classes, and the thorough review of the
+running site. The non-derivable, up-to-date state lives in
+`plan/mvp/handoff.md` §"Where the loop stands now".
+
+## Work slices
+
+The port slices (built and merged) are retained here for provenance; the
+**remaining** MVP slices are R1-R4.
+
+### Ported surface (built and merged — provenance)
+
+1. **SvelteKit + Vercel toolchain scaffold** — first `src/**`; real
+   Vitest/Playwright runners; armed gates activated.
+2. **Governed data source** — `data/resume.yml` verbatim production snapshot,
+   pinned provenance + scope (18 keys, 16 ordered sections, 74 items).
+3. **Load + transform (Result/ROP)** — authoring shape -> contract shape;
+   malformed-data rejection at build/prerender.
+4. **Deterministic derivations** — item/section slug + `-2`/`-3` collision;
+   ISO-8601/UTC dates; DOM-free search projection (the property/fuzz targets).
+5. **Interactive domain logic** — search, skill-level filter, section sort with
+   tie-breaks, search->filter->sort composition.
+6. **Interactive rendering (`/`)** — prerendered shell, governed order, deep
+   links, legacy `#list-<ordinal>` aliases, collapse/reset.
+7. **Static rendering (`/static`)** — all governed data, canonical order, fully
+   expanded, crawlable/printable.
+8. **Shared markdown rendering** — one renderer, byte-identical output, trusted
+   raw HTML preserved.
+9. **Browser metadata + manifest** — title, description, viewport, icons,
+   manifest, robots/canonical.
+10. **Scenario test authoring + parity verification** — every mapped identifier
+    resolves to an executable test; predecessor data/behavior parity verified.
+
+### Remaining MVP slices (the new completion work)
+
+R1. **Live deployment across all environment classes.** Link/configure the
+   Vercel project and deploy the ported app so it is live and reachable in all
+   three environment classes: Development (local), Preview (Vercel branch/PR
+   deploys), and Production at `https://resume.thewoolleyweb.com`. Preview URLs
+   stay non-indexed and non-canonical. **Maintainer blocker:** requires
+   maintainer-provided Vercel project linkage and deploy credentials, and DNS
+   for the custom domain. Verify each environment renders `/` and `/static` and
+   hydrates.
+
+R2. **Visual redesign.** The maintainer performs a design pass (with Claude
+   Design) that replaces the predecessor Bootstrap look with a deliberate
+   redesign. The redesign is applied under the same guardrail discipline
+   (TDD/coverage/gates) and MUST preserve every load-bearing behavioral scenario
+   in `scenarios.md` and the accessibility, responsive, and no-horizontal-scroll
+   requirements in `constraints.md`. Update or re-verify Playwright specs whose
+   selectors depend on DOM/structure the redesign changes, without weakening
+   what they assert.
+
+R3. **Redeploy the redesigned site** across all environment classes (R1's
+   pipeline) so the live Production site reflects the redesign.
+
+R4. **Thorough review of the running site.** Both automated/LLM reviewers and
+   the maintainer review the deployed, redesigned site — not just the local
+   build — for parity, redesign quality, accessibility, responsiveness,
+   metadata, and cross-environment correctness. Capture and resolve findings.
+   The maintainer's sign-off on the running Production site is the final gate.
+
+Each code-bearing slice: Red -> Green, Result/ROP where core exports return
+typed results, 100% line+branch coverage for the source it adds/changes,
+property/fuzz for the named targets, and the mapped scenario tests kept green.
+
+## Completion criteria
+
+The MVP is complete when ALL of the following hold:
+
+- The ported interactive (`/`) and static (`/static`) surfaces render the
+  committed `data/resume.yml` to predecessor **data and behavior** parity (18
+  keys, 16 sections, 74 items), with every load-bearing scenario's mapped
+  executable test present and passing and `check:scenarios` resolving every
+  identifier.
+- `bun run check` passes with all gates ACTIVE over real `src/**` (100%
+  line+branch coverage, Result/ROP AST checks, property/fuzz, scenario
+  resolution) — the **precondition** to deployment and review.
+- The site is **deployed live and reachable across all three environment
+  classes** — Development, Preview, and Production at
+  `https://resume.thewoolleyweb.com` — with Preview non-indexed.
+- The **visual redesign** is applied on the live site, preserving all behavioral
+  scenarios and the accessibility/responsive/no-horizontal-scroll requirements.
+- The running, deployed, redesigned site has been **thoroughly reviewed by both
+  the LLMs and the maintainer**, findings resolved, and the maintainer has
+  signed off on the Production site.
+- No AI answering behavior and no MCP surface were introduced (the `/ai` route
+  is omitted or a documented placeholder).
+
+## Follow-on: the AI delivery
+
+AI-driven mode (`/ai`) and the MCP server are a **separate, later delivery**,
+planned in **`plan/ai/`** (see `plan/ai/research/findings.md` and
+`plan/ai/handoff.md`). That work begins only AFTER the MVP ships and is
+reviewed, is activated by a future livespec proposed change that makes the AI/MCP
+requirements load-bearing, and is held to the same live-and-reviewed bar
+(deployed across all environment classes and reviewed on the running site).
 
 ## Operator surface
 
 Driveable in either Claude Code or Codex. Drive the work via the
 livespec-orchestrator-beads-fabro operator loop: `needs-attention` ->
-`drive --action <id>` -> commit/push, with `plan` and `next` to rank the
-next work item and `implement` / `capture-work-item` as the per-item and
-capture front-ends:
-
-- livespec-orchestrator-beads-fabro `next` to rank the next work item.
-- livespec-orchestrator-beads-fabro `implement` to drive exactly one item
-  Red -> Green, closing with merge evidence.
-- If no MVP work items exist yet, seed them from the work slices below with
-  `capture-work-item` (small, dependency-ordered, human-readable titles).
-
-Sessions run this loop autonomously and stop only for a maintainer blocker,
-plan completion, or session limits (see `plan/mvp/handoff.md`).
-
-Gap capture is now ACTIVE (the guardrail terminal step removed the
-`post_step_skip_capture_impl_gaps` skip in `.livespec.jsonc`), so
-`capture-impl-gaps` / `capture-spec-drift` may surface spec->impl gaps to
-file as work items.
-
-## Guardrail preconditions (met at guardrail completion)
-
-- `bun run check` runs thirteen operational gates and passes green.
-- Bootstrap-installed commit-msg (TDD) and pre-commit (memory) hooks are live.
-- CI (`check.yml`) and PR auto-merge (`auto-enable-merge.yml`) are operational
-  (auto-merge proven via PR #2; App `resume-pr-bot` installed).
-- The coverage, Result/ROP, property/fuzz, and scenario-resolution gates are
-  armed and activate on the first `src/**` product source.
-- `scenario-coverage.json` maps all 36 load-bearing scenarios by class.
-
-## Work slices
-
-Seed or drive in this order. The order is dependency-driven: data before
-derivations before rendering, and the toolchain scaffold first because it
-flips the interim runners to real Vitest/Playwright and activates the armed
-gates.
-
-1. **SvelteKit + Vercel toolchain scaffold.** Stand up the SvelteKit app
-   with the Vercel adapter and prerendering; replace the `dev`, `build`,
-   `test:unit`, `test:integration`, `test:e2e` stubs with real Vitest and
-   Playwright runners (and coverage via `vitest run --coverage` feeding
-   `scripts/check-coverage.ts`). This is the first `src/**` product source;
-   from here the armed gates are live. Keep `svelte-check` and the strict
-   toolchain green.
-2. **Governed data source.** Commit `data/resume.yml` as the verbatim
-   production snapshot in the authoring shape with the pinned provenance
-   comments (source URL, retrieved date, upstream `Last-Modified`,
-   SHA-256) and the pinned production scope (18 keys, 16 ordered sections,
-   74 items, only the five real skill levels).
-3. **Load + transform (Result/ROP).** Transform the authoring shape into the
-   resume data contract; reject malformed data (missing `about`/`header`, a
-   nameless item) at build/prerender under the phase-1 build-time load;
-   tolerate the deferred optional collections as empty. Round-trip the pinned
-   inventory.
-4. **Deterministic derivations (property/fuzz targets).** The pinned
-   item/section slug + `-2`/`-3` collision algorithm; ISO-8601/UTC date
-   parse, `M.YYYY`/`until`/`current` render, and sort keys; the DOM-free
-   markdown/HTML-stripped search projection.
-5. **Interactive domain logic.** Case-insensitive substring search over
-   name + stripped description; skill-level filtering (all-selected default,
-   `unspecified` and invalid-level handling); the seven section sorts with
-   name tie-breakers and missing-start/missing-end semantics;
-   search->filter->sort composition order; invalid-sort-input guard.
-6. **Interactive rendering (`/`).** Prerendered shell (sticky nav + centered
-   header, no blank page), sections/items in governed order, About and
-   Instructions controls, responsive nav collapse, deep-link to stable item
-   anchors, missing-anchor no-op, sticky-nav offset reveal, legacy
-   `#list-<ordinal>` alias/redirect, collapse/expand, Reset.
-7. **Static rendering (`/static`).** All governed data, canonical order,
-   fully expanded, no JS-only disclosure, crawlable/printable.
-8. **Shared markdown rendering.** One renderer + config for both modes,
-   byte-identical output, trusted raw HTML preserved (phase-1 posture),
-   inline code spans, bare-URL links with trailing punctuation outside the
-   link.
-9. **Browser metadata + manifest.** Title `Chad Woolley - Resume`,
-   description meta, viewport, favicon/app icons, web app manifest
-   (>=192x192 and 512x512), robots/canonical per the preview-non-index rule,
-   no horizontal scroll.
-10. **Scenario test authoring + parity verification.** Author every test
-    identifier `scenario-coverage.json` maps (Playwright e2e for
-    browser-observable scenarios; Vitest/property/build checks for
-    non-browser-exercisable) so `check:scenarios` resolves each identifier to
-    an executable test, and verify predecessor parity end-to-end.
-
-## Completion criteria
-
-Phase-1 MVP is complete when:
-
-- Every load-bearing scenario in `SPECIFICATION/scenarios.md` has its mapped
-  executable test(s) present and passing; `check:scenarios` resolves every
-  identifier.
-- `bun run check` passes with all gates ACTIVE (not merely armed) over real
-  `src/**`: 100% line+branch coverage, Result/ROP AST checks, property/fuzz
-  targets, and scenario resolution.
-- Interactive (`/`) and static (`/static`) modes render the committed
-  `data/resume.yml` to predecessor parity (18 keys, 16 sections, 74 items).
-- The SvelteKit + Vercel-adapter production build succeeds and prerenders.
-- No AI answering behavior and no MCP surface were introduced.
+`drive --action <id>` -> commit/push, with `plan` / `next` to rank the next work
+item and `implement` / `capture-work-item` as the per-item and capture
+front-ends. Sessions run this loop autonomously and stop only for a maintainer
+blocker (e.g. Vercel credentials for R1, or the maintainer's design pass in R2
+and sign-off in R4), plan completion, or session limits (see
+`plan/mvp/handoff.md`). Gap capture is ACTIVE (`capture-impl-gaps` /
+`capture-spec-drift`).
 
 ## Communication rule
 
-Never talk to a human using only an opaque phase code, work-item id, action
-id, version id, or command token. Always pair the token with a human-readable
+Never talk to a human using only an opaque phase code, work-item id, action id,
+version id, or command token. Always pair the token with a human-readable
 description of the work and the files or behavior it affects.
