@@ -20,3 +20,6 @@ playwright-report/
 
 # OS noise
 .DS_Store
+
+# Vercel CLI local env download (VERCEL_OIDC_TOKEN etc.)
+.env*.local
