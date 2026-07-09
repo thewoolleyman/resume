@@ -41,6 +41,7 @@ const NESTED_ENV = {
   // reuseExistingServer is off.
   CHECK_SKIP_BUILD: "1",
   CHECK_SKIP_E2E: "1",
+  CHECK_SKIP_COVERAGE: "1",
 };
 
 const fixtures: string[] = [];
