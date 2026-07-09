@@ -173,6 +173,7 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
       CHECK_SKIP_BUILD: "1",
       CHECK_SKIP_E2E: "1",
+      CHECK_SKIP_COVERAGE: "1",
     });
     expect(output).toContain("package-script surface");
     expect(exitCode).toBe(0);
@@ -184,6 +185,7 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
       CHECK_SKIP_BUILD: "1",
       CHECK_SKIP_E2E: "1",
+      CHECK_SKIP_COVERAGE: "1",
     });
     // The scenario coverage gate (li-hb77ad) was the last pending family; it
     // is operational now alongside the memory guardrail + discipline
@@ -215,6 +217,7 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
       CHECK_SKIP_BUILD: "1",
       CHECK_SKIP_E2E: "1",
+      CHECK_SKIP_COVERAGE: "1",
     });
     const after = Bun.spawnSync({
       cmd: ["git", "status", "--porcelain"],
@@ -443,6 +446,7 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
       CHECK_SKIP_BUILD: "1",
       CHECK_SKIP_E2E: "1",
+      CHECK_SKIP_COVERAGE: "1",
     });
     const gateLine = output
       .split("\n")
