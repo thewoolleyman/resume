@@ -11,8 +11,12 @@
 // 3 precondition failure (no package.json at the project root).
 //
 // Usage: bun scripts/check.ts [--project-root <path>]
-// Env: CHECK_SKIP_HARNESS_TESTS=1 skips the harness-tests gate (used by the
-// harness tests themselves to avoid recursive `bun test scripts` runs).
+// Env (all used by the harness self-tests to avoid recursion / heavy runs;
+// never a silent bypass — each prints a [skipped] gate line):
+//   CHECK_SKIP_HARNESS_TESTS=1   skip the harness-tests gate (recursion guard)
+//   CHECK_SKIP_TOOLCHAIN_RUNNERS=1 skip typecheck/lint/format:check runners
+//   CHECK_SKIP_BUILD=1           skip the SvelteKit production build gate
+//   CHECK_SKIP_E2E=1             skip the Playwright end-to-end gate
 
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
@@ -458,6 +462,111 @@ function checkToolchainRunners(root: string): GateResult {
   };
 }
 
+// Runs the SvelteKit + Vercel-adapter production build through the named
+// `build` script (§"Release and Vercel promotion discipline" /
+// constraints.md §"Framework and deployment"): the aggregate check must
+// exercise the real production build path, not merely assert the script
+// exists. Skipped for nested harness invocations (CHECK_SKIP_BUILD=1) and
+// while `build` is still a not-yet-provisioned stub.
+// A tree is "provisioned" for the build/e2e gates once it carries first-party
+// product source under src/** or SvelteKit scaffold artifacts. In such a tree a
+// not-yet-provisioned build/e2e stub is a REGRESSION that must fail-close, not a
+// pre-scaffold armed state — otherwise reverting a real runner to a stub would
+// silently launder the top-of-pyramid gate.
+function isProvisionedTree(root: string): boolean {
+  const srcDir = join(root, "src");
+  const srcPresent = existsSync(srcDir) && readdirSync(srcDir).length > 0;
+  return srcPresent || existsSync(join(root, "svelte.config.js"));
+}
+
+function checkProductionBuild(root: string, pkg: PackageJson): GateResult {
+  const gate = "production build (bun run build)";
+  if (process.env["CHECK_SKIP_BUILD"] === "1") {
+    return {
+      gate,
+      status: "skipped",
+      detail: "CHECK_SKIP_BUILD=1 (nested invocation)",
+    };
+  }
+  const script = pkg.scripts?.["build"] ?? "";
+  if (script.includes("not-yet-provisioned")) {
+    if (isProvisionedTree(root)) {
+      return {
+        gate,
+        status: "FAIL",
+        detail:
+          "build is a not-yet-provisioned stub while product source / SvelteKit artifacts exist — the production build gate must run the real Vercel-adapter build",
+      };
+    }
+    return {
+      gate,
+      status: "skipped",
+      detail: "build not yet provisioned in this tree",
+    };
+  }
+  const run = Bun.spawnSync({ cmd: ["bun", "run", "build"], cwd: root });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-4)
+      .join(" | ");
+    return { gate, status: "FAIL", detail: `bun run build failed: ${tail}` };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail: "SvelteKit production build succeeds through the Vercel adapter",
+  };
+}
+
+// Runs the Playwright end-to-end suite through the named `test:e2e` script
+// (§"Top-of-pyramid discipline" / §"Definition of done for implementation
+// work"): the aggregate check must actually RUN the browser-observable
+// top-of-pyramid tests, not merely resolve their mapped identifiers. Skipped
+// for nested harness invocations (CHECK_SKIP_E2E=1) and while `test:e2e` is
+// still a not-yet-provisioned stub.
+function checkE2e(root: string, pkg: PackageJson): GateResult {
+  const gate = "end-to-end tests (bun run test:e2e)";
+  if (process.env["CHECK_SKIP_E2E"] === "1") {
+    return {
+      gate,
+      status: "skipped",
+      detail: "CHECK_SKIP_E2E=1 (nested invocation)",
+    };
+  }
+  const script = pkg.scripts?.["test:e2e"] ?? "";
+  if (script.includes("not-yet-provisioned")) {
+    if (isProvisionedTree(root)) {
+      return {
+        gate,
+        status: "FAIL",
+        detail:
+          "test:e2e is a not-yet-provisioned stub while product source / SvelteKit artifacts exist — the top-of-pyramid Playwright gate must run for real",
+      };
+    }
+    return {
+      gate,
+      status: "skipped",
+      detail: "test:e2e not yet provisioned in this tree",
+    };
+  }
+  const run = Bun.spawnSync({ cmd: ["bun", "run", "test:e2e"], cwd: root });
+  if (run.exitCode !== 0) {
+    const tail = (run.stdout.toString() + run.stderr.toString())
+      .trim()
+      .split("\n")
+      .slice(-4)
+      .join(" | ");
+    return { gate, status: "FAIL", detail: `bun run test:e2e failed: ${tail}` };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail: "Playwright end-to-end scenarios pass against the built app",
+  };
+}
+
 // Runs the local memory guardrail through its named script (CI-delegation
 // friendly) — the SAME guard the bootstrap-installed .githooks/pre-commit
 // hook runs on the staged tree, so a bypassed or uninstalled hook is still
@@ -754,6 +863,7 @@ const results: GateResult[] = [
   checkHarnessTests(root),
   checkToolchainBaseline(root, pkg),
   checkToolchainRunners(root),
+  checkProductionBuild(root, pkg),
   checkTddBranchRange(root),
   checkMemoryGuardrail(root, pkg),
   checkDisciplineInventory(root),
@@ -762,6 +872,7 @@ const results: GateResult[] = [
   checkCoverage(root, pkg),
   checkProperty(root, pkg),
   checkScenarios(root),
+  checkE2e(root, pkg),
   checkNoGitJsonlReferences(root),
 ];
 

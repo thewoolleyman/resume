@@ -3,6 +3,10 @@
 *.md
 # Data and lock records, not source.
 bun.lock
+# Governed data snapshot: a VERBATIM, byte-identical predecessor import whose
+# SHA-256 is pinned (SPECIFICATION/spec.md). Formatting it would break the
+# provenance hash, so it is never prettier-governed.
+data/
 # Tool configuration directories that are not first-party source.
 .claude/
 .idea/

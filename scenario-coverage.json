@@ -185,11 +185,13 @@
       ]
     },
     {
-      "scenario": "Item with an invalid legacy skill level stays visible",
-      "class": "browser-observable",
-      "playwright": [
-        "e2e/skill-levels.e2e.ts > an item with an invalid legacy skill level stays visible with an unknown-level explanation"
-      ]
+      "scenario": "Invalid skill level is rejected at load",
+      "class": "non-browser-exercisable",
+      "category": "build-prerender-check",
+      "tests": [
+        "src/lib/data/load.test.ts > an invalid skill level fails the phase-1 build-time load"
+      ],
+      "rationale": "A present-but-non-defined item level is malformed governed data rejected under the phase-1 build-time load, failing the build/prerender before any page renders; like the other malformed-data rejections no visitor gesture can observe it, and the pinned production data carries no invalid level to exercise, so a Playwright mapping would mislead."
     },
     {
       "scenario": "Visitor sorts a section",

@@ -157,10 +157,11 @@ function runScenarios(root: string): {
 }
 
 describe("scenario coverage gate (li-hb77ad)", () => {
-  test("the repository passes with the gate armed (no src/** yet)", () => {
+  test("the repository passes with the gate active (src present, identifiers resolve)", () => {
     const { exitCode, output } = runScenarios(repoRoot);
-    expect(output).toContain("armed");
+    expect(output).toContain("every identifier resolves");
     expect(output).toContain("browser-observable");
+    expect(output).not.toContain("FAIL");
     expect(exitCode).toBe(0);
   }, 60000);
 

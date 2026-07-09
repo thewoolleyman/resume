@@ -22,6 +22,13 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      # Node is pinned to the same Vercel-supported LTS as mise.toml: the
+      # SvelteKit + Vercel-adapter production build's postbuild "analyse" step
+      # is not yet compatible with newer Node majors, so `bun run build` (and
+      # `svelte-kit sync`) must run under Node 22 in CI, not the runner default.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.22.0"
       # Bun is pinned once, in package.json engines.bun; setup-bun reads it
       # from there so the pin cannot drift between CI and local checks.
       - uses: oven-sh/setup-bun@v2

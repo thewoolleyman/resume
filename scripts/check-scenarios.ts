@@ -95,7 +95,7 @@ const EXPECTED_CLASS: Readonly<Record<string, ScenarioClass>> = {
   "No-match search preserves section structure": "browser-observable",
   "Search composes with skill filter and section sort": "browser-observable",
   "Visitor filters by skill level": "browser-observable",
-  "Item with an invalid legacy skill level stays visible": "browser-observable",
+  "Invalid skill level is rejected at load": "non-browser-exercisable",
   "Visitor sorts a section": "browser-observable",
   "Missing start date sorts as earliest": "browser-observable",
   "Missing end date sorts as current": "browser-observable",

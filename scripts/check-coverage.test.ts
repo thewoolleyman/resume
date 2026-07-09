@@ -67,9 +67,14 @@ function fileEntry(linesPct: number, branchesPct: number): unknown {
 }
 
 describe("coverage gate (li-m2trzv)", () => {
-  test("the repository passes with the gate armed (no report/src yet)", () => {
+  // The gate passes on the repository whether it reports ACTIVE (a coverage
+  // report present, every src/** file at 100% line/branch) or ARMED (no report
+  // yet — e.g. the isolated staged-tree checkout the Suite-Green leg validates,
+  // which carries no generated coverage/ report). Either way the repository
+  // must pass with no FAIL.
+  test("the repository passes the coverage gate (active with a report, armed without)", () => {
     const { exitCode, output } = runCoverage(repoRoot);
-    expect(output).toContain("armed");
+    expect(output).not.toContain("FAIL");
     expect(exitCode).toBe(0);
   }, 60000);
 
