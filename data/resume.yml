@@ -1,0 +1,654 @@
+# Governed resume data — the single canonical source
+# (SPECIFICATION/spec.md §"Governed data source and predecessor import (phase 1)").
+#
+# This is a VERBATIM snapshot of the predecessor's PRODUCTION resume content,
+# committed so phase-1 predecessor parity does not depend on a live external
+# fetch. Everything from the `---` YAML document marker below to end-of-file is
+# byte-identical to the retrieved source; its SHA-256 is pinned below and in
+# SPECIFICATION/spec.md.
+#
+# Provenance of the snapshot:
+#   source-url: https://interactive-resume-data-chad-woolley.gitlab.io/interactive-resume-data-chad-woolley.yml
+#   retrieved: 2026-07-06
+#   upstream-last-modified: 2022-06-27
+#   sha256: 792097b01aef31fdc7cbf2c2463492e87c5ca89bc8d864ef3ebacfc7f7a4d158
+#
+# The on-disk shape is the predecessor's human-friendly AUTHORING shape:
+# top-level `about`/`header` maps plus ordered section keys, each mapping to an
+# array of item maps {name, level?, start?, end?, desc}. It is transformed into
+# the derived resume data contract at load time (SPECIFICATION/contracts.md
+# §"Governed data source contract"). These leading comments are provenance
+# only and are NOT parsed as a top-level data group.
+---
+about:
+  title: About This Resume/App
+  content: |
+    ## Cover Letter
+      * Please also see my [Cover Letter](https://cover-letter.thewoolleyweb.com/).
+    ## Tech Info
+      * I (Chad) created this app from scratch in about a month, using Vue.js (I had not previously used Vue).
+        It is a single-page browser-only app; with no server backend.
+      * The actual text content is completely configurable, and loaded and parsed on the fly from a
+        YAML file.
+
+    ## Management, Build, Deploy, and Hosting
+      * It fully hosted on GitLab's infrastructure, with 100% test coverage, continuous integration, build pipeline, and
+        continuous deployment.
+      * All features were incrementally developed and tracked with a
+        [GitLab Issue Tracking Board](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/-/boards)
+
+    ## Tech/Tools
+      * Vue.js served via Nuxt, Vuex for state management, bootstrap-vue for design, fuse.js for searching,
+        js-yaml for parsing the data file, marked for data file markdown parsing, Ramdajs for most data-processing
+        logic, Jest/vue-jest for testing, and eslint with various Vue plugins.  It was developed in Jetbrains
+        Webstorm, with a committed Webstorm IDE config which (almost) completely matches the eslint config.
+
+    ## Source Code and Development
+      * [Source Code](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io)
+      * [Continuous Integration/Continuous Deployment](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/pipelines)
+      * [100% test coverage](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/-/jobs)
+      * [GitLab Issue Tracking Board](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/-/boards)
+      * [Project Insights](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/insights) and
+        [CI/CD Charts](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/pipelines/charts)
+
+    ## Bugs/Errata
+      * Firefox (Mac) has performance issues with this resume, probably garbage-collection-related,
+        especially when searching.  This is possibly related to
+        [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1103593).
+        Chrome and Safari seem OK.
+        [Debouncing](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/issues/35) would help.)
+      * iPhone native has some resizing issues when the date-sorting dropdown is used.
+
+    ## Design Mea Culpa
+      * I am not a designer!  I used bootstrap and bootstrap-vue components for design, and tried to make
+        this app somewhat responsive (at least the nav), but it should be completely obvious that making things look pretty
+        is not my forté. :) 💄
+
+    ## Content Mea Culpa
+      * I hadn't updated my resume in 13 years (my entire time at Pivotal), and for older jobs/skills, I just copied
+        the content verbatim.  Apologies for any broken links, or outdated/naive prose or references. 😁 🙈
+
+header:
+  name: Chad Woolley
+  contact: PO Box 19072, Tucson, AZ 85731 · 1-520-861-1183 · thewoolleyman@gmail.com
+
+Job History:
+  - name: Senior Fullstack Engineer, GitLab
+    start: 2019-11-07
+    desc: |
+      GitLab was the only place I applied after 13 years at Pivotal. It was the only place
+      I wanted to work, because of their [values](https://about.gitlab.com/handbook/values/),
+      and [all-remote culture](https://about.gitlab.com/company/culture/all-remote/).
+      I am very happy and fortunuate that they hired me! :)
+
+  - name: Senior Software Engineer, Pivotal
+    start: 2006-04-15
+    end: 2019-10-29
+    desc: |
+      I worked at Pivotal for 13 years doing full-stack web development and DevOps (before it was called devops).
+      Rob Mee, the co-founder and CEO, interviewed and hired me as the 10th employee when starting Pivotal's
+      Ruby on Rails practice (Rails had just hit 1.0).
+      For the first year or so, I was the de-facto IT department, and set up the first CI box in the office.
+      Pivotal is a pioneer and leader in agile, and I've done full-time TDD and pair-programming for most
+      of my time there.
+      I did many various things in my career at Pivotal; too many to list here, but I'm happy to discuss anything
+      in more depth. Here's some highlights:
+
+      * **Pivotal Tracker:**  In my time at Pivotal, I worked primarily on
+      [Tracker](https://www.pivotaltracker.com) since its creation.  I had the 43rd commit in Apr '06, it is now at 53K+
+      commits.  I'm the #1 committer on Tracker, with well over 2000 commits and 2 million lines of code (Don't know the exact numbers;
+      Github's analytics only go back to 2010, and Tracker's source predates git itself).  This was 13 years of full-stack
+      Rails+JS+DevOps+Support over the lifetime evolution of a globally-used, high-traffic SaaS product, including 24-7 on-call
+      production infrastructure monitoring and outage support, and answering support tickets.
+      * **Agile Consulting:**  In the early days at Pivotal (during the SF dotcom boom, where new tech startups like
+      like Twitter, Github and Heroku were working closely with Pivotal), I worked on several agile consulting
+      projects, enabling and training clients on software development and agile practices.
+      * **Cloud-Native App Transformation Trainer (Java):** I worked as an instructor at Pivotal's
+      [Platform Acceleration Lab (PAL)](https://pivotal.io/platform-acceleration-lab/pal-for-architects-java)
+      co-teaching multiple
+      [3-week-long tech-intensive workshops](https://d1fto35gcfffzn.cloudfront.net/training/training-briefs/Platform-Acceleration-Lab-for-Application-Architects-Java-PAL-Brief.pdf)
+      in the US, Singapore, and Bangalore, where we trained senior Java engineers and architects how to transform legacy
+      apps to be Cloud Native.  The workshops involved in-depth hands-on development and deployment
+      exercises using cloud technologies to handle various aspects of building and deploying highly-scalable,
+      highly-available, distributed systems.  This included an emphasis on the
+      ["App Continuum"](https://www.appcontinuum.io/) architecture evolution, which describes how to gradually evolve
+      from a monolithic to a microservices architecture, and when microservices may not be appropriate.
+      * **Pivotal Tracker CloudFoundry On-Prem "Tile":** I led a year-long effort to modernize and transform the Tracker Ruby on Rails app
+      to be [12-Factor](https://www.12factor.net/) compliant and Cloud Native, and to be deployable as a self-contained on-premise tile.
+      * **And much, much more...**
+
+  - name: Various Freelance and Consulting Gigs
+    start: 2002-01-02
+    end: 2018-01-02
+    desc: |
+      In addition to the full-time jobs listed here, I have had numerous part-time consulting jobs.  These were all
+      software development in a range of technologies, including mentoring Nigerian devs, Devops, Ruby on Rails, Javascript, PHP, and
+      technical research. These were all remote work.
+
+  - name: Software Developer, Ionami Design
+    start: 2005-08-02
+    end: 2006-04-02
+    desc: |
+      With one other developer, I managed all aspects of developing and maintaining http://PlanitJewish.com. The
+      codebase was hundreds of thousand of lines of complex Java, XML, XSL, and shell scripts. Used Resin, Apache2,
+      Oracle 10g, and Subversion.
+
+      * Managed 24/7 production support, including all aspects of deployment, maintenance, and system administration.
+        Set up Linux servers from scratch, including Resin and Oracle 10g client/server installs. All of my production work
+        was performed remotely, via ssh, VNC, and Remote Desktop.
+      * Responded to a security audit which uncovered security flaws in the legacy code (some of which had been
+        previously identified). Provided a detailed analysis and response to the audit (including HTTP header
+        analysis) - by pointing out some flaws in the initial audit, and making code/db changes to help address remaining
+        problems.
+      * Created and deployed new customized sites for several cities, schools, and synagogues.
+      * Managed support ticket estimation, prioritization, and status reporting with a customized Trac installation.
+      * Closed hundreds of bugs, maintenance requests, and enhancement tickets.
+      * Performed troubleshooting and debugging of complex production errors.
+      * Provided monthly consolidated site traffic statistics using WebTrends. Wrote batch and Ruby automation scripts
+        to cut several hours of manual labor out of this process each month.
+      * Administered production firewall and load balancers.
+      * Installed and migrated to multiple new servers (two redundant application servers, one database server, staging
+        server, and tools/support server) with zero downtime.
+      * Worked on Ruby on Rails applications, and wrote support/automation scripts in Ruby.
+
+  - name: Software Developer, VMS
+    start: 2004-06-02
+    end: 2005-07-02
+    desc: |
+      Developed and maintained internal and client-facing Enterprise Web and Client-Server applications.
+
+      * Used Test-Driven Development, Spring, Swing, Hibernate, Tapestry, Maven, Oracle 9i/10g, Oracle Enterprise Manager,
+        Apache Axis, Web Services, and AOP/AspectJ, in a generally Agile and XP-like environment.
+      * Performed statistical performance analysis using the "R" statistical analysis package
+      * Set up an enterprise-wide Continuous Integration solution using AnthillPro, which managed the automated build and
+        deployment of common internal libraries, and cross-project dependencies.
+      * Worked on a small (2-3 person) team which a wrote a client server Java application with a Swing GUI front end,
+        which was automatically deployed with Java Web Start, and communicated via Web Services to a central server. The
+        application automatically downloaded, synchronized, and played audio and video advertising media which the customers
+        had purchased.
+      * Worked with a team to write a client-server application infrastructure which uploaded and processed high-volume,
+        real-time closed-captioning and audio/video data captured by PC clients in hundreds of TV markets nationwide.
+
+  - name: Developer, Choice Hotels International
+    start: 2002-09-02
+    end: 2004-06-02
+    desc: |
+      Worked on development of J2EE web-based Property Management system to be used by Choice Hotels franchisees worldwide.
+      Studied and applied Core J2EE Design Patterns. Used Agile, Extreme Programming and Open-Source tools and practices,
+      including: Frequent iterations and releases; aggressive refactoring using Eclipse; test-driven-development using Junit,
+      Mock Objects, JSUnit and Cactus; Struts; Jakarta taglibs; Jakarta Tomcat; Aspect-Oriented Programming; and Continuous
+      Integration using Ant and Anthill. Also used BEA Weblogic, MS SQL Server, and Tomcat.
+
+      * Created Wiki website to manage team documentation and communications
+      * Participated in database schema redesign and refactoring.
+      * Responsible for redesign and support of continuous integration process. This included writing and maintaining
+        several Ant scripts to manage the testing, integration, build, verification and publishing of entire application
+        consisting of multiple projects. Used Anthill and Ant to automatically email teams and provide Ant logs when builds
+        failed, and automatically publish artifacts, including links to archived artifacts and logs.
+      * Used Eclipse IDE, including advanced features such as: AspectJ plugin; Jalopy plugin, import management, dependency
+        management of multiple projects; JUnit Testing; remote debugging of Tomcat and Weblogic; and automated refactoring
+        across projects.
+      * Performed aggressive and efficient refactoring, using Eclipse. Wrote JUnit tests to prevent bugs from reoccurring.
+        Leveraged Struts framework and taglibs to write compact and simple classes and JSPs.
+
+  - name: Application Integrator, IBM Global Services
+    start: 1995-07-02
+    end: 2002-07-02
+    desc: |
+      Performed team lead, technical lead, project management, customer interaction, requirements management, project
+      planning, architecture, design, documentation, development, testing, integration, maintenance, and troubleshooting
+      roles on several diverse projects:
+
+      * IBM Web Development Project: Worked on a web project with Internet and Intranet components. Used Websphere Studio
+        Application Developer, Websphere 4, Struts, Log4J, and Parasoft JTest. Collaborated on design and enhancement of
+        relational database model and Object-Relational mapping. Designed and implemented persistence layer using Data Access Objects design pattern. Used the Struts framework to develop a pure-HTML expandable tree structure with the ability to modify data on any node of the tree.
+      * IBM Healthcare Account (Horizon Blue Cross Blue Shield NJ): Worked on development of a commercial web application,
+        using VisualAge for Java to develop for Websphere. Designed and implemented MVC/Model 2 architecture using Struts
+        and JSPs, including custom taglibs. Interfaced with a back-end team that provided the Business/Model layer as J2EE
+        Session and Entity Enterprise JavaBeans. To see screenshots and flow of the application, go to
+        http://www.horizon-bcbsnj.com/ and click Brokers, Member Maintenance, Online Tutorial.
+      * IBM Healthcare Account (Nasco): Worked on developing a Java/JSP web application using VAJ and Websphere. Designed
+        and implemented MVC/Model 2 architecture, using Command Pattern for controller layer. Performed design/administration
+        of test and production databases.
+      * University of Michigan Healthcare (UMHHC): Was Team Lead for the Support Team, which was responsible for Environment
+        and Configuration and Change Management. Participated in Architecture and Design reviews and Object Oriented Analysis
+        and Design effort using UML. Planned and managed the acquisition, installation, configuration, and support of multiple servers (Win2K and AIX) and workstations. Planned and coordinated migration of entire development group to Win2K Active Directory Domain. Planned the acquisition, installation, configuration, and usage of several client- and server-based software tools, including Websphere, Oracle Database, Rational Rose, Requisite Pro, ClearCase, ClearQuest, and MS Project Central. Planned and completed Document of Understanding with Tucson Server Support group to provide administration, support, and backup/recovery of servers. Participated in the interview and hiring of contractors who worked on Support Team, and was responsible for their training and task assignments. Created detailed Project Plans in MS Project based on Rational Unified Process methodology. Instrumental in the planning, implementation and support of a project "Team Site" which incorporated several Lotus Notes Databases as well as an HTML- and Javascript- based homepage, and was replicated between Tucson and Michigan.
+      * w3.ibm.com ("Enterprise Knowledge Portal"): Worked on major redesign of w3.ibm.com Intranet home page, which
+        supported user customization and storage of links, and automated display of customized, continually updated links
+        to users based on their "profile" (employee's rank, location, position, etc). Worked with a widely distributed
+        multi-team group, which required communication with management, architects, and development teams in multiple
+        locations across US and worldwide. Collaborated on design and implementation of a fairly complex relational
+        database model, including consideration of normalization, performance and integrity issues. Worked on design and
+        implementation of overall object model and application architecture. Designed and coded servlets and associated
+        Java/DB2/XML back-end code. Responsible for design and implementation of an XML-based scheme for storage of
+        high-volume user data. Assisted in support of testing group, and helped coordinate problem determination and
+        resolution of issues found during testing.
+      * Track2: Held Technical Lead role, performed Project Management responsibilities, and was primary customer
+        interface. Worked with customer to transform requirements into design, and managed development and deployment
+        over several releases. Designed and implemented integration of Notes databases with MVS/TSO-based IBM HR Database,
+        including mainframe batch jobs and Notes agents to synchronize data on a nightly basis. Track2 played a key role
+        in ISO 9001/14001 certification of IBM's Storage Technology Division. It tracked audits and automatically escalated
+        managers as required.
+      * CallOwn: Performed design and development on several CRM/Call Center applications. Gained experience in Java,
+        VisualAge for Java, Object-Oriented design/programming, REXX, Lotus Notes, Notes/C APIs, Notes/Java APIs, and
+        Notes integration with host-based databases.
+      * Distributed Services Billing: Worked on design and development of Java Swing application to automate billing
+        and web-based reporting for cost-recovery services, such as Phones, Userids, and Help Desk calls.
+      * Configuration Management: Held Configuration Management Lead role on several projects. Designed, documented,
+        implemented, and enforced Configuration Management and Control policies and procedures. Administered CM systems
+        using CVS, Rational ClearCase, CMVC, ISPF/LMF, and SCLM, including the design and coding of several custom utilities
+        and interfaces.
+      * Other projects: Worked on several teams to support a applications using COBOL PL/I, CICS, AIX, and MQSeries,
+        including 24-hour on-call support to troubleshoot production problems for major external customers.
+
+  - name: Technician and LAN Administrator, New Mexico State University, Department of Chemical Engineering,
+    start: 1992-09-02
+    end: 1995-06-02
+    desc: |
+      Installed, maintained, and administered a NetWare Ethernet-based local area network and all departmental computing
+      resources, including initial installation/configuration of a server, computer lab, and many LAN-based applications,
+      and physical installation of network cabling and fiber-optic security system. Hand-made RS-232 cables and Ethernet
+      cables. Designed and created relational database systems for inventory, student, and alumni records. Created and
+      administered a public departmental web site during the infancy of the WWW, which was accessed using Netscape 1.0.
+
+Formal Education:
+  - name: Bachelor of Business Administration, with Honors, Business Computer Systems
+    start: 1990-08-02
+    end: 1994-05-02
+    desc: New Mexico State University, Las Cruces, New Mexico, May 1994, 3.7 GPA
+
+  - name: Associate in Pre Business
+    start: 1990-08-02
+    end: 1992-05-02
+    desc: New Mexico State University, Las Cruces, New Mexico, May 1992, 3.5 GPA
+
+Open-Source Projects Created/Contributed:
+  - name: Fixture Builder
+    start: 2012-01-02
+    desc: |
+      https://github.com/rdy/fixture_builder - I am the sole active maintainer of Fixture Builder, which brings together the best
+      of both worlds in Ruby on Rails testing - The maintainability of Object Mothers + the speed of Transactional Fixtures.
+  - name: process_helper
+    start: 2014-07-02
+    desc: |
+      https://github.com/thewoolleyman/process_helper - I created and actively maintain `process_helper`, which "Makes it easy to
+      spawn Ruby sub-processes with guaranteed exit status handling, capturing and/or suppressing combined STDOUT and
+      STDERR streams, providing STDIN input, timeouts, and running via a pseudo terminal."
+  - name: GemInstaller
+    start: 2009-07-02
+    end: 2010-05-02
+    desc: |
+      [GemInstaller](https://github.com/thewoolleyman/geminstaller) was by far my most successful and popular open source project.
+      It has [77,000 downloads](https://rubygems.org/gems/geminstaller) (FWIW), but has been deprecated since 2010, when
+      Bundler superseded it.  But until then, it was widely used as the best way to manage Rails dependencies, superior
+      to the flawed "config.gems" approach which Rails itself provided.
+      I conceived and wrote GemInstaller from scratch, using Rspec and a Behavior-Driven Development approach. It had a
+      thorough and extensive test suite, and was continuously integrated against multiple RubyGems releases.
+  - name: VirtualMock
+    start: 2002-01-02
+    end: 2004-01-02
+    desc:  https://sourceforge.net/projects/virtualmock/ - I created VirtualMock, a Java unit testing tool based on an idea from an article
+      in XP Magazine. It uses Aspect-Oriented Programming (AOP) and supports the Mock Objects testing approach.  The key
+      feature it had was the ability (via AOP/JVM bytecode manipulation) to mock static class methods.  I now realize
+      that this is an anti-pattern in almost all cases, but I was young and naive, and it was a good OSS experience ;).
+  - name: Ruby on Rails
+    start: 2006-01-02
+    end: 2017-01-02
+    desc: |
+      * Contributed to Rails Core (`preinitializer.rb` which facilitated the use of GemInstaller
+      * Moderator for `rails-core` mailing list for several years.
+  - name: Pivotal
+    start: 2006-04-02
+    desc: Contributed to various Pivotal-created open source projects.
+  - name: Cinabox
+    start: 2008-06-02
+    end: 2009-09-02
+    desc: |
+      http://github.com/thewoolleyman/cinabox - Automates setup of CI environments.  Didn't get far, but got
+      mentioned on a Rails podcast :)
+  - name: CruiseControl.rb
+    start: 2005-07-02
+    end: 2008-11-02
+    desc: Contributed to build serialization support.
+  - name: EMMA
+    start: 2003-05-02
+    end: 2009-02-02
+    desc: |
+      http://emma.sourceforge.net/ - a Java code-coverage tool.  Was a committer, rewrote the Maven 1 Plugin for EMMA from
+      scratch, and helped monitor the mailing list.
+  - name: EasyMock
+    start: 2004-10-02
+    end: 2008-12-02
+    desc: |
+      http://www.easymock.org - contributed to the EasyMock mailing list for a while, and helped out with the
+      class-mocking patch, which I was kindly given credit for.
+  - name: JFig
+    start: 2004-01-02
+    end: 2005-01-02
+    desc: |
+      http://jfig.sourceforge.net/ - contributed to Jfig a bit. It was really cool, but then Spring came along with
+      PropertyResourceConfigurer. :)
+  - name: VCardSplitter
+    start: 2003-08-02
+    end: 2004-01-02
+    desc: |
+      http://sourceforge.net/projects/vcardsplitter/ - A small utility that I wrote for my own use, and then open-sourced
+      to see if anyone would find it useful. My first Open Source experience; it only took me a few hours to write but
+      people still downloaded it!
+  - name: AntHill
+    start: 2004-12-02
+    end: 2005-09-02
+    desc: |
+      http://www.urbancode.com/projects/anthill/ - (one of the first Continous Integration tools) - contributed a couple
+      of small patches to Anthill, and helped out on the Anthill OS and Anthill Pro mailing lists while I was using it.
+  - name: TypeInterceptor
+    start: 2004-04-02
+    end: 2004-05-02
+    desc: |
+      http://typeinterceptor.sourceforge.net/ - made this, but then found out you can do the same thing with an
+      undocumented Sun class.
+  - name: Other random open source stuff
+    desc: |
+      Random open source stuff can be found in various places (some duplicates in here):
+      * [GitLab](https://gitlab.com/thewoolleyman)
+      * [Github](https://github.com/thewoolleyman?tab=repositories)
+      * [OG Ruby](https://web.archive.org/web/20140515192140/http://rubyforge.org/users/thewoolleyman)
+      * [OG Rails](https://github.com/rails/rails/commit/4249ffe2498e9a77242205f95245ba1fcca92732#diff-b7d127cd0ab0ef9eb71ec32f6c9a1e90R3)
+      * [OG Java](http://sourceforge.net/users/thewoolleyman)
+
+Writings, Publications, Presentations, and Awards:
+  - name: My workstation setup process
+    desc: https://github.com/thewoolleyman/workstation
+  - name: My npm rant/doc
+    desc: |
+      https://github.com/thewoolleyman/npm-shrinkwrap-helper - A short rant + instructions about the abysmal state
+      of the Node Package Manager circa 2015/2016.  This has the most stars by far of any of my Github repos, lol.
+  - name: My thoughts on "merge vs. rebase"
+    desc: |
+      [goals_and_philosophy.md](https://github.com/thewoolleyman/gitrflow/blob/master/readme/goals_and_philosophy.md)
+      (doc page from an open source project)
+  - name: Instructor for Pivotal Platform Acceleration Lab
+    desc: Co-taught multiple 3-week-long intensive technical courses on transforming legacy Java apps to be cloud-native.
+  - name: Stack Overflow Answers
+    desc: https://stackoverflow.com/users/25192/thewoolleyman - 554 reputation on Stack Overflow (top 55%).
+  - name: Pivotal Blog
+    desc: |
+      [blogged](https://pivotal.io/search?utf8=%E2%9C%93&q=chad+woolley) at Pivotal Labs (apologies for
+      the random-order link, recent migrations of Pivotal blog has made it hard to link to my articles)
+  - name: Presenter at RailsConf 2008
+    desc: CI for the Rails Guy (or Gal) - An update of my Continuous Integration tutorial for RailsConf 2008.
+  - name: Presenter at Agile 2007 Conference
+    desc: CI for the Web 2.0 Guy (or Gal) - A hands-on tutorial on Continuous Integration presented at the Agile 2007 conference.
+  - name: IBM Developerworks Technical Article
+    desc: |
+      "Introduction to Spring Using Swing" - A tutorial published on IBM DeveloperWorks
+  - name: Hackfests
+    desc: Winner in the November 2007 Rails Hackfest
+  - name: Book Reviews
+    desc: |
+      Reviewed "Junit Recipes" and had my open source project mentioned in it, reviewed
+      "Craft GraphQL APIs in Elixir with Absinthe"
+  - name: Various User Group Presentations
+    desc: |
+      Informal presentations at the Tucson Java Users Group, East Bay Ruby Users Group, and lightning talks
+      at technical conferences.
+  - name: Various Awards - IBM
+    desc: |
+      Peer Star Silver Award, "Dinner for Two" Award for Technical Contributions, Three 'Thanks' Peer
+      Recognition Awards
+  - name: Classroom Instruction - IBM
+    desc: Prepared and taught several end-user training classes
+
+Skills/Tools - Methodologies/Processes:
+  - name: Growth / Lean
+    level: often
+    desc: |
+      I have worked on teams which use _[Lean Startup](http://theleanstartup.com/principles)_ style practices and
+      related modern growth-focused methodologies and approaches, including metrics-driven planning, validated learning,
+      pivot-persevere-kill, "double-diamond" (discover-define-develop-deliver), etc.
+  - name: agile / Extreme Programming (XP)
+    level: teach
+    desc: |
+      I've practiced and taught agile/XP for close to 20 years, long before big-A Agile became a buzzword.  I am
+      very familiar with agile methodologies, and their various pros and cons, benefits and drawbacks, in various situations.
+  - name: Continuous Integration (CI)
+    level: teach
+    desc: |
+      For nearly as long as CI has been around, I've created, used, and maintained CI systems (the first tool I
+      used was Anthill Pro, the first commercial CI tool).  It is one of my areas of most expertise.  Tools used
+      include: GitLab, Travis CI, Circle CI, Buildkite, Concourse CI, CruiseControl, CruiseControl.rb,
+      AntHill, Luntbuild, and others.
+
+  - name: Continuous Deployment (CD)
+    level: teach
+    desc: |
+      Created and maintained continuous deployment pipelines
+      for many projects, including large-scale high-availability blue-green deployments.  Tools used include GitLab,
+      Heroku, Circle CI, Concourse CI, Amazon AWS, unix-based homegrown, Capistrano, and others.
+
+  - name: Testing - Unit / Integration / Browser / TDD / BDD
+    level: teach
+    desc: |
+      I've written thousands of automated tests, at every level, in both Detroit/Classical style
+      and Mockist/London style. On Pivotal Tracker, I helped grow an app from greenfield Rails 1.0 to tens of thousands of
+      tests on the front and back end.  Tools/frameworks used include: Rspec, Jest, Jasmine, Capybara, Junit, Selenium, Enzyme,
+      Jmock, Easymock, and others.
+
+  - name: Event Sourcing (ES)
+    level: once
+    desc: |
+      Familiar with event sourcing as an architecture, and have worked on Pivotal Tracker which used a
+      "Command" architecture before the "Event Sourcing" term was coined/popularized.
+
+  - name: Command Query Response Segregation (CQRS)
+    level: played
+    desc: |
+      I've studied this architecture, which is closely related to Event Sourcing, but have not yet used it strictly
+      on an app.
+
+  - name: Patterns/Architectures
+    level: toolbox
+    desc: |
+      Here's a list of various patterns/architectures in my toolbox: Loose Coupling and High Cohesion (almost everything else
+      flows from these fundamentals, IMO), Functional Programming, Object-Oriented Programming (OO), SOLID OO patterns,
+      Refactoring book patterns, Gang of Four Design Patterns book patterns, REST.
+
+  - name: Other Tools
+    level: often
+    desc: |
+      Grab bag of older stuff I've used: Trac, XPlanner, MS Project, Rational Unified Process, Enterprise Unified Process,
+      Software Configuration Management Patterns and Process Patterns, J2EE Core Patterns.
+
+
+Skills/Tools - Frontend Languages/Libs/Frameworks:
+  - name: Javascript / ECMAScript
+    level: toolbox
+    desc: |
+      I've done Javascript since Javascript came out, and have written tons of it, but always tended to work more on
+      the backend than the frontend, so I never got as strong as I would have liked, and honestly never liked the ecosystem that
+      much. But ES6 and TypeScript have changed that; I'm really enjoying working with them nowadays!
+  - name: Cascading Style Sheets (CSS) and related tech
+    level: toolbox
+    desc: |
+      CSS / SASS / SCSS / LESS / Flexbox - Like Javascript, I've done CSS since it came out, and did what I had to
+      in order to get the job done, but design was never particularly my love or forté...
+  - name: Frontend Build/Tooling
+    level: toolbox
+    desc: |
+      I've used NPM, Yarn, Babel, Webpack, Webpacker, React on Rails, Rails Asset Pipeline, Sprockets, as well as many older approaches.
+  - name: Vue.js / Vuex / bootstrap-vue
+    level: once
+    desc: I wrote this resume in Vue+Vuex+bootstrap-vue!  It was my first experience with the Vue ecosystem, and I'm a fan!
+  - name: React/Redux
+    level: often
+    desc: I've used React/Redux on multiple apps
+  - name: Typescript
+    level: played
+    desc: |
+      I'm a big proponent of strong-typing + strong type inference + null safety for modern development.  I've started
+      using Typescript on some personal projects, and I like it.
+  - name: Other Frontend Tech
+    level: often
+    desc: |
+      Grab bag of various stuff: ES6, Kotlin/JS, Jest, Jasmine, Jquery, Prototype.js, YUI, others...
+
+Skills/Tools - Backend Languages/Libs/Frameworks:
+  - name: Backend Stuff
+    level: often
+    start: 2001-07-02
+    end: 2001-08-02
+    desc: |
+      Tons of stuff over the years, here's a random and non-exhaustive list: Ruby, Rails, Javascript, Typescript, Kotlin,
+      Elixir, Phoenix, Haskell, Java, Struts, J2EE, JSP, Servlets, PHP, XSL, C
+
+Skills/Tools - Databases:
+  - name: Various Databases
+    level: toolbox
+    desc: |
+      SQL, Ruby on Rails Migrations, Mysql, Postgres, Sqlite, MS SQL Server, Oracle 9i/10g, DB2/UDB, SQL/DS, MS Access,
+      Continuous Database Integration, Agile Databases, Relational Database Design/Modeling/Implementation
+  - name: Various DB/Persistence Tools and Approaches
+    level: toolbox
+    desc: |
+      Rails Migrations, Rails Transactional Fixtures,
+      Continuous Database Integration, Agile Databases, Relational Database Design/Modeling/Implementation
+
+Skills/Tools - DevOps/SecOps/OS/Sysadmin:
+  - name: DevOps / SecOps / OS / Sysadmin - Tools and Tech
+    level: toolbox
+    desc: |
+      My first sysadmin experience was setting up and running a Netware network, and I've been using and administering
+      Linux since Linux came out. I'm proficient with Linux command line utilities.  Here's a big list of stuff
+      I've used: Linux (Alpine, Ubuntu, Redhat, Fedora, Debian, WBEL3, etc), Bash, Posix, apt/aptitude, yum, VMWare,
+      Solaris, AIX, Cygwin,
+      Unix/Linux Shell Scripting and command line tools, installing/building Unix packages via RPM/SRPM/source,
+      DOS, Windows 9x/ME/NT/2000/XP/8/10, OS/2, MVS/TSO, etc...
+  - name: Modern Infrastructure Tools
+    level: often
+    desc: |
+      I've been doing less infrastructure work recently, but here's some of the things I've worked with: Kubernetes,
+      CloudFoundry, Amazon Web Services, AWS Lambda, AWS CloudFormation, other various AWS tools,
+      Docker, Chef, Ansible, Puppet, BOSH,
+      Pivotal Platform (née Pivotal CloudFoundry or PCF), Pivotal Web Services (PWS), Google Cloud Platform (GCP)
+  - name: Observability/Monitoring/Metrics
+    level: often
+    desc: |
+      I believe Observability (O11y) is an important paradigm shift - a much needed new perspective on how to approach
+      this problem. I enjoy following Charity Majors, and I attended O11yCon a couple of years ago - and it was great.
+      Tools: Honeycomb, Scout, NewRelic, Splunk, Datadog, AWS and GCP logging and metrics, etc.
+  - name: Older Infrastructure Tools
+    level: often
+    desc: |
+      Mongrel, Lighttpd, Tomcat, Apache Axis, BEA WebLogic, WebSphere, Resin, Apache/Apache2/IHS, Jetty,
+      "R" statistical analysis package (for lack of a better category), WebTrends, MS IIS, JTest, Rational Rose,
+      MQSeries, Lotus Enterprise Integrator, others
+
+Skills/Tools - Editors/IDEs:
+  - name: Jetbrains IDEs
+    level: toolbox
+    desc: Jetbrains IDEs are what I use for coding - Rubymine, Webstorm, Idea, Pycharm, PHPStorm
+  - name: Atom / VSCode / Textmate
+    level: toolbox
+    desc: |
+      I use Jetbrains IDEs for coding, and only use text editors for quickly editing text files.  I am very proficient
+      in them, and would consider myself a power user in terms of keybinding usage, configuration (versioned in git),
+      refactoring tools, debuggers, quickly exploring git history and annotations, etc.  However, I do not use them
+      for source control, other than visual diff and merge conflicts - I like my CLI for git :)
+      The only other exception when I do not use them for coding is when Jetbrains does not have good enough support for
+      the language (e.g. for Elm or Haskell when I last checked).  I usually use Textmate as my text editor, because
+      my main criteria for a text editor is that it starts instantly, but but occasionally use vi or Atom or VSCode if
+      it's handier.
+  - name: vi/vim
+    level: toolbox
+    desc: |
+      I only use vim/LESS when I have to, which nowadays is primarily when doing git command line commands.  I can perform
+      necessary basic tasks easily, but am nowhere near a power user.
+  - name: Emacs
+    level: once
+    desc: Never learned emacs very well or became proficient. Tried Spacemacs recently, but went back to Jetbrains.
+
+Skills/Tools - Remote Working:
+  - name: Remote Working and Remote Pair-Programming
+    level: teach
+    desc: |
+      I've worked remotely for almost 20 years, and remote pair-programmed nearly full-time for the last 13.  I've got
+      a lot of experience with the psychological and technical aspects of it, which are far too extensive to discuss
+      here.  Let me know if you want to talk more about it!
+  - name: Remote Working Tech
+    level: teach
+    desc: |
+      Here's a random list of Remote Working tech I've used: Zoom, Skype, MacOS Screen Sharing, ScreenHero (RIP), Tuple,
+      tmux, ssh, screen, NoMachine NX, VNC, Windows Remote Desktop, etc.
+
+Skills/Tools - Networking:
+  - name: Networking Stuff
+    level: often
+    desc: |
+      It's rare that you have to get too low in the networking stack in the glorious Cloud-Native future in which we live,
+      but it's good to know your way around. Here's some stuff I know/have known:
+      Network traffic analysis using Ethereal/Wireshark, HTTP header/cookie analysis, ssh, ssh port forwarding/tunneling,
+      automatic key-based authentication using ssh-keygen and ssh-agent, scp, rsync, tftp, Putty, WinSCP,
+      Basic Router/Load Balancer/Firewall administration, TCP/IP, MS Networking, NetBIOS/Samba, MS Active Directory,
+      Novell, General Network Installation/Configuration/Troubleshooting/Administration
+
+Skills/Tools - Source Control:
+  - name: Source Control Management (SCM) tools
+    level: teach
+    desc: |
+      I've managed and worked with many source control systems, going back to mainframe days.  I'm glad we have
+      git now :).  Here's some of them:
+      GitLab, Github, AWS Codecommit, Git, Subversion, SVK, CVS, ClearCase, SourceSafe, ClearQuest, ReqPro, RACF, CICS
+  - name: Source Control Management Patterns
+    level: teach
+    desc: |
+      Experienced and [opinionated](https://github.com/thewoolleyman/gitrflow/blob/master/readme/goals_and_philosophy.md)
+      on tradeoffs of various SCM workflows and patterns: Monorepo vs. Multi Repo, Monoliths vs. Monorepos,
+      Merge vs. Rebase workflows, Gitflow, Github Flow, etc.
+      One of favorite git CLI tricks is: `git rebase -i $(git merge-base head master)`.
+      **UPDATE: While studying for the GitLab technical interview, I found
+      [this documentation on GitLab Flow](https://docs.gitlab.com/ee/workflow/gitlab_flow.html).
+      Yes, I agree completely!  It almost exactly echoes my opinions in the link above, including my criticisms of
+      the Git Flow approach, usage of rebasing for feature branches,
+      and the importance of `--no-ff` when merging upstream.**
+
+Skills/Tools - Legacy/Mainframe:
+  - name: Old Legacy Stuff
+    level: often
+    desc: |
+      COBOL, JCL, PL/1, Rexx, ISPF, Lotus Notes, OS/2, MVS/TSO, VM, Solaris, AIX
+
+Favorite Books/Articles:
+  - name: Favorite Nonfiction Books / Articles
+    desc: |
+      Here's a few pieces of nonfiction writing which have been influential for me:
+      * Tech
+        * [The Agile Manifesto](http://agilemanifesto.org/principles.html)
+        * [Design Patterns: Elements of Reusable Object-Oriented Software](https://www.amazon.com/Design-Patterns-Elements-Reusable-Object-Oriented/dp/0201633612)
+        * [Extreme Programming: A gentle introduction](http://www.extremeprogramming.org/)
+        * [GroboUtils: The art of naming tests](http://groboutils.sourceforge.net/testing-junit/art_naming.html)
+        * [Hackers: Heroes of the Computer Revolution](https://www.amazon.com/Hackers-Computer-Revolution-Steven-Levy/dp/1449388396)
+        * [The Pragmatic Programmer](https://www.amazon.com/Pragmatic-Programmer-Journeyman-Master/dp/020161622X)
+        * [Refactoring: Improving the Design of Existing Code](https://www.amazon.com/Refactoring-Improving-Existing-Addison-Wesley-Signature/dp/0134757599)
+        * [The Soul of A New Machine](https://www.amazon.com/Soul-New-Machine-Tracy-Kidder/dp/0316491977)
+        * [Test-Driven Development: A Practical Guide: A Practical Guide](https://www.amazon.com/Test-Driven-Development-Practical-Guide/dp/0131016490)
+      * Business
+        * [The E-Myth Revisited: Why Most Small Businesses Don't Work and What to Do About It](https://www.amazon.com/Myth-Revisited-Small-Businesses-About/dp/0887307280)
+        * [The Lean Startup: How Today's Entrepreneurs Use Continuous Innovation to Create Radically Successful Businesses](https://www.amazon.com/Lean-Startup-Entrepreneurs-Continuous-Innovation/dp/0307887898)
+      * Life
+        * [Atomic Habits](https://www.amazon.com/Atomic-Habits-Proven-Build-Break/dp/0735211299)
+        * [Deep Work](https://www.amazon.com/Deep-Work-Focused-Success-Distracted/dp/1455586692)
+        * [Essentialism: The Disciplined Pursuit of Less](https://www.amazon.com/Essentialism-Disciplined-Pursuit-Greg-McKeown/dp/0804137382)
+        * [Getting Things Done: The Art of Stress-Free Productivity](https://www.amazon.com/Getting-Things-Done-Stress-Free-Productivity/dp/0142000280)
+        * [Goodbye, Things: The New Japanese Minimalism](https://www.amazon.com/Goodbye-Things-New-Japanese-Minimalism/dp/0393609030)
+        * [How to Win Friends & Influence People](https://www.amazon.com/How-Win-Friends-Influence-People/dp/0671027034)
+        * [The Magic of Thinking Big](https://www.amazon.com/Magic-Thinking-Big-David-Schwartz/dp/0671646788)
+        * [The Power of Habit: Why We Do What We Do in Life and Business](https://www.amazon.com/Power-Habit-What-Life-Business/dp/081298160X)
+        * [Ultralearning: Master Hard Skills, Outsmart the Competition, and Accelerate Your Career](https://www.amazon.com/Ultralearning-Master-Outsmart-Competition-Accelerate/dp/006285268X)
+
+Personal Info:
+  - name: Personal Info
+    desc: |
+      I have a lame and outdated website, https://thewoolleyweb.com, with some outdated info, some music I've
+      written and recorded, some pics and videos, and links to all my social
+      media accounts, all of which are completely public. Or just Google `thewoolleyman`, I've been on the web since there's
+      been a web; I'm transparent and easy to find :)

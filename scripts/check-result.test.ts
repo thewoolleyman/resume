@@ -61,9 +61,10 @@ function runResult(root: string): { exitCode: number | null; output: string } {
 }
 
 describe("Result/ROP enforcement gate (li-oaxjqm)", () => {
-  test("the repository passes with the discipline armed (no src/** yet) and the ESLint baseline verified", () => {
+  test("the repository passes with the discipline active (src verified) and the ESLint baseline verified", () => {
     const { exitCode, output } = runResult(repoRoot);
-    expect(output).toContain("armed");
+    expect(output).toContain("discipline: ok");
+    expect(output).not.toContain("FAIL");
     expect(exitCode).toBe(0);
   }, 60000);
 

@@ -68,6 +68,12 @@ interface FixtureOptions {
   readonly withPassingHarnessTest?: boolean;
   readonly withoutPackageJson?: boolean;
   readonly devDependencies?: Record<string, string>;
+  // Override specific package scripts (e.g. make `build` or `test:e2e` fail)
+  // so the build/e2e aggregate gates can be exercised in isolation.
+  readonly scriptOverrides?: Record<string, string>;
+  // Write a svelte.config.js so the tree reads as "provisioned" for the
+  // build/e2e gates without needing src/** (which would trip other gates).
+  readonly withSvelteConfig?: boolean;
   // Drop the real scenarios spec + coverage mapping into the fixture so the
   // in-process scenario gate has something to verify. "broken" removes a
   // mapping so the gate must fail even though check:scenarios is a no-op.
@@ -89,6 +95,7 @@ function makeFixture(options: FixtureOptions = {}): string {
         Object.entries(scripts).filter(([name]) => name !== options.omitScript),
       );
     }
+    scripts = { ...scripts, ...(options.scriptOverrides ?? {}) };
     writeFileSync(
       join(dir, "package.json"),
       JSON.stringify(
@@ -108,6 +115,9 @@ function makeFixture(options: FixtureOptions = {}): string {
   if (options.withProductSource) {
     mkdirSync(join(dir, "src"), { recursive: true });
     writeFileSync(join(dir, "src", "index.ts"), "export const x = 1;\n");
+  }
+  if (options.withSvelteConfig) {
+    writeFileSync(join(dir, "svelte.config.js"), "export default {};\n");
   }
   if (options.withPassingHarnessTest || options.withFailingHarnessTest) {
     mkdirSync(join(dir, "scripts"), { recursive: true });
@@ -161,6 +171,8 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     const { exitCode, output } = runCheck(repoRoot, {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+      CHECK_SKIP_BUILD: "1",
+      CHECK_SKIP_E2E: "1",
     });
     expect(output).toContain("package-script surface");
     expect(exitCode).toBe(0);
@@ -170,6 +182,8 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     const { output } = runCheck(repoRoot, {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+      CHECK_SKIP_BUILD: "1",
+      CHECK_SKIP_E2E: "1",
     });
     // The scenario coverage gate (li-hb77ad) was the last pending family; it
     // is operational now alongside the memory guardrail + discipline
@@ -199,6 +213,8 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     runCheck(repoRoot, {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+      CHECK_SKIP_BUILD: "1",
+      CHECK_SKIP_E2E: "1",
     });
     const after = Bun.spawnSync({
       cmd: ["git", "status", "--porcelain"],
@@ -316,6 +332,107 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     expect(output).toContain("no mapping");
   }, 120000);
 
+  test("runs and passes the build and e2e gates when their scripts succeed", () => {
+    // With the named scripts succeeding (fixture default "true"), both the
+    // production-build gate and the e2e gate must RUN (not skip) and report
+    // [ok] — proving they exercise the real scripts, not just their presence.
+    const { exitCode, output } = runCheck(
+      makeFixture({ scenarioMapping: "valid" }),
+      { CHECK_SKIP_HARNESS_TESTS: "1", CHECK_SKIP_TOOLCHAIN_RUNNERS: "1" },
+    );
+    const buildLine = output
+      .split("\n")
+      .find((line) => line.includes("production build (bun run build)"));
+    const e2eLine = output
+      .split("\n")
+      .find((line) => line.includes("end-to-end tests (bun run test:e2e)"));
+    expect(buildLine).toContain("[ok]");
+    expect(e2eLine).toContain("[ok]");
+    expect(exitCode).toBe(0);
+  }, 120000);
+
+  test("fails when the production build fails, naming the build gate", () => {
+    // A red `bun run build` (SvelteKit + Vercel adapter) must fail the
+    // aggregate check — the gate runs the real named script, not a presence
+    // check. Reproducer for the build gate-bypass class.
+    const { exitCode, output } = runCheck(
+      makeFixture({ scriptOverrides: { build: "exit 1" } }),
+      {
+        CHECK_SKIP_HARNESS_TESTS: "1",
+        CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+        CHECK_SKIP_E2E: "1",
+      },
+    );
+    expect(exitCode).toBe(1);
+    const buildLine = output
+      .split("\n")
+      .find((line) => line.includes("production build (bun run build)"));
+    expect(buildLine).toContain("[FAIL]");
+  }, 120000);
+
+  test("fails when the e2e suite fails, naming the e2e gate", () => {
+    // A red `bun run test:e2e` (Playwright top-of-pyramid) must fail the
+    // aggregate check. Reproducer for the e2e gate-bypass class.
+    const { exitCode, output } = runCheck(
+      makeFixture({ scriptOverrides: { "test:e2e": "exit 1" } }),
+      {
+        CHECK_SKIP_HARNESS_TESTS: "1",
+        CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+        CHECK_SKIP_BUILD: "1",
+      },
+    );
+    expect(exitCode).toBe(1);
+    const e2eLine = output
+      .split("\n")
+      .find((line) => line.includes("end-to-end tests (bun run test:e2e)"));
+    expect(e2eLine).toContain("[FAIL]");
+  }, 120000);
+
+  test("fail-closes a stubbed build in a provisioned tree (not [skipped])", () => {
+    // Regression guard: reverting `build` to a not-yet-provisioned stub while
+    // SvelteKit artifacts exist must FAIL the build gate, never launder it as
+    // a pre-scaffold [skipped].
+    const { exitCode, output } = runCheck(
+      makeFixture({
+        withSvelteConfig: true,
+        scriptOverrides: { build: "bun scripts/not-yet-provisioned.ts build" },
+      }),
+      {
+        CHECK_SKIP_HARNESS_TESTS: "1",
+        CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+        CHECK_SKIP_E2E: "1",
+      },
+    );
+    expect(exitCode).toBe(1);
+    const buildLine = output
+      .split("\n")
+      .find((line) => line.includes("production build (bun run build)"));
+    expect(buildLine).toContain("[FAIL]");
+    expect(buildLine).not.toContain("[skipped]");
+  }, 120000);
+
+  test("fail-closes a stubbed test:e2e in a provisioned tree (not [skipped])", () => {
+    const { exitCode, output } = runCheck(
+      makeFixture({
+        withSvelteConfig: true,
+        scriptOverrides: {
+          "test:e2e": "bun scripts/not-yet-provisioned.ts test:e2e",
+        },
+      }),
+      {
+        CHECK_SKIP_HARNESS_TESTS: "1",
+        CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+        CHECK_SKIP_BUILD: "1",
+      },
+    );
+    expect(exitCode).toBe(1);
+    const e2eLine = output
+      .split("\n")
+      .find((line) => line.includes("end-to-end tests (bun run test:e2e)"));
+    expect(e2eLine).toContain("[FAIL]");
+    expect(e2eLine).not.toContain("[skipped]");
+  }, 120000);
+
   test("a bare fixture's scenario gate is skipped, never a laundered [ok]", () => {
     // The watcher's reproducer: no scenario-coverage.json and no scenarios
     // spec, with check:scenarios a no-op. The gate must not report [ok] — a
@@ -324,6 +441,8 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
     const { output } = runCheck(makeFixture(), {
       CHECK_SKIP_HARNESS_TESTS: "1",
       CHECK_SKIP_TOOLCHAIN_RUNNERS: "1",
+      CHECK_SKIP_BUILD: "1",
+      CHECK_SKIP_E2E: "1",
     });
     const gateLine = output
       .split("\n")

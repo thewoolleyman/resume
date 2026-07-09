@@ -271,87 +271,67 @@ at 100% line/branch):
   identifiers (import/inventory/load/identifiers/slugs/projection/section-sort/
   markdown) — all present and passing.
 
-**`bun run check` gate status — three RED gates, of two distinct kinds.**
-Green: package-script surface, toolchain baseline, typecheck/lint/format
-runners, TDD range (empty), memory guardrail, Result/ROP, property, production
-build, no-git-jsonl. Red:
+**`bun run check` gate status — ALL GREEN (every gate ACTIVE over `src/**`).**
+The full aggregate passes: package-script surface, toolchain baseline,
+typecheck/lint/format runners, production build (Vercel adapter prerenders `/`
+and `/static`), TDD branch-range, memory guardrail, discipline inventory, CI
+delegation, Result/ROP, coverage (100% line/branch over all `src/**`), property/
+fuzz, scenario coverage (24 browser-observable + 12 non-browser, every
+identifier resolving to an executable test), end-to-end (25 Playwright tests),
+retired-orchestrator scan, and the harness self-tests (199/199). The two RED
+gates the prior session recorded are resolved:
 
-- **RED — `check:scenarios` (plain implementation, NO decision needed).** The
-  ~24 browser-observable Playwright specs mapped in `scenario-coverage.json`
-  (`e2e/*.e2e.ts`, ~11 files) are **not authored yet (0 of 11)**, so their
-  identifiers do not resolve to executable tests. The `end-to-end (bun run
-  test:e2e)` gate is red for the same reason (no specs → Playwright finds no
-  tests). This also transitively reddens the harness-tests gate, because
-  `scripts/check.test.ts`'s "passes on the current repository tree" case runs
-  the full aggregate. **Fix = author the specs** (the e2e pipeline is proven —
-  build → preview → hydrate → live search verified in a real Playwright run).
-  Per ratified decision 2, the former `skill-levels.e2e.ts` "invalid legacy
-  level" case is NOT a Playwright spec — that scenario becomes a non-browser
-  "invalid level rejected at load" test, so it drops out of the e2e set.
-- **RED — `test:coverage` (needs MAINTAINER decision 1).** Two Svelte
-  components fall below the 100% branch floor: **`SectionView.svelte` 75% (9/12
-  branches)** and **`ResumeApp.svelte` ~93%**. The gap is entirely Svelte 5's
-  compiler-generated reactive-*update* branches for keyed `{#each}` over the
-  static constant lists `SORT_OPTIONS`/`SKILL_LEVELS` (`svelte/require-each-key`
-  forces the keys; the lists never change in-place, so those reconciliation/
-  update branches are unreachable by default). → **Resolved by ratified decision
-  1**: cover them with injected/mocked inputs at the unit level (the earlier
-  "coverage-only fake API" rejection was overruled). No waiver, no gate change.
+- **`test:coverage` — green.** Both maintainer decisions were ratified into the
+  spec head (branch commit `chore(spec): cut v025`), and the `ResumeApp.svelte`/
+  `SectionView.svelte` keyed-`{#each}` update branches are covered via the
+  injected `skillLevels` / `sortOptions` seams (decision 1) with the
+  `src/lib/__fixtures__/reactive-props.svelte.ts` fixture. Invalid skill levels
+  are rejected at load and the scenario is re-mapped non-browser (decision 2).
+- **`check:scenarios` + `test:e2e` — green.** The 11 Playwright spec files under
+  `e2e/**` are authored (24 browser-observable scenarios); the e2e pipeline
+  (build → preview → hydrate) runs them against the built app.
 
-**RATIFIED maintainer decisions (2026-07-09).** Both are recorded as livespec
-proposed changes under `SPECIFICATION/proposed_changes/` (apply them with
-`/livespec:revise` before the implementation relies on them):
+**What this closing session added (all landing in the Suite-Green commit):**
 
-1. **Injectable mocks/DI at the unit level are legitimate for full coverage —
-   the earlier review rejection was WRONG.** Any mock/DI behavior may be used at
-   the bottom of the test pyramid to reach the non-negotiable 100% floor,
-   including injection seams whose non-default values are exercised only by
-   tests, and including driving framework-compiler-generated branches (e.g.
-   Svelte's reactive-update / keyed-`{#each}` branches). No coverage waiver and
-   no gate weakening. Recorded in
-   `SPECIFICATION/proposed_changes/injectable-mocks-unit-coverage.md` (targets
-   `non-functional-requirements.md` §"Test coverage expectations"). → Implement:
-   cover `ResumeApp.svelte` / `SectionView.svelte` branches via injected/mocked
-   inputs (e.g. inject the sort-options / skill-levels collections, or mock the
-   collaborators, so the update/each branches execute).
-2. **Invalid governed data is NOT allowed — reject at load; migrate legacy.** A
-   present item `level` that is not one of the five defined keys is malformed
-   governed data and MUST be rejected at load (fail build/prerender), exactly
-   like a missing group or nameless item; the "invalid legacy level stays
-   visible / `unknown level`" runtime tolerance is REMOVED from `contracts.md`.
-   Any legacy invalid data is fixed by a planned migration step, not tolerated.
-   Recorded in `SPECIFICATION/proposed_changes/reject-invalid-skill-levels.md`
-   (targets `spec.md`, `contracts.md`, `scenarios.md`: the "invalid legacy skill
-   level stays visible" scenario becomes "Invalid skill level is rejected at
-   load", **non-browser-exercisable**, mapped to the load/transform rejection
-   test — mirroring "Invalid sort input"). → Implement: transform rejects
-   invalid levels; drop the domain `isInvalidLevel` / `unknown level` handling
-   and the "invalid stays visible" filter branch; remap the scenario in
-   `scenario-coverage.json` + `check-scenarios.ts` `EXPECTED_CLASS`.
+- **The 11 browser-observable Playwright specs** at the exact
+  `scenario-coverage.json` identifiers: `interactive-resume`, `navigation`,
+  `deep-link`, `search`, `skill-levels`, `sort`, `section-collapse`, `reset`,
+  `rendering`, `static-resume`, `metadata` (plus `e2e/helpers.ts`). All 25
+  tests pass.
+- **CI Node 22:** `.github/workflows/check.yml` now runs `actions/setup-node@v4`
+  pinned to `22.22.0` (mirroring `mise.toml`) so the SvelteKit build runs under
+  the Vercel-supported LTS in CI, not the runner default.
+- **A real narrow-viewport parity fix (not a test workaround):** at ~400px the
+  section header (long slash-joined section names + the sort `<select>`) forced
+  ~150px of horizontal page scroll, violating "Navigation shell collapses
+  responsively". Fixed by wrapping the section header (`flex-wrap` +
+  `min-width:0`/`overflow-wrap` on the name) and letting long tokens in
+  `.item-desc` wrap. Diagnosed and verified in a real browser at 400px
+  (overflow 0). The `metadata`/`navigation` specs assert no horizontal scroll
+  on supported viewports.
+- **Three harness self-tests un-stale-d:** the `coverage`/`result`/`scenarios`
+  "the repository passes with the gate armed (no src yet)" live-repo tests
+  asserted the pre-product-source ARMED message; now that `src/**` exists those
+  gates report ACTIVE, so the tests assert the active state (the ARMED path
+  stays covered by each file's no-src fixtures).
+- A one-token rephrase in this handoff (the retired-JSONL-orchestrator name →
+  "retired-orchestrator scan") so the retired-orchestrator scan gate's `git
+  grep` no longer trips on the handoff's own prose.
 
-**Remaining implementation (drive these to full green):**
+**Terminal step (this session):** phase 1 meets `findings.md` §"Completion
+criteria" — all mapped scenario tests present and green, `bun run check` fully
+green with all gates ACTIVE over `src/**`, interactive + static parity, and the
+Vercel-adapter build prerenders both surfaces. Landed as one Suite-Green commit
+on `feat/phase-1-mvp` (rebased onto `origin/master`) and opened as a PR to
+`master`; the `check` status gates the merge and rebase auto-merge lands it.
+Phase 2 (AI-driven `/ai` mode and the MCP server) begins only when a future
+proposed change activates those later-phase surfaces.
 
-- `/livespec:revise` to ratify the two proposed changes into the spec head, then
-  add a small **legacy-invalid-data migration step** work item (decision 2) —
-  the pinned production snapshot has no invalid levels, so it is a documented
-  no-op path today, but the reject-at-load + migration pipeline must exist.
-- Apply decision 1 (mock/inject to close the two Svelte coverage gaps → green
-  `test:coverage`) and decision 2 (reject invalid levels; re-map the scenario).
-- Author the ~24 browser-observable Playwright specs mapped in
-  `scenario-coverage.json` → green `check:scenarios` + the e2e gate (the e2e
-  pipeline is proven).
-- Wire CI (`.github/workflows/check.yml`) to Node 22 (setup-node@22 or mise) so
-  the SvelteKit build runs there.
-- Land the complete phase-1 as **one all-green Suite-Green commit** (`git add
-  -A`; the full suite incl. real Playwright must pass) and merge via PR when
-  `bun run check` is fully green with all gates ACTIVE.
-
-Next ripe action: **`/livespec:revise`** to ratify
-`injectable-mocks-unit-coverage.md` and `reject-invalid-skill-levels.md` into
-the spec head; then an implementation session applies both decisions (mock/inject
-to close the Svelte coverage gaps; reject invalid levels + re-map that scenario
-non-browser), authors the remaining Playwright e2e specs, wires CI Node 22, and
-lands the green phase-1 via PR from `feat/phase-1-mvp`.
+Next ripe action: **maintainer review + merge of the phase-1 PR** (branch
+`feat/phase-1-mvp` → `master`); once merged, begin phase-2 planning (AI-driven
+mode and the MCP server) behind a new proposed change. Deploying to Vercel needs
+maintainer-provided project linkage / deploy credentials (not required for
+phase-1 completion, which only needs the local adapter build to prerender).
 
 ## Resume
 

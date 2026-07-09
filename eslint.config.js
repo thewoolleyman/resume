@@ -9,7 +9,10 @@ import eslint from "@eslint/js";
 import prettier from "eslint-config-prettier";
 import perfectionist from "eslint-plugin-perfectionist";
 import svelte from "eslint-plugin-svelte";
+import globals from "globals";
 import tseslint from "typescript-eslint";
+
+import svelteConfig from "./svelte.config.js";
 
 export default tseslint.config(
   {
@@ -30,9 +33,29 @@ export default tseslint.config(
   {
     languageOptions: {
       parserOptions: {
+        // playwright.config.ts lives at the repo root outside any tsconfig
+        // include; the default project lets the type-aware parser resolve it.
+        projectService: {
+          allowDefaultProject: ["playwright.config.ts"],
+        },
+        tsconfigRootDir: import.meta.dirname,
+        extraFileExtensions: [".svelte"],
+      },
+    },
+  },
+  {
+    // Type-aware linting for Svelte components: forward the TypeScript parser
+    // and the SvelteKit config into svelte-eslint-parser so the
+    // strict-type-checked rules resolve type information for <script lang="ts">.
+    files: ["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"],
+    languageOptions: {
+      globals: { ...globals.browser },
+      parserOptions: {
         projectService: true,
         tsconfigRootDir: import.meta.dirname,
         extraFileExtensions: [".svelte"],
+        parser: tseslint.parser,
+        svelteConfig,
       },
     },
   },

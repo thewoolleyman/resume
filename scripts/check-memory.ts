@@ -242,6 +242,26 @@ function gitTrackedPaths(root: string): string[] {
   return res.stdout.split("\n").filter((line) => line.length > 0);
 }
 
+// Directories the filesystem walk skips so the git-less enumeration matches
+// what `git ls-files` returns (tracked files only). `.git` and node_modules
+// are never content; the rest are .gitignored build/test outputs (SvelteKit/
+// Vite, Vercel adapter, coverage, Playwright) that a build run leaves behind —
+// e.g. the Suite-Green leg's staged-tree checkout, where an operational-gate
+// self-test runs the production build and would otherwise trip this guard on
+// its own generated .svelte-kit/.vercel output.
+const WALK_SKIP_DIRS = new Set([
+  ".git",
+  "node_modules",
+  ".svelte-kit",
+  ".vercel",
+  "build",
+  "dist",
+  "coverage",
+  "test-results",
+  "playwright-report",
+  ".playwright-mcp",
+]);
+
 function walkPaths(root: string, prefix = ""): string[] {
   const paths: string[] = [];
   for (const entry of readdirSync(join(root, prefix), {
@@ -252,7 +272,7 @@ function walkPaths(root: string, prefix = ""): string[] {
     }
     const relPath = prefix === "" ? entry.name : `${prefix}/${entry.name}`;
     if (entry.isDirectory()) {
-      if (entry.name === ".git" || entry.name === "node_modules") {
+      if (WALK_SKIP_DIRS.has(entry.name)) {
         continue;
       }
       paths.push(...walkPaths(root, relPath));
