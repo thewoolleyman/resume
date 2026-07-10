@@ -30,6 +30,43 @@ export function run(
   };
 }
 
+// git exports these repository-context vars into the environment of a hook it
+// invokes (e.g. the commit-msg hook that runs the Suite-Green / anchor legs).
+// A command executed inside an ISOLATED staged-tree checkout MUST NOT inherit
+// them: its own nested `git` invocations — most notably the harness suite's
+// throwaway fixture repositories in scripts/*.test.ts — would otherwise resolve
+// the OUTER repository's git-dir/index/worktree instead of their own, both
+// corrupting the real index and failing the suite. The hook's own operations on
+// the real repository keep their context (they use run()/git() directly); only
+// the isolated-checkout runs are sanitized.
+const HOOK_GIT_CONTEXT_ENV: readonly string[] = [
+  "GIT_INDEX_FILE",
+  "GIT_DIR",
+  "GIT_WORK_TREE",
+  "GIT_COMMON_DIR",
+  "GIT_PREFIX",
+  "GIT_OBJECT_DIRECTORY",
+  "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+  "GIT_NAMESPACE",
+];
+
+// Runs a command inside an isolated checkout with the outer hook's git-context
+// env vars removed, so nested git invocations resolve their own repository.
+export function runInCheckout(cwd: string, cmd: readonly string[]): RunResult {
+  const env: Record<string, string> = {};
+  for (const [key, value] of Object.entries(process.env)) {
+    if (value === undefined || HOOK_GIT_CONTEXT_ENV.includes(key)) {
+      continue;
+    }
+    env[key] = value;
+  }
+  const proc = Bun.spawnSync({ cmd: [...cmd], cwd, env });
+  return {
+    exitCode: proc.exitCode,
+    output: proc.stdout.toString() + proc.stderr.toString(),
+  };
+}
+
 export function git(cwd: string, ...args: readonly string[]): RunResult {
   return run(cwd, ["git", ...args]);
 }
@@ -221,7 +258,7 @@ export function runFullSuite(stagedRoot: string): SuiteResult {
   let output = "";
   let totalTests = 0;
   for (const script of scripts) {
-    const res = run(stagedRoot, ["bun", "run", script]);
+    const res = runInCheckout(stagedRoot, ["bun", "run", script]);
     output += res.output;
     for (const match of res.output.matchAll(/Ran (\d+) tests? across/g)) {
       totalTests += Number(match[1] ?? 0);

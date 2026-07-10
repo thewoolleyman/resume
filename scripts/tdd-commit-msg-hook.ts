@@ -20,8 +20,8 @@ import {
   isProductSource,
   isTestFile,
   parseTrailers,
-  run,
   runFullSuite,
+  runInCheckout,
   sha256,
   stagedPaths,
   utcNow,
@@ -52,7 +52,7 @@ function runAnchorInStagedTree(
 ): { exitCode: number | null; output: string } {
   const staged = checkoutStagedTree(root);
   try {
-    return run(staged, anchorRunnerCommand(root, anchorPath));
+    return runInCheckout(staged, anchorRunnerCommand(root, anchorPath));
   } finally {
     rmSync(staged, { recursive: true, force: true });
   }
