@@ -201,8 +201,20 @@ maintainer-driven.
   cover-letter link and the Vue/Nuxt/GitLab/Bootstrap self-description and describe
   the current SvelteKit/Vercel/GitHub stack with a brief 2019→2026 history note
   (committed-snapshot SHA-256 re-pinned `20600aea…→d6c29374…`; `bun run check`
-  all-gates-ACTIVE green; committed as `6827433`). **The live Production site still
-  serves the OLD About until redeployed** — that redeploy rides with slice R3.
+  all-gates-ACTIVE green; committed as `6827433`). **This content is now LIVE** —
+  see the production content-refresh redeploy below.
+
+- **Production content-refresh redeploy (2026-07-10).** At the maintainer's
+  request — release the current committed state before the design pass — the
+  current `master` (`c66b235`) was redeployed to Vercel production via
+  `./with-resume-env.sh bash -c 'vercel deploy --prod --yes --token "$VERCEL_TOKEN"'`
+  and re-aliased to `https://resume.thewoolleyweb.com`. Verified live: `/` and
+  `/static` serve HTTP 200, `http`→`https` 308, and the rewritten About (SvelteKit/
+  Vercel/GitHub stack, stale Vue/Nuxt/cover-letter scrubbed) plus the phone+email
+  contact redaction are both live. Git was already fully landed (`master ==
+  origin/master`, clean tree) — this was a deploy only, no new commit. NOTE: this
+  is a pre-redesign content refresh; it does NOT satisfy slice **R3**, which is the
+  redeploy of the *redesigned* site after R2 lands.
 
 - **Worktree-landing discipline (2026-07-10).** livespec **v028** reversed the
   direct-to-master sanction to worktree-mandatory (author/commit only in a dedicated
