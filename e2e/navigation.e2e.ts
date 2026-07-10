@@ -54,6 +54,27 @@ test("the Static nav link navigates to the static resume", async ({ page }) => {
   await expect(page.locator(".static-resume")).toBeVisible();
 });
 
+test("nav dropdown menus dismiss on outside press and Escape", async ({
+  page,
+}) => {
+  await open(page, HOME);
+  const contents = page.locator("details.nav-menu", {
+    has: page.getByText("Contents", { exact: true }),
+  });
+
+  // Opening then pressing outside the menu (the search box) dismisses it.
+  await contents.locator("summary").click();
+  await expect(contents).toHaveJSProperty("open", true);
+  await searchBox(page).click();
+  await expect(contents).toHaveJSProperty("open", false);
+
+  // Opening then pressing Escape dismisses it.
+  await contents.locator("summary").click();
+  await expect(contents).toHaveJSProperty("open", true);
+  await page.keyboard.press("Escape");
+  await expect(contents).toHaveJSProperty("open", false);
+});
+
 test("About and Instructions controls open with governed content", async ({
   page,
 }) => {

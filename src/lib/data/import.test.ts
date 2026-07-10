@@ -8,12 +8,13 @@ import { loadResumeData } from "./resume";
 // Pinned SHA-256 of the committed production snapshot — the edited on-disk
 // content, NOT the retrieved source (SPECIFICATION/spec.md §"Governed data
 // source and predecessor import (phase 1)"). The retrieved-source hash is retained in the file's provenance comments; this pins the
-// committed-snapshot hash after the 2026-07-10 owner-directed edits: the
-// postal-address redaction from header.contact, the about.content rewrite, and
-// the GitLab career-fact update (Senior->Staff title, added 2026-06-15 end,
-// rewritten description).
+// committed-snapshot hash after the owner-directed edits: the postal-address
+// redaction from header.contact, the about.content rewrite, the GitLab
+// career-fact update (Senior->Staff title, added 2026-06-15 end, rewritten
+// description), and the about.content opening-line neutralization
+// ("interactive resume" -> "resume") for the shared static/interactive views.
 const PINNED_SHA256 =
-  "901ad39f4725f6667265024300327fa6d9bcc10d59f87475ec1d4c5920e2c405";
+  "61e2b2ca076b56686a871854eff3b31f37b9c484ef7727c44f652e2675d4a78a";
 const SOURCE_HOST = "interactive-resume-data-chad-woolley.gitlab.io";
 // Vitest runs with cwd at the repository root; import.meta.url is not
 // guaranteed to be a file: URL under Vite, so resolve from cwd instead.

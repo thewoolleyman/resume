@@ -52,8 +52,49 @@
     window.scrollTo(0, 0);
   }
 
+  // A native <details> dropdown stays open until its summary is clicked again;
+  // these dismiss the Contents/Skill Levels menus when the visitor interacts
+  // elsewhere. `target === null` is the Escape/keyboard case (close every open
+  // menu); otherwise close only the menus the pointer landed outside of.
+  function closeMenusOutside(target: EventTarget | null): void {
+    const menus = document.querySelectorAll<HTMLDetailsElement>(
+      "details.nav-menu[open]",
+    );
+    for (const menu of menus) {
+      if (target === null || !menu.contains(target as Node)) {
+        menu.open = false;
+      }
+    }
+  }
+
+  function onDocumentPointerDown(event: PointerEvent): void {
+    closeMenusOutside(event.target);
+  }
+
+  function onDocumentKeyDown(event: KeyboardEvent): void {
+    if (event.key === "Escape") {
+      closeMenusOutside(null);
+    }
+  }
+
+  // Close a menu when focus leaves it (keyboard tab-away or a click that moves
+  // focus outside), keeping it open while focus stays on its own controls.
+  function onMenuFocusOut(event: FocusEvent): void {
+    const menu = event.currentTarget as HTMLDetailsElement;
+    const next = event.relatedTarget as Node | null;
+    if (next === null || !menu.contains(next)) {
+      menu.open = false;
+    }
+  }
+
   onMount(() => {
     revealAnchor(window.location.hash, data.sections, document);
+    document.addEventListener("pointerdown", onDocumentPointerDown);
+    document.addEventListener("keydown", onDocumentKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onDocumentPointerDown);
+      document.removeEventListener("keydown", onDocumentKeyDown);
+    };
   });
 </script>
 
@@ -78,7 +119,7 @@
         aria-label="Search resume"
         bind:value={query}
       />
-      <details class="nav-menu">
+      <details class="nav-menu" onfocusout={onMenuFocusOut}>
         <summary>Contents</summary>
         <ul>
           {#each data.sections as section (section.id)}
@@ -86,7 +127,7 @@
           {/each}
         </ul>
       </details>
-      <details class="nav-menu">
+      <details class="nav-menu" onfocusout={onMenuFocusOut}>
         <summary>Skill Levels</summary>
         <ul>
           {#each skillLevels as level (level.key)}

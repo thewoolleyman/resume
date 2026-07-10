@@ -34,6 +34,20 @@ test("static mode renders all governed data in canonical order, fully expanded",
     "About This Resume/App",
   );
 
+  // A print-friendly cross-link back to the interactive resume, carrying its
+  // full canonical URL so a printed/PDF copy stays actionable.
+  const cross = page.getByTestId("static-crosslink");
+  await expect(cross).toContainText("Static version");
+  await expect(cross.locator("a")).toHaveAttribute(
+    "href",
+    "https://resume.thewoolleyweb.com/",
+  );
+
+  // The shared About body no longer frames itself as only the interactive view.
+  await expect(page.locator(".static-about")).not.toContainText(
+    "interactive resume",
+  );
+
   // No interactive chrome: no sticky nav, search, sort, or collapse controls —
   // everything is expanded and visible without JS-only disclosure.
   await expect(page.locator("nav.sticky-nav")).toHaveCount(0);

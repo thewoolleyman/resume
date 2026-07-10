@@ -34,6 +34,13 @@ describe("StaticResume", () => {
     // No interactive controls (search / sort / collapse).
     expect(target.querySelector("select")).toBeNull();
     expect(target.querySelector(".collapse-toggle")).toBeNull();
+    // A print-friendly cross-link back to the interactive resume, carrying its
+    // full canonical URL (contracts.md §"Web routes").
+    const cross = target.querySelector('[data-testid="static-crosslink"]');
+    expect(cross?.textContent).toContain("Static version");
+    expect(cross?.querySelector("a")?.getAttribute("href")).toContain(
+      "resume.thewoolleyweb.com",
+    );
     void unmount(component);
   });
 });

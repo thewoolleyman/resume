@@ -14,6 +14,12 @@
   <header class="static-header">
     <h1>{data.profile.header.name}</h1>
     <p class="contact">{data.profile.header.contact}</p>
+    <p class="static-crosslink" data-testid="static-crosslink">
+      Static version — the interactive version is at
+      <a href="https://resume.thewoolleyweb.com/"
+        >https://resume.thewoolleyweb.com/</a
+      >.
+    </p>
   </header>
 
   <section class="static-about" aria-labelledby="static-about-title">
@@ -51,6 +57,14 @@
     color: var(--text-muted);
     font-family: var(--font-mono);
     font-size: 0.9rem;
+  }
+  .static-crosslink {
+    margin: 0.5rem 0 0;
+    color: var(--text-faint);
+    font-size: 0.85rem;
+  }
+  .static-crosslink a {
+    text-decoration: underline;
   }
   .static-about {
     margin-top: 1.75rem;

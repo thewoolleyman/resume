@@ -15,7 +15,7 @@
 #   retrieved: 2026-07-06
 #   upstream-last-modified: 2022-06-27
 #   retrieved-source-sha256: 792097b01aef31fdc7cbf2c2463492e87c5ca89bc8d864ef3ebacfc7f7a4d158  # pre-redaction predecessor hash
-#   committed-snapshot-sha256: 901ad39f4725f6667265024300327fa6d9bcc10d59f87475ec1d4c5920e2c405
+#   committed-snapshot-sha256: 61e2b2ca076b56686a871854eff3b31f37b9c484ef7727c44f652e2675d4a78a
 #
 # Owner-directed edits (recorded per SPECIFICATION/spec.md §"Governed data source
 # and predecessor import (phase 1)" → "Committed production snapshot"). Each edit
@@ -34,6 +34,10 @@
 #     laid off), and rewrote its description. Owner-directed per the sanctioned
 #     owner-authored content-edit category. Structural scope (18 keys / 16 sections /
 #     74 items) is unchanged.
+#   2026-07-11 (owner-authored content edit): neutralized the about.content opening
+#     line ("interactive resume" -> "resume") so it reads correctly on the static
+#     view too; the static page adds a chrome cross-link to the interactive version.
+#     Structural scope (18 keys / 16 sections / 74 items) is unchanged.
 #
 # The on-disk shape is the predecessor's human-friendly AUTHORING shape:
 # top-level `about`/`header` maps plus ordered section keys, each mapping to an
@@ -45,7 +49,7 @@
 about:
   title: About This Resume/App
   content: |
-    This is my (Chad Woolley's) interactive resume. All of the content is governed
+    This is my (Chad Woolley's) resume. All of the content is governed
     structured data (a single YAML file), rendered into a searchable, filterable
     interactive view and a plain, printable static view.
 

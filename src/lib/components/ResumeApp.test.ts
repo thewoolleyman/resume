@@ -57,6 +57,59 @@ describe("ResumeApp", () => {
     void unmount(component);
   });
 
+  it("dismisses the Contents/Skill Levels menus on outside press, Escape, and focus loss", () => {
+    const component = mount(ResumeApp, {
+      target,
+      props: { data: makeResumeData() },
+    });
+    flushSync();
+    const menus = [
+      ...target.querySelectorAll<HTMLDetailsElement>("details.nav-menu"),
+    ];
+    const [contents, skills] = menus;
+    if (contents === undefined || skills === undefined) {
+      throw new Error("nav dropdown menus not found");
+    }
+    const summary = contents.querySelector("summary");
+    if (summary === null) {
+      throw new Error("menu summary not found");
+    }
+
+    // An outside pointer press (dispatched on document) closes an open menu...
+    contents.open = true;
+    document.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+    expect(contents.open).toBe(false);
+    // ...while a press inside the menu leaves it open.
+    contents.open = true;
+    summary.dispatchEvent(new MouseEvent("pointerdown", { bubbles: true }));
+    expect(contents.open).toBe(true);
+
+    // Escape closes every open menu; a non-Escape key does nothing.
+    skills.open = true;
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }));
+    expect(skills.open).toBe(false);
+    contents.open = true;
+    document.dispatchEvent(new KeyboardEvent("keydown", { key: "a" }));
+    expect(contents.open).toBe(true);
+
+    // Focus leaving the menu closes it; focus staying on its own controls does
+    // not.
+    contents.dispatchEvent(
+      new FocusEvent("focusout", {
+        bubbles: true,
+        relatedTarget: document.body,
+      }),
+    );
+    expect(contents.open).toBe(false);
+    contents.open = true;
+    contents.dispatchEvent(
+      new FocusEvent("focusout", { bubbles: true, relatedTarget: summary }),
+    );
+    expect(contents.open).toBe(true);
+
+    void unmount(component);
+  });
+
   it("live-searches, filters by skill level, sorts, collapses, and resets", () => {
     const component = mount(ResumeApp, {
       target,
