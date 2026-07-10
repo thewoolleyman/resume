@@ -1,17 +1,26 @@
 # Governed resume data — the single canonical source
 # (SPECIFICATION/spec.md §"Governed data source and predecessor import (phase 1)").
 #
-# This is a VERBATIM snapshot of the predecessor's PRODUCTION resume content,
-# committed so phase-1 predecessor parity does not depend on a live external
-# fetch. Everything from the `---` YAML document marker below to end-of-file is
-# byte-identical to the retrieved source; its SHA-256 is pinned below and in
-# SPECIFICATION/spec.md.
+# This is a snapshot of the predecessor's PRODUCTION resume content, committed
+# so phase-1 predecessor parity does not depend on a live external fetch. The
+# snapshot carries one owner-directed PII redaction (see "Redactions" below) and
+# is therefore NOT byte-identical to the retrieved source. The committed-snapshot
+# SHA-256 — computed over everything from the `---` YAML document marker below to
+# end-of-file (the redacted on-disk content) — is pinned below, in
+# src/lib/data/import.test.ts, and in SPECIFICATION/spec.md §"Governed data
+# source and predecessor import (phase 1)".
 #
 # Provenance of the snapshot:
 #   source-url: https://interactive-resume-data-chad-woolley.gitlab.io/interactive-resume-data-chad-woolley.yml
 #   retrieved: 2026-07-06
 #   upstream-last-modified: 2022-06-27
-#   sha256: 792097b01aef31fdc7cbf2c2463492e87c5ca89bc8d864ef3ebacfc7f7a4d158
+#   retrieved-source-sha256: 792097b01aef31fdc7cbf2c2463492e87c5ca89bc8d864ef3ebacfc7f7a4d158  # pre-redaction predecessor hash
+#   committed-snapshot-sha256: 20600aea8cdb06d797904921eb0259b96663a4a1acfaba1aa3265fccf5607c9e
+#
+# Redactions (owner-directed, for privacy — not rendered on any product surface):
+#   2026-07-10: removed the owner's postal address from header.contact, leaving
+#     only phone and email. Directed by the maintainer/owner. The literal address
+#     is intentionally NOT restated here.
 #
 # The on-disk shape is the predecessor's human-friendly AUTHORING shape:
 # top-level `about`/`header` maps plus ordered section keys, each mapping to an
@@ -70,7 +79,7 @@ about:
 
 header:
   name: Chad Woolley
-  contact: PO Box 19072, Tucson, AZ 85731 · 1-520-861-1183 · thewoolleyman@gmail.com
+  contact: 1-520-861-1183 · thewoolleyman@gmail.com
 
 Job History:
   - name: Senior Fullstack Engineer, GitLab

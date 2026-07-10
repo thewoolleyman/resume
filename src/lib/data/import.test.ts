@@ -5,10 +5,14 @@ import { describe, expect, it } from "vitest";
 
 import { loadResumeData } from "./resume";
 
-// Pinned provenance of the committed production snapshot (SPECIFICATION/spec.md
-// §"Governed data source and predecessor import (phase 1)").
+// Pinned SHA-256 of the committed production snapshot — the redacted on-disk
+// content, NOT the retrieved source (SPECIFICATION/spec.md §"Governed data
+// source and predecessor import (phase 1)"). The pre-redaction retrieved-source
+// hash (792097b0…) is retained in the file's provenance comments; this pins the
+// committed-snapshot hash after the 2026-07-10 owner-directed postal-address
+// redaction from header.contact.
 const PINNED_SHA256 =
-  "792097b01aef31fdc7cbf2c2463492e87c5ca89bc8d864ef3ebacfc7f7a4d158";
+  "20600aea8cdb06d797904921eb0259b96663a4a1acfaba1aa3265fccf5607c9e";
 const SOURCE_HOST = "interactive-resume-data-chad-woolley.gitlab.io";
 // Vitest runs with cwd at the repository root; import.meta.url is not
 // guaranteed to be a file: URL under Vite, so resolve from cwd instead.
