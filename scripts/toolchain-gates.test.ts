@@ -7,7 +7,7 @@
 // cannot weaken silently — `bun run check` fails when a required flag or
 // rule family is dropped.
 
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test";
 import {
   mkdirSync,
   mkdtempSync,
@@ -18,6 +18,12 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+// These gates spawn eslint and tsc against throwaway fixtures (seconds each);
+// raise the per-test budget well above Bun's 5s default so they do not flake
+// under concurrent load. The typecheck/lint/format tests keep their own
+// explicit longer timeouts, which take precedence over this default.
+setDefaultTimeout(60_000);
 
 const repoRoot = join(import.meta.dir, "..");
 const checkScript = join(repoRoot, "scripts", "check.ts");
