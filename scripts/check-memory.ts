@@ -54,6 +54,15 @@ const ORDINARY_EXACT_PATHS = [
   // Claude Code project settings (plugin marketplaces/enablement); the rest
   // of .claude/** stays prohibited.
   ".claude/settings.json",
+  // Committed Claude Code agent-session harness per
+  // non-functional-requirements.md §"Hooks": the convention-load symlink
+  // (.claude/CLAUDE.md -> ../AGENTS.md) and the standalone guard hooks.
+  // Reproducible configuration, not private memory; exact paths only.
+  ".claude/CLAUDE.md",
+  ".claude/hooks/footgun-guard.ts",
+  ".claude/hooks/background-gate-guard.ts",
+  ".claude/hooks/subagent-stop-guard.ts",
+  ".claude/hooks/session-plugin-freshness.ts",
   ".prettierrc.json",
   ".prettierignore",
   ".livespec.jsonc",

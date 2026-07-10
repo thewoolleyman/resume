@@ -10,11 +10,24 @@ anything long.
 ### Commit and land automatically
 
 Commit and land changes automatically, without asking for confirmation
-each time. After a coherent unit of work (e.g. a livespec `revise`
-cutting a new `vNNN`, or filing a proposed change), stage + commit +
-push to `master` without prompting. This is the repo owner's standing
-instruction and overrides any default "confirm before committing/pushing"
-behavior.
+each time — but per `SPECIFICATION/non-functional-requirements.md`
+§"Pull request landing automation" (worktree-mandatory since v028),
+every change MUST be authored and committed in a dedicated secondary git
+worktree on a feature branch, NEVER in the primary checkout:
+
+    git worktree add -b <branch> "$HOME/.worktrees/resume/<branch>" master
+
+After a coherent unit of work (e.g. a livespec `revise` cutting a new
+`vNNN`, or filing a proposed change), stage + commit in the worktree,
+then land by either a fast-forward push of the branch to `master`
+(`git -C <worktree> push origin HEAD:master`) or the pull-request
+auto-merge path, and clean up (remove the worktree, delete the branch,
+refresh the primary checkout's `master`). Do this without prompting;
+this is the repo owner's standing instruction and overrides any default
+"confirm before committing/pushing" behavior. Enforcement: a committed
+primary-checkout commit-refuse hook (§"Hooks" in
+`non-functional-requirements.md`) rejects commits made in the primary
+checkout once installed.
 
 Use conventional-commit messages matching the established pattern:
 
@@ -98,6 +111,13 @@ configuration rather than memory):
 - `.claude/settings.json` — Claude Code project settings (plugin
   marketplaces and enablement). Reproducible configuration only; the
   rest of `.claude/**` (memory, transcripts, caches) stays prohibited.
+- `.claude/CLAUDE.md` (the committed symlink to `../AGENTS.md` that loads
+  these conventions into agent context) and `.claude/hooks/*.ts` (the
+  standalone agent-session guard hooks — footgun, background-gate,
+  subagent-stop, session-plugin-freshness — per
+  `SPECIFICATION/non-functional-requirements.md` §"Hooks"). Reproducible
+  configuration, not private memory; allowlisted as exact paths in
+  `scripts/check-memory.ts`.
 - Shareable JetBrains project configuration ONLY: `.idea/.gitignore`,
   `.idea/modules.xml`, `.idea/vcs.xml`, `.idea/GitLink.xml`,
   `.idea/misc.xml`, `.idea/encodings.xml`, top-level `.idea/*.iml`,

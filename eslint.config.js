@@ -25,6 +25,12 @@ export default tseslint.config(
       "test-results/",
       "playwright-report/",
       ".vercel/",
+      // Bun-executed Claude Code agent-session hook scripts (footgun,
+      // background-gate, subagent-stop, session-plugin-freshness): standalone
+      // runtime hooks run by bun via .claude/settings.json, outside any
+      // tsconfig project. Exercised by subprocess smoke tests in
+      // scripts/agent-hooks.test.ts rather than type-aware lint.
+      ".claude/hooks/",
     ],
   },
   eslint.configs.recommended,
