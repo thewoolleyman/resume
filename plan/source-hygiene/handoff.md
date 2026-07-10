@@ -58,22 +58,34 @@ destructive/irreversible), plan completion, or session limits.
 
 ## Where the loop stands now
 
-Only non-derivable state is recorded here.
+**Status: COMPLETE (2026-07-10).** All five slices landed:
 
-- **Slice 1 (propose) — in progress.** `plan/source-hygiene/` opened and
-  `SPECIFICATION/proposed_changes/comment-discipline.md` filed. Slices
-  2–5 (revise, implement gate, purge, archive) remain.
-- **Inventory:** ~80 breadcrumb comment lines, all in `scripts/**` (plus
-  one `.livespec.jsonc` comment); `src/**` and `e2e/**` are clean.
-- **Dependent archival:** the `guardrail` and `adversarial-spec-hardening`
-  threads (both COMPLETE) are archived in slice 5, after the breadcrumbs
-  referencing them are purged. The `worktree-guards` thread is already
-  archived under `plan/archive/`.
+- **Ratified.** §"Comment discipline" (Rule 1 WHY-not-WHAT judgment-only;
+  Rule 2 no-historical-bookkeeping-references mechanized) is in
+  `non-functional-requirements.md` §"Constraints" with a scenario, cut and
+  landed as **v031**.
+- **Enforced.** `scripts/check-comments.ts` (+ `check-comments.test.ts`) is
+  wired into `bun run check` as `[ok] comment discipline (no rotting
+  references)` — a comment/docstring-only scan (string literals and exempt
+  trees untouched) over `scripts/`, `src/`, `e2e/`, workflows, and config.
+- **Purged.** All 74 breadcrumb comments removed from `scripts/**`,
+  `.livespec.jsonc`, and one `src/**` test; the gate is green. Durable
+  `SPECIFICATION §"…"` pointers kept; the ratified-example path in the NFR
+  section and the gate test's sample string are intentionally retained (spec
+  is exempt; the test string is fixture data, not a comment).
+- **Archived cleanly.** `guardrail` and `adversarial-spec-hardening` moved to
+  `plan/archive/` with all live pointers repointed; no dangling reference in
+  the live tree. `worktree-guards` was already archived.
+
+Nothing remains in this thread. It is ready to archive to
+`plan/archive/source-hygiene/` on the maintainer's nod.
 
 ## Resume
 
+This thread is COMPLETE — there is no further action here. The next ripe work
+is the adjacent `plan/mvp/` thread (R2 visual redesign, maintainer-driven).
 Paste this into Claude Code or Codex:
 
 ```text
-plan/source-hygiene/handoff.md
+plan/mvp/handoff.md
 ```
