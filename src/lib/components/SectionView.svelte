@@ -78,7 +78,7 @@
 
 <style>
   .section {
-    margin: 1.5rem 0;
+    margin: 2rem 0;
   }
   .offset-anchor {
     display: block;
@@ -95,8 +95,8 @@
        (SPECIFICATION/scenarios.md "Navigation shell collapses responsively"). */
     flex-wrap: wrap;
     gap: 0.5rem;
-    padding: 0.4rem 0;
-    border-bottom: 2px solid #1a1a2e;
+    padding: 0.35rem 0 0.55rem;
+    border-bottom: 1px solid var(--border-strong);
   }
   .section-name {
     flex: 1;
@@ -105,21 +105,46 @@
     min-width: 0;
     overflow-wrap: break-word;
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
   }
   .collapse-toggle {
     border: none;
     background: none;
-    font-size: 1rem;
+    font-size: 0.85rem;
+    line-height: 1;
     cursor: pointer;
-    color: #1a1a2e;
+    color: var(--text-muted);
+    padding: 0.2rem 0.4rem;
+    border-radius: var(--radius-sm);
+  }
+  .collapse-toggle:hover {
+    color: var(--accent);
+    background: var(--bg-subtle);
   }
   .sort-control {
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
-    font-size: 0.85rem;
-    color: #555;
+    gap: 0.35rem;
+    font-size: 0.8rem;
+    color: var(--text-faint);
+  }
+  .sort-control select {
+    font: inherit;
+    font-size: 0.8rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 0.2rem 0.4rem;
+    cursor: pointer;
+  }
+  .no-results {
+    color: var(--text-faint);
+    padding: 0.85rem 0;
+    font-style: italic;
   }
   .visually-hidden {
     position: absolute;

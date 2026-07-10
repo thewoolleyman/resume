@@ -2,6 +2,7 @@
   import type { ResumeData } from "$lib/data/types";
   import type { SkillLevel } from "$lib/skill-levels";
 
+  import { resolve } from "$app/paths";
   import { revealAnchor } from "$lib/nav";
   import { ALL_LEVEL_KEYS, SKILL_LEVELS } from "$lib/skill-levels";
   import { DEFAULT_SORT } from "$lib/sort/section-sort";
@@ -126,6 +127,7 @@
         >
           About
         </button>
+        <a class="nav-btn nav-static" href={resolve("/static")}>Static</a>
       </div>
     </div>
   </div>
@@ -193,17 +195,18 @@
   .sticky-nav {
     position: sticky;
     top: 0;
-    z-index: 10;
-    background: #1a1a2e;
-    color: #f5f5fa;
+    z-index: 20;
+    background: var(--nav-bg);
+    color: var(--nav-text);
+    border-bottom: 1px solid var(--nav-border);
   }
   .nav-inner {
-    max-width: 60rem;
+    max-width: var(--maxw);
     margin: 0 auto;
-    padding: 0.5rem 1rem;
+    padding: 0.55rem 1.25rem;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.55rem;
   }
   .nav-toggle {
     display: none;
@@ -211,27 +214,61 @@
   .nav-controls {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: 0.55rem;
     flex-wrap: wrap;
     width: 100%;
   }
   .nav-trailing {
     margin-left: auto;
     display: flex;
-    gap: 0.5rem;
+    gap: 0.4rem;
   }
   .search {
-    padding: 0.3rem 0.5rem;
-    border-radius: 0.25rem;
-    border: 1px solid #444;
+    padding: 0.42rem 0.7rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--nav-border);
+    background: var(--nav-surface);
+    color: var(--nav-text);
+    font: inherit;
+    font-size: 0.9rem;
+    min-width: 13rem;
+  }
+  .search::placeholder {
+    color: var(--nav-muted);
   }
   .nav-btn {
-    background: #2b2b40;
-    color: #f5f5fa;
-    border: none;
-    padding: 0.3rem 0.6rem;
-    border-radius: 0.25rem;
+    background: var(--nav-surface);
+    color: var(--nav-text);
+    border: 1px solid transparent;
+    padding: 0.4rem 0.72rem;
+    border-radius: var(--radius-sm);
     cursor: pointer;
+    font: inherit;
+    font-size: 0.85rem;
+    line-height: 1.2;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition:
+      background 0.12s ease,
+      border-color 0.12s ease;
+  }
+  .nav-btn:hover {
+    background: var(--nav-surface-hover);
+    color: var(--nav-text);
+  }
+  /* The Static link is the prominent cross-route affordance: accent-outlined so
+     it reads as the primary trailing action rather than another toggle. */
+  .nav-static {
+    background: transparent;
+    border-color: var(--nav-border);
+    color: var(--nav-accent);
+    font-weight: 600;
+  }
+  .nav-static:hover {
+    background: var(--nav-surface);
+    color: var(--nav-accent);
+    border-color: var(--nav-accent);
   }
   .nav-menu {
     position: relative;
@@ -239,56 +276,113 @@
   .nav-menu > summary {
     cursor: pointer;
     list-style: none;
+    padding: 0.4rem 0.72rem;
+    border-radius: var(--radius-sm);
+    background: var(--nav-surface);
+    color: var(--nav-text);
+    font-size: 0.85rem;
+    user-select: none;
+  }
+  .nav-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .nav-menu > summary:hover,
+  .nav-menu[open] > summary {
+    background: var(--nav-surface-hover);
   }
   .nav-menu ul {
     position: absolute;
-    background: #23233a;
-    padding: 0.5rem 1rem;
-    margin: 0.25rem 0 0;
+    z-index: 30;
+    background: var(--nav-surface);
+    border: 1px solid var(--nav-border);
+    padding: 0.4rem;
+    margin: 0.4rem 0 0;
     max-height: 60vh;
     overflow: auto;
-    border-radius: 0.25rem;
-    min-width: 16rem;
+    border-radius: var(--radius);
+    min-width: 17rem;
+    box-shadow: var(--shadow);
+    list-style: none;
+  }
+  .nav-menu li {
+    list-style: none;
   }
   .nav-menu a {
-    color: #cfd2ff;
+    color: var(--nav-accent);
+    text-decoration: none;
+    display: block;
+    padding: 0.28rem 0.4rem;
+    border-radius: var(--radius-sm);
+  }
+  .nav-menu a:hover {
+    background: var(--nav-surface-hover);
+  }
+  .nav-menu label {
+    display: flex;
+    gap: 0.5rem;
+    align-items: baseline;
+    padding: 0.28rem 0.4rem;
+    font-size: 0.85rem;
+    color: var(--nav-text);
+    cursor: pointer;
+  }
+  .nav-menu label strong {
+    font-family: var(--font-mono);
+    font-weight: 600;
+    color: var(--nav-accent);
   }
   .resume-header {
     text-align: center;
-    background: #1a1a2e;
-    color: #f5f5fa;
-    padding: 1.5rem 1rem;
+    background: var(--nav-bg);
+    color: var(--nav-text);
+    padding: 2.5rem 1.25rem;
+    border-bottom: 1px solid var(--nav-border);
   }
   .resume-name {
     margin: 0;
-    font-size: 1.6rem;
-    font-weight: 700;
+    font-size: clamp(1.6rem, 4vw, 2.15rem);
+    font-weight: 650;
+    letter-spacing: -0.02em;
   }
   .resume-contact {
-    margin: 0.25rem 0 0;
-    color: #cfd2ff;
+    margin: 0.55rem 0 0;
+    color: var(--nav-muted);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
   }
   .resume-main {
-    max-width: 60rem;
+    max-width: var(--maxw);
     margin: 0 auto;
-    padding: 1rem;
+    padding: 2rem 1.25rem 4rem;
   }
   .panel {
-    background: #f3f3fb;
-    border: 1px solid #d7d7ee;
-    border-radius: 0.4rem;
-    padding: 1rem 1.25rem;
-    margin-bottom: 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .panel h2 {
+    margin-top: 0;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
+  }
+  .panel :global(a) {
+    text-decoration: underline;
   }
   @media (max-width: 720px) {
     .nav-toggle {
-      display: inline-block;
-      background: #2b2b40;
-      color: #f5f5fa;
+      display: inline-flex;
+      align-items: center;
+      background: var(--nav-surface);
+      color: var(--nav-text);
       border: none;
-      padding: 0.3rem 0.6rem;
-      border-radius: 0.25rem;
+      padding: 0.4rem 0.72rem;
+      border-radius: var(--radius-sm);
       cursor: pointer;
+      font: inherit;
+      font-size: 0.85rem;
     }
     .nav-controls {
       display: none;
@@ -300,6 +394,7 @@
     }
     .nav-trailing {
       margin-left: 0;
+      flex-wrap: wrap;
     }
   }
 </style>

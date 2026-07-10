@@ -48,6 +48,12 @@ describe("ResumeApp", () => {
     );
     expect(target.querySelectorAll(".section")).toHaveLength(2);
     expect(titles(target)).toEqual(["Alpha Role", "Bravo Role", "Testing"]);
+    // The trailing nav carries a real, crawlable Static link to /static
+    // (contracts.md §"Layout and controls" Static link).
+    const staticLink = target.querySelector<HTMLAnchorElement>("a.nav-static");
+    expect(staticLink).not.toBeNull();
+    expect(staticLink?.getAttribute("href")).toContain("/static");
+    expect(staticLink?.textContent).toContain("Static");
     void unmount(component);
   });
 

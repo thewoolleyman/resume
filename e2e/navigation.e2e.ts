@@ -41,7 +41,17 @@ test("navigation shell collapses on a narrow viewport and expands inline when wi
     page.getByRole("button", { name: "Instructions" }),
   ).toBeVisible();
   await expect(page.getByRole("button", { name: "About" })).toBeVisible();
+  const staticLink = page.getByRole("link", { name: "Static" });
+  await expect(staticLink).toBeVisible();
+  await expect(staticLink).toHaveAttribute("href", "/static");
   await expectNoHorizontalScroll(page);
+});
+
+test("the Static nav link navigates to the static resume", async ({ page }) => {
+  await open(page, HOME);
+  await page.getByRole("link", { name: "Static" }).click();
+  await expect(page).toHaveURL(/\/static$/);
+  await expect(page.locator(".static-resume")).toBeVisible();
 });
 
 test("About and Instructions controls open with governed content", async ({

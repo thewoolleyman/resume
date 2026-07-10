@@ -1,6 +1,8 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
 
+  import "../app.css";
+
   interface Props {
     children: Snippet;
   }
@@ -22,29 +24,3 @@
 </svelte:head>
 
 {@render children()}
-
-<style>
-  :global(html) {
-    overflow-x: hidden;
-  }
-  :global(body) {
-    margin: 0;
-    font-family:
-      system-ui,
-      -apple-system,
-      "Segoe UI",
-      Roboto,
-      Helvetica,
-      Arial,
-      sans-serif;
-    color: #1a1a2e;
-    background: #ffffff;
-    line-height: 1.5;
-  }
-  :global(*) {
-    box-sizing: border-box;
-  }
-  :global(a) {
-    color: #2b3fb8;
-  }
-</style>

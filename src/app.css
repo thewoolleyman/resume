@@ -1,0 +1,151 @@
+/* Self-hosted Geist + Geist Mono (SIL OFL-1.1, static/fonts/LICENSE.txt),
+   variable-weight latin subset. Bundled with the prerendered app so the site
+   has no runtime font-CDN dependency (constraints.md §"Standalone boundary"). */
+@font-face {
+  font-family: "Geist";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/geist-latin-wght-normal.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Geist Mono";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/geist-mono-latin-wght-normal.woff2") format("woff2");
+}
+
+:root {
+  --font-sans:
+    "Geist", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono:
+    "Geist Mono", ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas,
+    monospace;
+
+  /* Content surface — light theme default. Neutral zinc ramp + one indigo
+     accent. The dark theme below overrides these under prefers-color-scheme. */
+  --bg: #ffffff;
+  --bg-subtle: #f7f7f8;
+  --surface: #ffffff;
+  --border: #e6e6e9;
+  --border-strong: #d4d4d8;
+  --text: #18181b;
+  --text-muted: #52525b;
+  --text-faint: #71717a;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --accent-soft: #eef2ff;
+  --accent-soft-border: #dfe3ff;
+
+  /* Navigation + header: a dark band in BOTH themes — contracts.md §"Layout
+     and controls" requires a dark-themed sticky nav and a dark-themed header. */
+  --nav-bg: #17171a;
+  --nav-text: #fafafa;
+  --nav-muted: #a1a1aa;
+  --nav-surface: #26262b;
+  --nav-surface-hover: #34343a;
+  --nav-border: #34343a;
+  --nav-accent: #b4bbf7;
+
+  --radius: 7px;
+  --radius-sm: 5px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(24, 24, 27, 0.07);
+  --shadow:
+    0 1px 3px rgba(24, 24, 27, 0.08), 0 10px 30px rgba(24, 24, 27, 0.05);
+  --maxw: 62rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0a0a0b;
+    --bg-subtle: #161619;
+    --surface: #141417;
+    --border: #262629;
+    --border-strong: #3a3a40;
+    --text: #f4f4f5;
+    --text-muted: #a1a1aa;
+    --text-faint: #71717a;
+    --accent: #a5b4fc;
+    --accent-hover: #c7d2fe;
+    --accent-soft: #1c1b33;
+    --accent-soft-border: #2c2b4d;
+
+    /* Nav stays dark; nudge the band lighter than the near-black body and give
+       it a border so the two dark surfaces separate cleanly. */
+    --nav-bg: #161619;
+    --nav-surface: #26262b;
+    --nav-surface-hover: #34343a;
+    --nav-border: #2a2a2e;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.6), 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Pin the document against horizontal scroll: content that would overflow is
+   clipped, not scrollable (e2e expectNoHorizontalScroll). */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: var(--accent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+a:hover {
+  color: var(--accent-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Print / PDF: force dark-on-light regardless of the on-screen theme so the
+   static resume stays readable on paper even when the OS is in dark mode
+   (constraints.md §"Accessibility and responsive behavior"). Last in source
+   order so it wins over the dark-scheme block when both match while printing. */
+@media print {
+  :root {
+    --bg: #ffffff;
+    --bg-subtle: #f4f4f5;
+    --surface: #ffffff;
+    --border: #cfcfcf;
+    --border-strong: #9a9a9a;
+    --text: #000000;
+    --text-muted: #2a2a2a;
+    --text-faint: #4a4a4a;
+    --accent: #3730a3;
+    --accent-soft: #eef2ff;
+    --accent-soft-border: #c7ccf0;
+    --nav-bg: #ffffff;
+    --nav-text: #000000;
+    --nav-muted: #333333;
+    --nav-border: #cfcfcf;
+  }
+  body {
+    background: #ffffff;
+    color: #000000;
+  }
+}

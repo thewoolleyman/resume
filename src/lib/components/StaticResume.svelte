@@ -35,26 +35,52 @@
 
 <style>
   .static-resume {
-    max-width: 55rem;
+    max-width: 52rem;
     margin: 0 auto;
-    padding: 1.5rem 1rem;
+    padding: 2.5rem 1.5rem 4rem;
   }
   .static-header h1 {
     margin: 0;
+    font-size: clamp(1.7rem, 5vw, 2.3rem);
+    font-weight: 650;
+    letter-spacing: -0.02em;
+    color: var(--text);
   }
   .contact {
-    color: #444;
+    margin: 0.4rem 0 0;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+  .static-about {
+    margin-top: 1.75rem;
   }
   .static-section {
-    margin-top: 1.5rem;
+    margin-top: 2rem;
   }
+  .static-about h2,
   .static-section h2 {
-    border-bottom: 2px solid #1a1a2e;
-    padding-bottom: 0.25rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text);
+    border-bottom: 1px solid var(--border-strong);
+    padding-bottom: 0.35rem;
+  }
+  .static-about :global(a) {
+    text-decoration: underline;
+  }
+  .static-about :global(code) {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: var(--bg-subtle);
+    padding: 0.1em 0.35em;
+    border-radius: var(--radius-sm);
   }
   @media print {
     .static-resume {
       max-width: none;
+      padding: 0;
     }
   }
 </style>
