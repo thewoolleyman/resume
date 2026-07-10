@@ -1,6 +1,6 @@
 # Research - MVP (ported interactive + static resume, redesigned, live, reviewed)
 
-Design of record for `plan/mvp/`. This plan begins after `plan/guardrail/`
+Design of record for `plan/mvp/`. This plan begins after `plan/archive/guardrail/`
 provisioned and proved the repository guardrail harness (all `bun run check`
 gates operational and green; the content-triggered Red -> Green commit-msg hook
 and the local-memory pre-commit hook live for every commit).

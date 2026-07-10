@@ -39,7 +39,7 @@ Use conventional-commit messages matching the established pattern:
 
 Plans live under `plan/<name>/` with `research/findings.md` (the design
 of record) and `handoff.md` (the paste-driven session entry point),
-following the `plan/adversarial-spec-hardening/` convention:
+following the `plan/archive/adversarial-spec-hardening/` convention:
 
 - `handoff.md` defines the driving procedure: one well-scoped action per
   iteration, looping autonomously until a blocker needs a human maintainer

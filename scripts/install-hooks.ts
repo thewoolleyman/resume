@@ -47,5 +47,5 @@ if (verify.exitCode !== 0 || verify.stdout.toString().trim() !== ".githooks") {
 
 console.log(
   "committed hooks installed: core.hooksPath -> .githooks " +
-    "(hook files land additively per plan/guardrail/research/findings.md).",
+    "(hook files land additively per plan/archive/guardrail/research/findings.md).",
 );

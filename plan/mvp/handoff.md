@@ -5,7 +5,7 @@ either Claude Code or Codex. The goal is to complete the **MVP** — the
 predecessor site ported to data/behavior parity (interactive resume at `/`,
 static resume at `/static`), **visually redesigned**, **deployed live across
 all environment classes**, and **thoroughly reviewed on the running site** —
-under the repository guardrail discipline that `plan/guardrail/` provisioned
+under the repository guardrail discipline that `plan/archive/guardrail/` provisioned
 and proved.
 
 ## Read first

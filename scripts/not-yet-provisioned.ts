@@ -24,17 +24,17 @@ const PROVISIONERS: Record<string, Provisioner> = {
   "test:unit": {
     workItem: null,
     provider:
-      "the Vitest toolchain provisioned by later guardrail slices (see plan/guardrail/research/findings.md)",
+      "the Vitest toolchain provisioned by later guardrail slices (see plan/archive/guardrail/research/findings.md)",
   },
   "test:integration": {
     workItem: null,
     provider:
-      "the Vitest toolchain provisioned by later guardrail slices (see plan/guardrail/research/findings.md)",
+      "the Vitest toolchain provisioned by later guardrail slices (see plan/archive/guardrail/research/findings.md)",
   },
   "test:e2e": {
     workItem: null,
     provider:
-      "the Playwright toolchain provisioned by later guardrail slices (see plan/guardrail/research/findings.md)",
+      "the Playwright toolchain provisioned by later guardrail slices (see plan/archive/guardrail/research/findings.md)",
   },
 };
 
@@ -52,6 +52,6 @@ const source = workItem === null ? provider : `${workItem} — ${provider}`;
 console.error(
   `\`bun run ${name}\` is not yet provisioned.\n` +
     `It arrives with ${source}.\n` +
-    'Provisioning order: plan/guardrail/research/findings.md §"Work slices".',
+    'Provisioning order: plan/archive/guardrail/research/findings.md §"Work slices".',
 );
 process.exit(3);

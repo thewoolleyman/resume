@@ -7,7 +7,7 @@ This directory is the repository's committed hook set, installed by
 reproducible from committed configuration.
 
 Hook files land additively with their guardrail slices
-(`plan/guardrail/research/findings.md` §"Work slices"):
+(`plan/archive/guardrail/research/findings.md` §"Work slices"):
 
 - `commit-msg` — the content-triggered Red -> Green TDD gate
   (work item `li-avk7d7`).
