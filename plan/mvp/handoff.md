@@ -142,10 +142,49 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-beads-fabro `next` skill against
 the beads store.
 
-**Current state: the PORT is complete and merged; R1 LIVE DEPLOYMENT is now
-DONE; the MVP is NOT complete** — the visual redesign (R2), its redeploy (R3),
-and the review of the running site (R4) remain. R2 is the next ripe item and is
-maintainer-driven.
+**Current state: PORT + R1 (live deploy) + R2 (redesign) + R3 (redeploy) are
+DONE and live; the MVP is NOT complete** — only **R4 (review of the running site
++ maintainer sign-off)** remains, which is the final maintainer blocker (beads
+`li-88e`, now ready). The redesigned, content-updated site is live at
+`https://resume.thewoolleyweb.com`; the LLMs/maintainer must review it and the
+maintainer must sign off on Production.
+
+- **R2 visual redesign — DONE (2026-07-10, spec v033, commit `09d728d`).**
+  Claude-driven redesign implemented under guardrail discipline: hand-rolled,
+  zero-dependency, standalone design system — self-hosted Geist Sans + Geist Mono
+  (SIL OFL-1.1 in `static/fonts/`, no runtime font CDN) and a CSS
+  custom-property token layer in `src/app.css` (neutral ramp + one indigo accent;
+  light + dark via `prefers-color-scheme`; a `@media print` override forcing
+  dark-on-light for readable PDF/print). All five components restyled; the sticky
+  nav and header stay a dark band in both themes (contracts.md §"Layout and
+  controls" requires a dark-themed nav/header) while the content area is
+  theme-adaptive. Every load-bearing scenario, a11y/keyboard/labels, responsive
+  collapse, no-horizontal-scroll, and print readability preserved. A prominent
+  **Static** nav link (real crawlable `<a href>` to `/static` via `$app/paths`
+  `resolve()`) was added at the trailing edge after About — a contract change cut
+  as **v033** (contracts.md §"Layout and controls" + the responsive scenario in
+  scenarios.md). `bun run check` all-gates-green; visually verified light + dark
+  on `/` and `/static` and at a narrow viewport. Beads `li-ysz` closed.
+
+- **R3 redeploy — DONE (2026-07-10).** `master` (`09d728d`) deployed to Vercel
+  production via `./with-resume-env.sh bash -c 'vercel deploy --prod --yes --token
+  "$VERCEL_TOKEN"'` and re-aliased to the custom domain. Verified live: `/` and
+  `/static` 200, both Geist woff2 served (`font/woff2`), Static link + font
+  preloads + theme-color present. Beads `li-93c` closed. NOTE: the working deploy
+  command needs `--token "$VERCEL_TOKEN"` — Vercel CLI 50.x does NOT auto-read
+  `VERCEL_TOKEN` from the environment.
+
+- **GitLab career-item edit — DONE (2026-07-10, spec v032, commit `3e66551`).**
+  Owner-directed update to the current GitLab role in `data/resume.yml`: retitled
+  Senior→**Staff Fullstack Engineer, GitLab**, added `end: 2026-06-15` (owner laid
+  off), rewrote its description. **v032** broadened the sanctioned owner-authored
+  edit category to an item's factual fields (display name, start/end, description)
+  and re-pinned the committed-snapshot SHA-256 (`d6c29374…→901ad39f…`). e2e
+  re-pointed: the "missing end sorts as current" and "present-start/missing-end"
+  examples now use still-open-ended Open-Source items (Fixture Builder) so those
+  scenarios stay exercised. Deployed to production and verified live.
+
+Historical pre-R2 state (retained for provenance):
 
 - **Port done and green.** `src/**`, `data/resume.yml`, and the toolchain
   landed on `master` (`021b857 feat: implement phase-1 interactive and static
@@ -238,12 +277,14 @@ The work-item orchestrator is `livespec-orchestrator-beads-fabro`, backed by the
 `resume` beads/Dolt tenant. Drive work through its operator loop — `drive` /
 `plan` / `needs-attention` / `next` / `implement` / `capture-work-item`.
 
-Next ripe action: **the maintainer's visual redesign pass (slice R2, beads
-`li-ysz`)** — a maintainer-driven step. The site is now live at
-`https://resume.thewoolleyweb.com`, so the design pass (with Claude Design) can
-begin against the running app; the redesign is then implemented under guardrail
-discipline preserving all behavioral scenarios and a11y/responsive requirements.
-R1 (live deployment) is done; R2/R3/R4 remain, so the MVP is not complete.
+Next ripe action: **R4 — the maintainer's review and sign-off on the running
+Production site (slice R4, beads `li-88e`)** — the final maintainer blocker. The
+redesigned, content-updated site is live at `https://resume.thewoolleyweb.com`
+(and `/static`); the LLMs and the maintainer review it for parity, redesign
+quality, accessibility, responsiveness, metadata, light/dark, and cross-environment
+correctness, resolve any findings, and the maintainer signs off on Production.
+R1/R2/R3 are done; only R4 remains, after which the MVP is complete (perform the
+Terminal step and hand off to `plan/ai/`).
 
 ## Resume
 
