@@ -84,6 +84,16 @@ function makeFixture(options: FixtureOptions = {}): string {
   const dir = mkdtempSync(join(tmpdir(), "resume-check-fixture-"));
   fixtures.push(dir);
   mkdirSync(join(dir, ".githooks"), { recursive: true });
+  // A compliant tree wires the primary-checkout commit-refuse hook into
+  // pre-commit (checkPrimaryCheckoutHook); provision it so the aggregate check
+  // passes for the same reason the real repository does.
+  writeFileSync(
+    join(dir, ".githooks", "pre-commit"),
+    "#!/usr/bin/env bash\nset -euo pipefail\n" +
+      'hook_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"\n' +
+      'bun "$hook_dir/../scripts/check-primary-checkout.ts"\n' +
+      'exec bun "$hook_dir/../scripts/check-memory.ts" --staged\n',
+  );
   if (!options.withoutPackageJson) {
     let scripts: Record<string, string> = {};
     for (const name of REQUIRED_SCRIPTS) {

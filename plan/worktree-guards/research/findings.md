@@ -48,40 +48,42 @@ automation" and §"Hooks" (cut in v028):
     the worktree flow; memory allowlist extended; `scripts/agent-hooks.test.ts`
     subprocess smoke tests. `bun run check` green.
 
-## What REMAINS (the held gap)
+## What REMAINS
 
-The **primary-checkout commit-refuse hook** is BUILT but HELD:
-`scripts/check-primary-checkout.ts` exists and its logic is correct (refuse when
-the repository git-dir equals its git-common-dir — the primary checkout; allow in
-a secondary worktree whose git-dir is `.git/worktrees/<name>`), but it is
-intentionally NOT wired into `.githooks/pre-commit` and NOT required by
-`check.ts`. It was held to avoid breaking concurrent sessions that were still
-committing in the shared primary checkout during the rollout. This is a
-deliberate, documented gap against v028 §"Hooks", recorded in the file header.
+Nothing on the enforcement side — the **primary-checkout commit-refuse hook** is
+now LANDED and ACTIVE (2026-07-10). The only adjacent open item is the spec
+critique in §"Adjacent open item".
 
-## Work slice — activate the commit-refuse hook
+## Landed — the commit-refuse hook (2026-07-10)
 
-Do this in a secondary worktree; land green.
+The hook refuses when the repository git-dir equals its git-common-dir (the
+primary checkout) and allows in a secondary worktree (whose git-dir is
+`.git/worktrees/<name>`). Delivered in a worktree, landed green:
 
-1. **Add a test FIRST** for `scripts/check-primary-checkout.ts` (currently
-   UNTESTED — critical, since a false positive would refuse ALL commits and brick
-   the repo). Assert `commitLocation()` returns `"allow"` in a secondary worktree
-   and `"refuse"` in the primary checkout. Follow the `bun:test` + `Bun.spawnSync`
-   idiom in `scripts/tdd-hook.test.ts` / `scripts/agent-hooks.test.ts`.
-2. **Wire** `.githooks/pre-commit`: prepend
-   `bun "$hook_dir/../scripts/check-primary-checkout.ts"` before the existing
-   `exec bun ".../check-memory.ts" --staged`.
-3. **Verify in `check.ts`**: add a gate asserting `.githooks/pre-commit` invokes
-   `check-primary-checkout.ts`, so a bypassed/uninstalled hook fails
-   `bun run check` (satisfies v028 "`bun run check` MUST verify the commit-refuse
-   hook is installed and MUST fail when it is absent").
-4. **Run `bun run check` green**, then land via the worktree fast-forward flow.
-   The activation commit is authored in a worktree, so its own now-wired
-   pre-commit sees `commitLocation() === "allow"` and proceeds.
+1. **Test** — `scripts/check-primary-checkout.test.ts` exercises the pure
+   `commitLocation()` topology (refuse in a primary checkout, allow in a secondary
+   worktree, unknown outside git) and the ownership-scoped CLI (allow in a foreign
+   fixture, refuse in a governed primary, allow in a governed worktree), following
+   the `bun:test` + `Bun.spawnSync` idiom.
+2. **Wired** `.githooks/pre-commit` — runs
+   `bun "$hook_dir/../scripts/check-primary-checkout.ts"` before the
+   `exec bun ".../check-memory.ts" --staged` memory guard.
+3. **Verified in `check.ts`** — the `checkPrimaryCheckoutHook` gate asserts
+   `.githooks/pre-commit` invokes `check-primary-checkout.ts`, so a
+   bypassed/uninstalled hook fails `bun run check` (satisfies v028 "`bun run
+   check` MUST verify the commit-refuse hook is installed and MUST fail when it is
+   absent").
 
-Completion: commit-refuse active + check-verified → v028 §"Hooks" fully realized;
-this thread's Terminal step (update `plan/mvp/handoff.md`'s worktree note to drop
-"HELD") is done.
+**Ownership scoping (design refinement).** Wiring the hook as-is would have
+refused every `scripts/tdd-hook.test.ts` fixture commit: those fixtures are
+`git init` primary checkouts that borrow this repo's committed hooks via
+`core.hooksPath`. The fix keeps `commitLocation()` pure topology and adds a
+`governsCheckout()` ownership gate in the CLI: it refuses ONLY when the commit's
+git-common-dir is this hook script's own repository `.git` (resolved from
+`import.meta.dir`). A fresh clone of THIS repo at any path is still governed and
+refused; a foreign fixture is left alone. The two full-check fixture builders
+(`check.test.ts`, `toolchain-gates.test.ts`) were updated to write a wired
+`.githooks/pre-commit` so they pass the new gate. `bun run check` green.
 
 ## Adjacent open item
 

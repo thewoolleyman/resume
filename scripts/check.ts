@@ -606,6 +606,41 @@ function checkMemoryGuardrail(root: string, pkg: PackageJson): GateResult {
   };
 }
 
+// Verifies the primary-checkout commit-refuse hook is installed (§"Hooks" /
+// §"Pull request landing automation", worktree-mandatory since v028):
+// `.githooks/pre-commit` MUST invoke scripts/check-primary-checkout.ts so a
+// commit authored in the primary checkout — rather than a secondary worktree
+// — is refused. `bun run check` MUST fail when that wiring is absent, so a
+// bypassed or uninstalled hook is still caught. Verified in-process (reading
+// the committed hook) rather than via a package script, so a no-op stub cannot
+// launder the gate.
+function checkPrimaryCheckoutHook(root: string): GateResult {
+  const gate = "primary-checkout commit-refuse hook (.githooks/pre-commit)";
+  const preCommit = join(root, ".githooks", "pre-commit");
+  if (!existsSync(preCommit)) {
+    return {
+      gate,
+      status: "FAIL",
+      detail:
+        ".githooks/pre-commit is missing — the worktree-mandatory commit-refuse hook is not installed",
+    };
+  }
+  if (!readFileSync(preCommit, "utf8").includes("check-primary-checkout.ts")) {
+    return {
+      gate,
+      status: "FAIL",
+      detail:
+        ".githooks/pre-commit does not invoke scripts/check-primary-checkout.ts — a commit in the primary checkout would not be refused",
+    };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail:
+      "pre-commit invokes the commit-refuse gate; primary-checkout commits are refused",
+  };
+}
+
 // Verifies the discipline-adoption inventory (§"Discipline adoption
 // inventory") in-process. A tree without the inventory is unprovisioned
 // UNLESS it already carries src/** product source — the inventory is
@@ -882,6 +917,7 @@ const results: GateResult[] = [
   checkProductionBuild(root, pkg),
   checkTddBranchRange(root),
   checkMemoryGuardrail(root, pkg),
+  checkPrimaryCheckoutHook(root),
   checkDisciplineInventory(root),
   checkCiProvisioning(root),
   checkResultDiscipline(root, pkg),

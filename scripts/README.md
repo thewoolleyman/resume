@@ -103,6 +103,27 @@ Self-contained by design so the hook and fixtures can run it
 standalone. Exit codes: `0` clean, `1` violations, `2` usage, `3`
 precondition (`--staged` outside a git repository).
 
+## Primary-checkout commit-refuse gate
+
+`check-primary-checkout.ts` enforces §"Pull request landing
+automation" / §"Hooks" (worktree-mandatory since v028): a commit MUST
+be authored in a secondary git worktree, never in the primary
+checkout. It refuses a commit whose repository git-dir equals its
+git-common-dir — the signature of the primary checkout; a secondary
+worktree's git-dir is `.git/worktrees/<name>`, which differs from the
+common `.git`. The refusal message names the `git worktree add`
+alternative. `.githooks/pre-commit` runs it before the memory guard,
+and the aggregate check verifies that wiring in-process (reading the
+committed hook), so a bypassed or uninstalled hook fails `bun run
+check`. Enforcement is scoped to the repository the script is
+committed to — a foreign repository that borrows the committed hooks
+via `core.hooksPath` (the throwaway `scripts/*.test.ts` fixtures,
+which commit in `git init` primary checkouts) is allowed, because its
+git-common-dir is not this script's own repository `.git`. Exit codes:
+`0` allowed (a secondary worktree, a repository this hook does not
+govern, or not a git repo), `1` refused (primary-checkout commit in
+this repository), `3` precondition (git worktree state unresolvable).
+
 ## Discipline-adoption inventory gate
 
 `check-discipline-inventory.ts` verifies `.ai/discipline-adoption.md`

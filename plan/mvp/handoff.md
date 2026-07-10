@@ -209,12 +209,13 @@ maintainer-driven.
   secondary git worktree; land via PR auto-merge or a worktree fast-forward). The
   standalone Claude Code agent-session guards, the `AGENTS.md` "commit and land"
   rewrite, and `.claude/CLAUDE.md → AGENTS.md` (loads conventions into every
-  session) all LANDED in `aa23d95`. **Only the primary-checkout commit-refuse hook
-  remains HELD** — built at `scripts/check-primary-checkout.ts` but intentionally
-  NOT wired into `.githooks/pre-commit` and NOT required by `check.ts`, so
-  primary-checkout commits still succeed. Activating it is a deliberate, documented
-  v028 gap with its own thread: **`plan/worktree-guards/handoff.md`**. The v029
-  About fix above was landed by a maintainer-approved direct commit during this
+  session) all LANDED in `aa23d95`. The primary-checkout commit-refuse hook is
+  now **ACTIVE** — `scripts/check-primary-checkout.ts` is wired into
+  `.githooks/pre-commit` and verified by the `checkPrimaryCheckoutHook` gate in
+  `bun run check`, so a commit authored in the primary checkout is refused and a
+  bypassed/uninstalled hook fails the aggregate check. This closed the v028
+  §"Hooks" gap tracked by **`plan/worktree-guards/handoff.md`**. The v029 About
+  fix above was landed by a maintainer-approved direct commit during the earlier
   transition window.
 
 - **AI delivery relocated.** All AI-driven-mode and MCP planning now lives in

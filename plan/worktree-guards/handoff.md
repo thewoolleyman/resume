@@ -2,19 +2,20 @@
 
 **Thread:** `plan/worktree-guards/` — **Driver-agnostic:** paste this file's path
 into Claude Code or Codex. Goal: fully realize the **worktree-mandatory landing
-policy** ratified in livespec **v028** by activating the held primary-checkout
-commit-refuse hook, then process the one open spec critique.
+policy** ratified in livespec **v028**. The primary-checkout commit-refuse hook
+is now activated; the sole remaining item is processing the one open spec
+critique via `/livespec:revise`.
 
 ## Read first
 
 1. `plan/worktree-guards/research/findings.md` — what's landed (v028 policy +
-   guards `aa23d95`), what remains (the held commit-refuse hook), and the exact
-   4-step activation slice.
+   guards `aa23d95` + the now-active commit-refuse hook) and the adjacent open
+   critique.
 2. `SPECIFICATION/non-functional-requirements.md` §"Pull request landing
    automation" and §"Hooks" (v028) — the ratified policy and the commit-refuse /
    agent-guard requirements.
-3. `scripts/check-primary-checkout.ts` header — the built-but-held hook and its
-   activation recipe.
+3. `scripts/check-primary-checkout.ts` header — the now-active, ownership-scoped
+   commit-refuse hook.
 
 ## Fresh-restart note
 
@@ -29,36 +30,38 @@ warns if that drift recurs.
 
 livespec v028 made resume worktree-mandatory. The spec policy, the standalone
 Claude Code agent-session guards, `.claude/CLAUDE.md` convention-load, and the
-`AGENTS.md` "commit and land" rewrite are all LANDED (`aa23d95`). The one
-remaining piece is the **primary-checkout commit-refuse hook** — built at
-`scripts/check-primary-checkout.ts` but intentionally HELD (not wired into
-`.githooks/pre-commit`, not required by `check.ts`) so it did not break
-concurrent primary-checkout sessions during rollout. Activating it closes the
-v028 §"Hooks" gap.
+`AGENTS.md` "commit and land" rewrite all LANDED (`aa23d95`). The
+**primary-checkout commit-refuse hook** — the last held piece — is now LANDED and
+ACTIVE (`scripts/check-primary-checkout.ts` wired into `.githooks/pre-commit`,
+tested by `scripts/check-primary-checkout.test.ts`, and verified by the
+`checkPrimaryCheckoutHook` gate in `bun run check`). The v028 §"Hooks" gap is
+closed. The only remaining thread work is processing the open spec critique.
 
 ## Where the loop stands now
 
-- **Concurrency cleared (2026-07-10):** the concurrent `resume` session is
-  stopped; no other activity on `master`. The coast is clear to ACTIVATE the
-  commit-refuse hook.
-- **Held:** `scripts/check-primary-checkout.ts` is NOT in `.githooks/pre-commit`
-  and NOT required by `check.ts`. It is currently UNTESTED — add a test before
-  wiring (a false positive would refuse ALL commits).
-- **Open critique:** `SPECIFICATION/proposed_changes/claude-opus-4-8-critique.md`
-  (the `constraints.md` verbatim-snapshot contradiction) awaits `/livespec:revise`.
+- **Commit-refuse hook ACTIVATED (2026-07-10):** wired + check-verified +
+  green-landed. Enforcement is ownership-scoped so it refuses only in THIS
+  repository's primary checkout; foreign repos borrowing the hooks via
+  `core.hooksPath` (the `scripts/*.test.ts` fixtures) are allowed. `commitLocation`
+  stays pure topology; the CLI adds the ownership gate. `bun run check` green.
+- **Open critique (sole remaining item):**
+  `SPECIFICATION/proposed_changes/claude-opus-4-8-critique.md` (the
+  `constraints.md` verbatim-snapshot contradiction) awaits `/livespec:revise`.
+  Latest history is `v029`, so the revise cuts `v030`.
 - Adjacent, not this thread: `plan/mvp/` R2-R4 (visual redesign, redeploy,
   review) and the v029 About redeploy remain the MVP thread's work.
 
 ## Ripe actions (in order)
 
-1. **Activate the commit-refuse hook** — the 4-step slice in
-   `research/findings.md` §"Work slice": add a test → wire `.githooks/pre-commit`
-   → add the `check.ts` verification → `bun run check` green → land in a worktree.
-   On completion, drop "HELD" from the worktree note in `plan/mvp/handoff.md`.
-2. **Revise the open critique** — run `/livespec:revise` to process the
+1. **Revise the open critique** — run `/livespec:revise` to process the
    `constraints.md` contradiction (align `constraints.md §"Predecessor data
    migration boundary"` with spec.md's redaction/owner-edit two-hash model; cut
-   the next `vNNN`).
+   `v030`). This is the last item; when it lands, the thread is complete.
+
+Done (2026-07-10): **Activate the commit-refuse hook** — added the test, wired
+`.githooks/pre-commit`, added the `checkPrimaryCheckoutHook` verification gate,
+`bun run check` green, landed via a worktree fast-forward. "HELD" dropped from
+`plan/mvp/handoff.md`.
 
 ## Standing rules
 
