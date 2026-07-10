@@ -214,7 +214,8 @@ maintainer-driven.
   `.githooks/pre-commit` and verified by the `checkPrimaryCheckoutHook` gate in
   `bun run check`, so a commit authored in the primary checkout is refused and a
   bypassed/uninstalled hook fails the aggregate check. This closed the v028
-  §"Hooks" gap tracked by **`plan/worktree-guards/handoff.md`**. The v029 About
+  §"Hooks" gap tracked by **`plan/archive/worktree-guards/handoff.md`** (thread
+  complete and archived). The v029 About
   fix above was landed by a maintainer-approved direct commit during the earlier
   transition window.
 
