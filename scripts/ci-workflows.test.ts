@@ -13,10 +13,14 @@
 // name, merge-method, and branch-protection settings are documented and
 // locally verified by scripts/check-ci.ts inside `bun run check`.
 
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+// The CI-verification checks spawn subprocesses; raise the per-test budget
+// above Bun's 5s default so they do not flake under concurrent load.
+setDefaultTimeout(60_000);
 
 const repoRoot = join(import.meta.dir, "..");
 const ciScript = join(repoRoot, "scripts", "check-ci.ts");

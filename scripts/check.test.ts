@@ -9,7 +9,7 @@
 // Exit codes per §"Exit-code baseline": 0 pass, 1 gate failure,
 // 3 precondition failure.
 
-import { afterAll, describe, expect, test } from "bun:test";
+import { afterAll, describe, expect, setDefaultTimeout, test } from "bun:test";
 import {
   mkdirSync,
   mkdtempSync,
@@ -19,6 +19,12 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+// The checks here spawn `bun scripts/check.ts` subprocesses (seconds each);
+// raise the per-test budget above Bun's 5s default so they do not flake under
+// concurrent load. Tests that run the full aggregate keep their own explicit
+// longer timeouts, which take precedence.
+setDefaultTimeout(60_000);
 
 const repoRoot = join(import.meta.dir, "..");
 const checkScript = join(repoRoot, "scripts", "check.ts");
