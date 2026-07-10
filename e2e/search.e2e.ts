@@ -29,7 +29,7 @@ async function toggleLevel(
 
 // Job History items in canonical governed order.
 const JOB_ORDER = [
-  "Senior Fullstack Engineer, GitLab",
+  "Staff Fullstack Engineer, GitLab",
   "Senior Software Engineer, Pivotal",
   "Various Freelance and Consulting Gigs",
   "Software Developer, Ionami Design",

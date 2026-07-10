@@ -29,7 +29,7 @@ test("the seven sort options reorder a section's items", async ({ page }) => {
 
   // Default keeps canonical governed order.
   await expect(firstTitle(jobs)).toContainText(
-    "Senior Fullstack Engineer, GitLab",
+    "Staff Fullstack Engineer, GitLab",
   );
 
   await select.selectOption({ label: "Name Asc" });
@@ -45,7 +45,7 @@ test("the seven sort options reorder a section's items", async ({ page }) => {
 
   await select.selectOption({ label: "Start Date Desc" });
   await expect(firstTitle(jobs)).toContainText(
-    "Senior Fullstack Engineer, GitLab",
+    "Staff Fullstack Engineer, GitLab",
   );
 
   await select.selectOption({ label: "End Date Asc" });
@@ -55,7 +55,7 @@ test("the seven sort options reorder a section's items", async ({ page }) => {
 
   await select.selectOption({ label: "End Date Desc" });
   await expect(firstTitle(jobs)).toContainText(
-    "Senior Fullstack Engineer, GitLab",
+    "Staff Fullstack Engineer, GitLab",
   );
 });
 
@@ -82,21 +82,29 @@ test("items with no start date sort as the earliest instant", async ({
 
 test("items with no end date sort as current", async ({ page }) => {
   await open(page, HOME);
-  const jobs = section(page, "job-history");
-  const select = jobs.getByRole("combobox");
+  const openSource = section(page, OPEN_SOURCE);
+  const select = openSource.getByRole("combobox");
 
-  // The GitLab role has no end date: treated as current, it sorts last under
-  // End Date Asc...
+  // "Ruby on Rails" has the latest real end date (2017) in this section;
+  // "Fixture Builder" has NO end date, so it is treated as current (a
+  // far-future instant). Under End Date Asc the no-end item therefore sorts
+  // AFTER every real-end item...
   await select.selectOption({ label: "End Date Asc" });
-  await expect(lastTitle(jobs)).toContainText(
-    "Senior Fullstack Engineer, GitLab",
-  );
+  await expect(async () => {
+    const titles = await itemTitles(openSource);
+    expect(titles.indexOf("Fixture Builder")).toBeGreaterThan(
+      titles.indexOf("Ruby on Rails"),
+    );
+  }).toPass();
 
-  // ...and first under End Date Desc.
+  // ...and under End Date Desc it sorts BEFORE every real-end item.
   await select.selectOption({ label: "End Date Desc" });
-  await expect(firstTitle(jobs)).toContainText(
-    "Senior Fullstack Engineer, GitLab",
-  );
+  await expect(async () => {
+    const titles = await itemTitles(openSource);
+    expect(titles.indexOf("Fixture Builder")).toBeLessThan(
+      titles.indexOf("Ruby on Rails"),
+    );
+  }).toPass();
 });
 
 test("items with equal dates break ties by item name", async ({ page }) => {

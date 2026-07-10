@@ -9,9 +9,11 @@ import { loadResumeData } from "./resume";
 // content, NOT the retrieved source (SPECIFICATION/spec.md §"Governed data
 // source and predecessor import (phase 1)"). The retrieved-source hash is retained in the file's provenance comments; this pins the
 // committed-snapshot hash after the 2026-07-10 owner-directed edits: the
-// postal-address redaction from header.contact and the about.content rewrite.
+// postal-address redaction from header.contact, the about.content rewrite, and
+// the GitLab career-fact update (Senior->Staff title, added 2026-06-15 end,
+// rewritten description).
 const PINNED_SHA256 =
-  "d6c29374554aee7bf75c175cab8ca3d54e218c3bbf2291c8e4d46127af20b6cb";
+  "901ad39f4725f6667265024300327fa6d9bcc10d59f87475ec1d4c5920e2c405";
 const SOURCE_HOST = "interactive-resume-data-chad-woolley.gitlab.io";
 // Vitest runs with cwd at the repository root; import.meta.url is not
 // guaranteed to be a file: URL under Vite, so resolve from cwd instead.
@@ -52,10 +54,10 @@ describe("predecessor import", () => {
     // A representative item preserves level + dates through the transform.
     const jobHistory = sections.find((s) => s.name === "Job History");
     const gitlab = jobHistory?.items.find((i) =>
-      i.title.includes("Senior Fullstack Engineer, GitLab"),
+      i.title.includes("Staff Fullstack Engineer, GitLab"),
     );
     expect(gitlab?.start).toBe("2019-11-07");
-    expect(gitlab?.end).toBeNull();
+    expect(gitlab?.end).toBe("2026-06-15");
   });
 
   it("transcribes the predecessor production content into data/resume.yml", () => {

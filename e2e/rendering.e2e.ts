@@ -17,13 +17,15 @@ test("item dates render in the predecessor M.YYYY format with until/current fall
   );
   expect(await pivotal.locator(".date-end").textContent()).toBe("10.2019");
 
-  // Present start, missing end: the GitLab role renders its start and `current`
-  // in the end position.
-  const gitlab = page.locator("#job-history-senior-fullstack-engineer-gitlab");
-  expect(await gitlab.locator(".date-start").textContent()).toBe(
-    `11.2019${NBSP}-`,
+  // Present start, missing end: "Fixture Builder" (2012-01-02, no end) renders
+  // its start and `current` in the end position.
+  const openEnded = page.locator(
+    "#open-source-projects-created-contributed-fixture-builder",
   );
-  expect(await gitlab.locator(".date-end").textContent()).toBe("current");
+  expect(await openEnded.locator(".date-start").textContent()).toBe(
+    `1.2012${NBSP}-`,
+  );
+  expect(await openEnded.locator(".date-end").textContent()).toBe("current");
 
   // Missing start and end: a level-only skill item renders nothing in the start
   // position and `current` in the end.

@@ -15,7 +15,7 @@
 #   retrieved: 2026-07-06
 #   upstream-last-modified: 2022-06-27
 #   retrieved-source-sha256: 792097b01aef31fdc7cbf2c2463492e87c5ca89bc8d864ef3ebacfc7f7a4d158  # pre-redaction predecessor hash
-#   committed-snapshot-sha256: d6c29374554aee7bf75c175cab8ca3d54e218c3bbf2291c8e4d46127af20b6cb
+#   committed-snapshot-sha256: 901ad39f4725f6667265024300327fa6d9bcc10d59f87475ec1d4c5920e2c405
 #
 # Owner-directed edits (recorded per SPECIFICATION/spec.md §"Governed data source
 # and predecessor import (phase 1)" → "Committed production snapshot"). Each edit
@@ -28,6 +28,11 @@
 #     and its AI/livespec-driven authoring and Claude-driven design, scrubbing the
 #     retired cover-letter link and the Vue/Nuxt/GitLab-era self-description; keeps a
 #     brief 2019->2026 historical note. Structural scope (18 keys / 16 sections /
+#     74 items) is unchanged.
+#   2026-07-10 (owner-authored career-fact edit): updated the current GitLab role —
+#     retitled Senior->Staff Fullstack Engineer, added end date 2026-06-15 (owner
+#     laid off), and rewrote its description. Owner-directed per the sanctioned
+#     owner-authored content-edit category. Structural scope (18 keys / 16 sections /
 #     74 items) is unchanged.
 #
 # The on-disk shape is the predecessor's human-friendly AUTHORING shape:
@@ -79,13 +84,13 @@ header:
   contact: 1-520-861-1183 · thewoolleyman@gmail.com
 
 Job History:
-  - name: Senior Fullstack Engineer, GitLab
+  - name: Staff Fullstack Engineer, GitLab
     start: 2019-11-07
+    end: 2026-06-15
     desc: |
-      GitLab was the only place I applied after 13 years at Pivotal. It was the only place
-      I wanted to work, because of their [values](https://about.gitlab.com/handbook/values/),
-      and [all-remote culture](https://about.gitlab.com/company/culture/all-remote/).
-      I am very happy and fortunuate that they hired me! :)
+      Had a great run at GitLab, worked with some amazing people and created some awesome
+      stuff over 6 years 7 months. Was laid off June, 2026. Resume update pending. Check my
+      GitHub (thewoolleyman) for what I'm currently hacking on.
 
   - name: Senior Software Engineer, Pivotal
     start: 2006-04-15

@@ -74,5 +74,5 @@ test("preserves governed section names and order", async ({ page }) => {
   const firstItem = section(page, "job-history")
     .locator('[data-testid="item"] .item-title')
     .first();
-  await expect(firstItem).toHaveText("Senior Fullstack Engineer, GitLab");
+  await expect(firstItem).toHaveText("Staff Fullstack Engineer, GitLab");
 });
