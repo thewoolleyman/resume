@@ -1,6 +1,5 @@
 // Honest placeholder for package scripts whose gate or toolchain artifact has
-// not been provisioned yet (plan/guardrail/research/findings.md §"Work
-// slices"). Exits 3 — the precondition-failure code from
+// not been provisioned yet. Exits 3 — the precondition-failure code from
 // SPECIFICATION/non-functional-requirements.md §"Exit-code baseline" — so a
 // not-yet-provisioned script can never be mistaken for a passing gate.
 //

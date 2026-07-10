@@ -25,7 +25,7 @@
 // - No ignored Result return values: a bare/void-/paren-discarded
 //   Result-typed call fails, and so does binding one to a variable that is
 //   never meaningfully read — pure discards like `void result` or a bare
-//   `result;` statement do not count as reads (watcher fix li-y31rgl).
+//   `result;` statement do not count as reads.
 // - No floating promises and exhaustive DomainError.kind switches — via
 //   type-aware ESLint (@typescript-eslint/no-floating-promises,
 //   @typescript-eslint/switch-exhaustiveness-check), whose effective error
@@ -169,7 +169,7 @@ function returnTypeViolation(
 
 // True only for a throw on the catch clause's own execution path: a throw
 // inside a NESTED function or class body is deferred code, not a rethrow,
-// so recursion stops at function/class boundaries (watcher fix li-y31rgl).
+// so recursion stops at function/class boundaries.
 function containsThrow(node: ts.Node): boolean {
   if (ts.isThrowStatement(node)) {
     return true;
@@ -196,8 +196,7 @@ function containsThrow(node: ts.Node): boolean {
 // True when an identifier usage is a pure discard rather than a read: the
 // operand of a `void` expression, or a bare/paren-wrapped expression
 // statement. Such usages must not count as "reading" a Result binding, or
-// `const result = f(); void result;` would launder the ignored Result
-// (watcher follow-up on li-y31rgl).
+// `const result = f(); void result;` would launder the ignored Result.
 function isDiscardedReference(identifier: ts.Identifier): boolean {
   let parent: ts.Node = identifier.parent;
   while (
@@ -259,7 +258,7 @@ export function findResultViolations(
 
     // Result-typed variable bindings, checked after the walk: a binding
     // whose symbol is never referenced again discards the Result just as
-    // surely as a bare expression statement (watcher fix li-y31rgl).
+    // surely as a bare expression statement.
     const resultBindings: {
       declaration: ts.VariableDeclaration;
       symbol: ts.Symbol;

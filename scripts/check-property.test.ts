@@ -1,5 +1,4 @@
-// Harness test for the property/fuzz reproducibility gate (work item
-// li-m2trzv; plan/guardrail/research/findings.md slice 8).
+// Harness test for the property/fuzz reproducibility gate.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"Fuzzing and property
 // checks": property and fuzz tests must be reproducible, and the aggregate

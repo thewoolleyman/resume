@@ -1,5 +1,4 @@
-// Harness test for the discipline-adoption inventory gate (work item
-// li-6b6u6m; plan/guardrail/research/findings.md slice 5).
+// Harness test for the discipline-adoption inventory gate.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"Discipline adoption
 // inventory": .ai/discipline-adoption.md exists, carries every seed-listed

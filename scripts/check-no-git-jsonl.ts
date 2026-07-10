@@ -1,4 +1,4 @@
-// No-live-git-jsonl gate (plan/orchestrator-migration slice 4): after the
+// No-live-git-jsonl gate: after the
 // work-item orchestrator was migrated from livespec-orchestrator-git-jsonl to
 // livespec-orchestrator-beads-fabro, NO live reference to the retired git-jsonl
 // orchestrator may remain in the tracked tree. Run as part of `bun run check`

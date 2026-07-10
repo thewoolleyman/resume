@@ -1,5 +1,4 @@
-// Harness test for the content-triggered Red -> Green TDD commit gate
-// (work item li-avk7d7; plan/guardrail/research/findings.md slice 4).
+// Harness test for the content-triggered Red -> Green TDD commit gate.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"Mechanically enforced
 // Red -> Green commit protocol": the commit-msg hook selects the Red, Green,

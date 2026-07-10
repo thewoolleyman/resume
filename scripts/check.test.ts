@@ -1,5 +1,4 @@
-// Harness test for the aggregate check skeleton (work item li-w6mvog;
-// plan/guardrail/research/findings.md slice 2).
+// Harness test for the aggregate check skeleton.
 //
 // Pins the contract from SPECIFICATION/non-functional-requirements.md
 // §"Aggregate command": `bun run check` (scripts/check.ts) is the single
@@ -197,11 +196,8 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
       CHECK_SKIP_E2E: "1",
       CHECK_SKIP_COVERAGE: "1",
     });
-    // The scenario coverage gate (li-hb77ad) was the last pending family; it
-    // is operational now alongside the memory guardrail + discipline
-    // inventory (li-6b6u6m), the CI workflow verification (li-xjjeqo), the
-    // Result/ROP gate (li-oaxjqm), and the coverage + property/fuzz gates
-    // (li-m2trzv). No pending gate families remain.
+    // Every guardrail gate family is operational; no pending gate families
+    // remain.
     expect(output).toContain("scenario coverage");
     expect(output).toContain(
       "not-yet-provisioned gate families: none — every guardrail gate is operational.",
@@ -302,8 +298,7 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
 
   test("fail-closes on product source that lacks the required guardrail artifacts", () => {
     // The dedicated premature-product-source boundary guard was removed once
-    // product work began (li-eg4w7j — the green precondition for product
-    // work). Product source under src/** is now permitted, but the additive
+    // product work began. Product source under src/** is now permitted, but the additive
     // fail-closed gates (discipline inventory, CI provisioning, scenario
     // mapping) still require their artifacts to be present: a bare src/**
     // tree that lacks them fails, naming the product source.
@@ -447,7 +442,7 @@ describe("aggregate check skeleton (li-w6mvog)", () => {
   }, 120000);
 
   test("a bare fixture's scenario gate is skipped, never a laundered [ok]", () => {
-    // The watcher's reproducer: no scenario-coverage.json and no scenarios
+    // A reproducer: no scenario-coverage.json and no scenarios
     // spec, with check:scenarios a no-op. The gate must not report [ok] — a
     // tree with no scenarios spec at all is unprovisioned (skipped); the real
     // repo always carries the spec, so a deleted mapping there fails instead.

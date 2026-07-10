@@ -7,8 +7,7 @@ import { loadResumeData } from "./resume";
 
 // Pinned SHA-256 of the committed production snapshot — the edited on-disk
 // content, NOT the retrieved source (SPECIFICATION/spec.md §"Governed data
-// source and predecessor import (phase 1)"). The retrieved-source hash
-// (792097b0…) is retained in the file's provenance comments; this pins the
+// source and predecessor import (phase 1)"). The retrieved-source hash is retained in the file's provenance comments; this pins the
 // committed-snapshot hash after the 2026-07-10 owner-directed edits: the
 // postal-address redaction from header.contact and the about.content rewrite.
 const PINNED_SHA256 =

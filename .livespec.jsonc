@@ -1,12 +1,9 @@
 {
   "template": "livespec",
-  // Gap capture is ACTIVE for phase-1 implementation planning (plan/mvp/).
-  // It was suppressed during the pre-implementation adversarial
-  // spec-hardening and guardrail-provisioning phases (gap capture would only
-  // have surfaced the whole spec as unimplemented); the guardrail terminal
-  // step (plan/guardrail/handoff.md §"Terminal step") flipped it back on when
-  // implementation planning began, so revise's post-step capture-impl-gaps
-  // now surfaces spec->impl gaps for plan/mvp to file as work items.
+  // Gap capture is ACTIVE: revise's post-step capture-impl-gaps surfaces
+  // spec->impl gaps for implementation planning to file as work items. Set
+  // false only to suppress capture during pre-implementation spec-hardening,
+  // when it would otherwise surface the whole spec as unimplemented.
   "post_step_skip_capture_impl_gaps": false,
   // Active implementation orchestrator (the work-item front-end for THIS project).
   // livespec's own operations resolve the work-item routing target from this key —

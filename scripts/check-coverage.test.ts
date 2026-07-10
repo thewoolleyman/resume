@@ -1,5 +1,4 @@
-// Harness test for the coverage gate (work item li-m2trzv;
-// plan/guardrail/research/findings.md slice 8).
+// Harness test for the coverage gate.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"Test coverage
 // expectations": the committed coverage thresholds (coverage.config.json)

@@ -1,5 +1,4 @@
-// Harness test for the scenario coverage gate (work item li-hb77ad;
-// plan/guardrail/research/findings.md slice 9).
+// Harness test for the scenario coverage gate.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"Top-of-pyramid
 // discipline": every load-bearing scenario in SPECIFICATION/scenarios.md is

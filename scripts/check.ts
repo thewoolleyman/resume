@@ -25,6 +25,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { verifyCiProvisioning, verifyLiveGitHubSettings } from "./check-ci";
+import { checkComments } from "./check-comments";
 import {
   INVENTORY_PATH,
   verifyDisciplineInventory,
@@ -70,7 +71,7 @@ const REQUIRED_TS_FLAGS = [
 
 // Gate families that later guardrail slices provision. Reported on every
 // run so the aggregate's current coverage is always visible. Empty now that
-// the scenario coverage gate (li-hb77ad) is operational — every guardrail
+// the scenario coverage gate is operational — every guardrail
 // gate family is provisioned.
 const PENDING_GATES: readonly {
   family: string;
@@ -394,7 +395,7 @@ function checkToolchainBaseline(root: string, pkg: PackageJson): GateResult {
     failures.push("eslint.config.js is missing");
   } else {
     // Presence scan for preset/plugin wiring, comment-stripped so a comment
-    // mentioning a removed entry cannot satisfy it (li-mhwzqt). Effective
+    // mentioning a removed entry cannot satisfy it. Effective
     // enablement is verified separately below.
     const eslintConfig = stripJsComments(
       readFileSync(eslintConfigPath, "utf8"),
@@ -409,7 +410,7 @@ function checkToolchainBaseline(root: string, pkg: PackageJson): GateResult {
         failures.push(`eslint.config.js must retain ${family} ("${needle}")`);
       }
     }
-    // Effective-severity verification (li-mhwzqt): resolve the config the
+    // Effective-severity verification: resolve the config the
     // way ESLint itself does and require the load-bearing rules to be
     // enabled at error severity for TypeScript sources — a rule that is
     // absent, 'off', 'warn', or overridden to 'off' by a later flat-config
@@ -607,7 +608,7 @@ function checkMemoryGuardrail(root: string, pkg: PackageJson): GateResult {
 }
 
 // Verifies the primary-checkout commit-refuse hook is installed (§"Hooks" /
-// §"Pull request landing automation", worktree-mandatory since v028):
+// §"Pull request landing automation", worktree-mandatory):
 // `.githooks/pre-commit` MUST invoke scripts/check-primary-checkout.ts so a
 // commit authored in the primary checkout — rather than a secondary worktree
 // — is refused. `bun run check` MUST fail when that wiring is absent, so a
@@ -867,7 +868,7 @@ function checkScenarios(root: string): GateResult {
   };
 }
 
-// The no-live-git-jsonl gate (plan/orchestrator-migration slice 4): after the
+// The no-live-git-jsonl gate: after the
 // work-item orchestrator migrated to livespec-orchestrator-beads-fabro, no
 // live reference to the retired git-jsonl orchestrator may remain in the
 // tracked tree (migration-history locations are excluded — see
@@ -901,6 +902,40 @@ function checkNoGitJsonlReferences(root: string): GateResult {
   };
 }
 
+// Comment-discipline gate per §"Comment discipline": in-scope source comments
+// carry no rotting historical-bookkeeping references. Skips when git is
+// unavailable (the scan uses git ls-files).
+function checkCommentDiscipline(root: string): GateResult {
+  const gate = "comment discipline (no rotting references)";
+  let result;
+  try {
+    result = checkComments(root);
+  } catch (error) {
+    return {
+      gate,
+      status: "skipped",
+      detail: `git unavailable: ${(error as Error).message}`,
+    };
+  }
+  if (!result.ok) {
+    return {
+      gate,
+      status: "FAIL",
+      detail:
+        `${String(result.violations.length)} rotting reference(s) in source comments: ` +
+        result.violations
+          .slice(0, 5)
+          .map((v) => `${v.file}:${String(v.line)} (${v.marker})`)
+          .join("; "),
+    };
+  }
+  return {
+    gate,
+    status: "ok",
+    detail: "no historical-bookkeeping references in in-scope source comments",
+  };
+}
+
 const root = parseProjectRoot(process.argv.slice(2));
 const packageJsonPath = join(root, "package.json");
 if (!existsSync(packageJsonPath)) {
@@ -926,6 +961,7 @@ const results: GateResult[] = [
   checkScenarios(root),
   checkE2e(root, pkg),
   checkNoGitJsonlReferences(root),
+  checkCommentDiscipline(root),
 ];
 
 console.log("aggregate check (bun run check) — operational gates:");

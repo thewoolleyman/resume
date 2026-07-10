@@ -1,4 +1,4 @@
-// Harness test for normalizePem (work item li-2o7eza; the wrapper's
+// Harness test for normalizePem (the wrapper's
 // newline contract). Pins the reconstruction of a usable PEM from the
 // forms a secrets manager / op-run injection delivers — real newlines,
 // literal backslash-n, and (the observed op-run failure mode) a key

@@ -1,5 +1,4 @@
-// Harness test for the local memory guardrail (work item li-6b6u6m;
-// plan/guardrail/research/findings.md slice 5).
+// Harness test for the local memory guardrail.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"Local memory
 // guardrails": prohibited private-memory / hidden tool-state paths
@@ -64,7 +63,7 @@ function runMemory(
 // documented ordinary-tool-configuration allowlist family
 // (AGENTS.md §"Local memory guardrail policy"). The .idea entries are the
 // SHAREABLE JetBrains project-configuration forms only — workspace/local
-// state is prohibited (watcher fix li-6tntj5).
+// state is prohibited.
 function makeTree(): string {
   const dir = mkdtempSync(join(tmpdir(), "resume-memory-fixture-"));
   fixtures.push(dir);

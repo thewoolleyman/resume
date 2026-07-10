@@ -1,6 +1,6 @@
 // Primary-checkout commit-refuse gate per
 // SPECIFICATION/non-functional-requirements.md §"Hooks" and §"Pull request
-// landing automation" (worktree-mandatory since v028): a commit MUST be
+// landing automation" (worktree-mandatory): a commit MUST be
 // authored in a secondary git worktree, never in the primary checkout. This
 // gate refuses a commit whose repository git-dir equals its git-common-dir —
 // the signature of the primary checkout (a secondary worktree's git-dir is

@@ -20,8 +20,7 @@
 //    first-party src/** source file must appear in it (so its 100% floor
 //    is measured). Present source with no report — or a report that omits
 //    a source file — fails. Without this, `test:coverage` could pass while
-//    measuring nothing once the product-source boundary is relaxed
-//    (watcher fix on 15d9b21).
+//    measuring nothing once the product-source boundary is relaxed.
 //
 // With NO first-party src/** source and no report the gate is ARMED: the
 // committed threshold floor is still enforced, and the per-file / coverage

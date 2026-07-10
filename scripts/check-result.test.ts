@@ -1,5 +1,4 @@
-// Harness test for the Result/ROP enforcement gate (work item li-oaxjqm;
-// plan/guardrail/research/findings.md slice 7).
+// Harness test for the Result/ROP enforcement gate.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"Result and
 // railway-oriented programming discipline": first-party core modules — the

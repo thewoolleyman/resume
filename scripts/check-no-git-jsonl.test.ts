@@ -1,5 +1,4 @@
-// Harness test for the no-live-git-jsonl gate (plan/orchestrator-migration
-// slice 4). Pins: the retired git-jsonl orchestrator is not referenced as a
+// Harness test for the no-live-git-jsonl gate. Pins: the retired git-jsonl orchestrator is not referenced as a
 // live surface anywhere in the tracked tree, while migration-history locations
 // (immutable spec history, the archived store, the migrated beads pointer, and
 // the migration thread itself) are excluded — and every OTHER plan thread is

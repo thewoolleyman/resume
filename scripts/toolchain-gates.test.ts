@@ -1,5 +1,4 @@
-// Harness test for the TypeScript, Svelte, lint, and format gates
-// (work item li-tagohm; plan/guardrail/research/findings.md slice 3).
+// Harness test for the TypeScript, Svelte, lint, and format gates.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"TypeScript quality
 // gates": strict TypeScript with the five required flags, svelte-check,

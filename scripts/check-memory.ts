@@ -46,7 +46,7 @@ const PROHIBITED_TOOL_STATE_PREFIXES = [
 // Ordinary tool configuration per AGENTS.md §"Local memory guardrail
 // policy" — documented as configuration rather than memory. Keep the two in
 // sync: the policy is the human-readable record, this is its enforcement.
-// The .idea exception is deliberately NARROW (watcher fix li-6tntj5): only
+// The .idea exception is deliberately NARROW: only
 // the shareable JetBrains project-configuration forms are listed;
 // workspace/local state (.idea/workspace.xml, shelf/, tasks.xml, …) falls
 // through to default-deny.
@@ -126,7 +126,7 @@ function isOrdinaryToolConfiguration(path: string): boolean {
 
 // The AGENTS.md notes INDEX — list entries under the "Agent-facing notes
 // index" heading. Only these count as indexing a note (a prose mention
-// elsewhere does not; watcher fix li-6tntj5). Maps each indexed note path
+// elsewhere does not). Maps each indexed note path
 // to the entry text following it, which must state the note's purpose.
 export function noteIndexEntries(agentsIndex: string): Map<string, string> {
   const entries = new Map<string, string>();

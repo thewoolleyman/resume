@@ -1,5 +1,4 @@
-// Harness test for the repository bootstrap and package-script surface
-// (work item li-ugymfg; plan/guardrail/research/findings.md slice 1).
+// Harness test for the repository bootstrap and package-script surface.
 //
 // Pins the contract from SPECIFICATION/non-functional-requirements.md
 // §"Package script categories": every required Bun script name exists in
@@ -97,7 +96,7 @@ describe("required Bun package-script surface (li-ugymfg)", () => {
 
 describe("not-yet-provisioned script stubs (exit-code baseline)", () => {
   test("a stubbed script fails with exit 3 and names what provisions it", () => {
-    // check:scenarios graduated to a real gate (li-hb77ad); test:e2e is a
+    // check:scenarios is a real gate; test:e2e is a
     // still-stubbed script whose gate/toolchain artifact has not landed.
     const run = Bun.spawnSync({
       cmd: [

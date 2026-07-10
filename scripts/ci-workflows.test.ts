@@ -1,5 +1,4 @@
-// Harness test for GitHub CI and pull-request automation (work item
-// li-xjjeqo; plan/guardrail/research/findings.md slice 6).
+// Harness test for GitHub CI and pull-request automation.
 //
 // Pins SPECIFICATION/non-functional-requirements.md §"GitHub CI and pull
 // request discipline" and §"Pull request landing automation":
