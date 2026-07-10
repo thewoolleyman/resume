@@ -193,9 +193,26 @@ maintainer-driven.
   committed-snapshot SHA-256 re-pinned). The retired `cover-letter.thewoolleyweb.com`
   host was deleted from Cloudflare DNS (both the CNAME and its GitLab-Pages TXT;
   now NXDOMAIN); the underlying GitLab Pages project is separate hosting and was
-  left intact. Note: the live About text still references the retired cover letter
-  and the old Vue/Nuxt/GitLab stack — a known content-staleness item not yet
-  actioned.
+  left intact. The About-text staleness is now ACTIONED in source: livespec
+  **v029** sanctions owner-authored `about.content` edits (a new category
+  alongside PII redaction; `about` carved out of textual parity — parity for it
+  is now structural, not textual) and records the redesign is Claude-design-driven,
+  and `data/resume.yml` `about.content` was rewritten to scrub the retired
+  cover-letter link and the Vue/Nuxt/GitLab/Bootstrap self-description and describe
+  the current SvelteKit/Vercel/GitHub stack with a brief 2019→2026 history note
+  (committed-snapshot SHA-256 re-pinned `20600aea…→d6c29374…`; `bun run check`
+  all-gates-ACTIVE green; committed as `6827433`). **The live Production site still
+  serves the OLD About until redeployed** — that redeploy rides with slice R3.
+
+- **Worktree-landing discipline mid-rollout (2026-07-10).** livespec **v028**
+  reversed the direct-to-master sanction to worktree-mandatory (author/commit only
+  in a dedicated secondary git worktree; land via PR auto-merge or a worktree
+  fast-forward), and the standalone Claude Code agent-session guards were ported in
+  `aa23d95`. The **primary-checkout commit-refuse hook and the `AGENTS.md` "commit
+  and land" rewrite are NOT yet installed** — that enforcement is being implemented
+  in a separate session (`resume2`), so until it lands, primary-checkout commits
+  still succeed. The v029 About fix above was landed by a maintainer-approved
+  direct commit during this transition window.
 
 - **AI delivery relocated.** All AI-driven-mode and MCP planning now lives in
   `plan/ai/` (separate thread), not in `plan/mvp/`.
