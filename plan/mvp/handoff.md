@@ -204,15 +204,18 @@ maintainer-driven.
   all-gates-ACTIVE green; committed as `6827433`). **The live Production site still
   serves the OLD About until redeployed** — that redeploy rides with slice R3.
 
-- **Worktree-landing discipline mid-rollout (2026-07-10).** livespec **v028**
-  reversed the direct-to-master sanction to worktree-mandatory (author/commit only
-  in a dedicated secondary git worktree; land via PR auto-merge or a worktree
-  fast-forward), and the standalone Claude Code agent-session guards were ported in
-  `aa23d95`. The **primary-checkout commit-refuse hook and the `AGENTS.md` "commit
-  and land" rewrite are NOT yet installed** — that enforcement is being implemented
-  in a separate session (`resume2`), so until it lands, primary-checkout commits
-  still succeed. The v029 About fix above was landed by a maintainer-approved
-  direct commit during this transition window.
+- **Worktree-landing discipline (2026-07-10).** livespec **v028** reversed the
+  direct-to-master sanction to worktree-mandatory (author/commit only in a dedicated
+  secondary git worktree; land via PR auto-merge or a worktree fast-forward). The
+  standalone Claude Code agent-session guards, the `AGENTS.md` "commit and land"
+  rewrite, and `.claude/CLAUDE.md → AGENTS.md` (loads conventions into every
+  session) all LANDED in `aa23d95`. **Only the primary-checkout commit-refuse hook
+  remains HELD** — built at `scripts/check-primary-checkout.ts` but intentionally
+  NOT wired into `.githooks/pre-commit` and NOT required by `check.ts`, so
+  primary-checkout commits still succeed. Activating it is a deliberate, documented
+  v028 gap with its own thread: **`plan/worktree-guards/handoff.md`**. The v029
+  About fix above was landed by a maintainer-approved direct commit during this
+  transition window.
 
 - **AI delivery relocated.** All AI-driven-mode and MCP planning now lives in
   `plan/ai/` (separate thread), not in `plan/mvp/`.
