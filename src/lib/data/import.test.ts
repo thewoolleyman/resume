@@ -5,14 +5,14 @@ import { describe, expect, it } from "vitest";
 
 import { loadResumeData } from "./resume";
 
-// Pinned SHA-256 of the committed production snapshot — the redacted on-disk
+// Pinned SHA-256 of the committed production snapshot — the edited on-disk
 // content, NOT the retrieved source (SPECIFICATION/spec.md §"Governed data
-// source and predecessor import (phase 1)"). The pre-redaction retrieved-source
-// hash (792097b0…) is retained in the file's provenance comments; this pins the
-// committed-snapshot hash after the 2026-07-10 owner-directed postal-address
-// redaction from header.contact.
+// source and predecessor import (phase 1)"). The retrieved-source hash
+// (792097b0…) is retained in the file's provenance comments; this pins the
+// committed-snapshot hash after the 2026-07-10 owner-directed edits: the
+// postal-address redaction from header.contact and the about.content rewrite.
 const PINNED_SHA256 =
-  "20600aea8cdb06d797904921eb0259b96663a4a1acfaba1aa3265fccf5607c9e";
+  "d6c29374554aee7bf75c175cab8ca3d54e218c3bbf2291c8e4d46127af20b6cb";
 const SOURCE_HOST = "interactive-resume-data-chad-woolley.gitlab.io";
 // Vitest runs with cwd at the repository root; import.meta.url is not
 // guaranteed to be a file: URL under Vite, so resolve from cwd instead.
@@ -28,7 +28,11 @@ describe("predecessor import", () => {
     const { profile, sections } = result.value;
 
     expect(profile.about.title).toBe("About This Resume/App");
-    expect(profile.about.contentMarkdown).toContain("## Cover Letter");
+    expect(profile.about.contentMarkdown).toContain("## Tech/Tools");
+    // The owner-authored 2026-07-10 rewrite scrubbed the retired cover-letter host.
+    expect(profile.about.contentMarkdown).not.toContain(
+      "cover-letter.thewoolleyweb.com",
+    );
     expect(profile.about.contentHtml).toContain("<h2");
     expect(profile.header.name).toBe("Chad Woolley");
     expect(profile.header.contact).toContain("thewoolleyman@gmail.com");
@@ -57,8 +61,8 @@ describe("predecessor import", () => {
 
   it("transcribes the predecessor production content into data/resume.yml", () => {
     const bytes = readFileSync(resumePath);
-    // Everything from the YAML document marker `---` to EOF must be
-    // byte-identical to the retrieved production source (its pinned SHA-256).
+    // Everything from the YAML document marker `---` to EOF must hash to the
+    // pinned committed-snapshot SHA-256 (the edited on-disk content).
     const markerOffset = bytes.indexOf("\n---\n");
     expect(markerOffset).toBeGreaterThan(0);
     const snapshot = bytes.subarray(markerOffset + 1);

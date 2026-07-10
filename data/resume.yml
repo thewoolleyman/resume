@@ -3,10 +3,10 @@
 #
 # This is a snapshot of the predecessor's PRODUCTION resume content, committed
 # so phase-1 predecessor parity does not depend on a live external fetch. The
-# snapshot carries one owner-directed PII redaction (see "Redactions" below) and
+# snapshot carries owner-directed edits (see "Owner-directed edits" below) and
 # is therefore NOT byte-identical to the retrieved source. The committed-snapshot
 # SHA-256 — computed over everything from the `---` YAML document marker below to
-# end-of-file (the redacted on-disk content) — is pinned below, in
+# end-of-file (the edited on-disk content) — is pinned below, in
 # src/lib/data/import.test.ts, and in SPECIFICATION/spec.md §"Governed data
 # source and predecessor import (phase 1)".
 #
@@ -15,12 +15,20 @@
 #   retrieved: 2026-07-06
 #   upstream-last-modified: 2022-06-27
 #   retrieved-source-sha256: 792097b01aef31fdc7cbf2c2463492e87c5ca89bc8d864ef3ebacfc7f7a4d158  # pre-redaction predecessor hash
-#   committed-snapshot-sha256: 20600aea8cdb06d797904921eb0259b96663a4a1acfaba1aa3265fccf5607c9e
+#   committed-snapshot-sha256: d6c29374554aee7bf75c175cab8ca3d54e218c3bbf2291c8e4d46127af20b6cb
 #
-# Redactions (owner-directed, for privacy — not rendered on any product surface):
-#   2026-07-10: removed the owner's postal address from header.contact, leaving
-#     only phone and email. Directed by the maintainer/owner. The literal address
-#     is intentionally NOT restated here.
+# Owner-directed edits (recorded per SPECIFICATION/spec.md §"Governed data source
+# and predecessor import (phase 1)" → "Committed production snapshot"). Each edit
+# re-pins committed-snapshot-sha256 above, src/lib/data/import.test.ts, and the spec:
+#   2026-07-10 (PII redaction): removed the owner's postal address from
+#     header.contact, leaving only phone and email. The literal address is
+#     intentionally NOT restated here (not rendered on any product surface).
+#   2026-07-10 (owner-authored content edit): rewrote about.content to describe the
+#     current SvelteKit-on-Vercel / GitHub-CI / Bun-Vitest-Playwright implementation
+#     and its AI/livespec-driven authoring and Claude-driven design, scrubbing the
+#     retired cover-letter link and the Vue/Nuxt/GitLab-era self-description; keeps a
+#     brief 2019->2026 historical note. Structural scope (18 keys / 16 sections /
+#     74 items) is unchanged.
 #
 # The on-disk shape is the predecessor's human-friendly AUTHORING shape:
 # top-level `about`/`header` maps plus ordered section keys, each mapping to an
@@ -32,50 +40,39 @@
 about:
   title: About This Resume/App
   content: |
-    ## Cover Letter
-      * Please also see my [Cover Letter](https://cover-letter.thewoolleyweb.com/).
-    ## Tech Info
-      * I (Chad) created this app from scratch in about a month, using Vue.js (I had not previously used Vue).
-        It is a single-page browser-only app; with no server backend.
-      * The actual text content is completely configurable, and loaded and parsed on the fly from a
-        YAML file.
+    This is my (Chad Woolley's) interactive resume. All of the content is governed
+    structured data (a single YAML file), rendered into a searchable, filterable
+    interactive view and a plain, printable static view.
 
-    ## Management, Build, Deploy, and Hosting
-      * It fully hosted on GitLab's infrastructure, with 100% test coverage, continuous integration, build pipeline, and
-        continuous deployment.
-      * All features were incrementally developed and tracked with a
-        [GitLab Issue Tracking Board](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/-/boards)
+    ## History
+      * I first hand-coded this from scratch in about a month back in 2019, using
+        Vue.js (which I hadn't used before), to help land my role at GitLab. It was a
+        single-page, browser-only app with no server backend.
+      * In 2026 I rebuilt it as an AI-driven project: ported, redesigned, and now
+        maintained with my own livespec project and factory tooling, with the code
+        itself written by AI coding agents under a strict spec-first, fully-gated
+        discipline.
 
     ## Tech/Tools
-      * Vue.js served via Nuxt, Vuex for state management, bootstrap-vue for design, fuse.js for searching,
-        js-yaml for parsing the data file, marked for data file markdown parsing, Ramdajs for most data-processing
-        logic, Jest/vue-jest for testing, and eslint with various Vue plugins.  It was developed in Jetbrains
-        Webstorm, with a committed Webstorm IDE config which (almost) completely matches the eslint config.
+      * Built with SvelteKit and TypeScript, prerendered and deployed on Vercel. The
+        toolchain is Bun, Vitest, and Playwright, with strict typechecking, linting,
+        formatting, and 100% test coverage all enforced as gates.
+      * The resume content is still completely configurable, loaded and parsed on the
+        fly from a single governed YAML data file.
 
-    ## Source Code and Development
-      * [Source Code](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io)
-      * [Continuous Integration/Continuous Deployment](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/pipelines)
-      * [100% test coverage](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/-/jobs)
-      * [GitLab Issue Tracking Board](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/-/boards)
-      * [Project Insights](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/insights) and
-        [CI/CD Charts](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/pipelines/charts)
+    ## Management, Build, Deploy, and Hosting
+      * Source control and CI live on GitHub; the app is continuously built and
+        deployed on Vercel across development, preview, and production environments.
 
-    ## Bugs/Errata
-      * Firefox (Mac) has performance issues with this resume, probably garbage-collection-related,
-        especially when searching.  This is possibly related to
-        [this bug](https://bugzilla.mozilla.org/show_bug.cgi?id=1103593).
-        Chrome and Safari seem OK.
-        [Debouncing](https://gitlab.com/interactive-resume/interactive-resume.gitlab.io/issues/35) would help.)
-      * iPhone native has some resizing issues when the date-sorting dropdown is used.
-
-    ## Design Mea Culpa
-      * I am not a designer!  I used bootstrap and bootstrap-vue components for design, and tried to make
-        this app somewhat responsive (at least the nav), but it should be completely obvious that making things look pretty
-        is not my forté. :) 💄
+    ## Design
+      * I'm still not a designer! :) 💄 But this time the look is Claude-driven: the
+        visual redesign was carried out with Claude, rather than hand-styled with
+        bootstrap and bootstrap-vue like the 2019 original.
 
     ## Content Mea Culpa
-      * I hadn't updated my resume in 13 years (my entire time at Pivotal), and for older jobs/skills, I just copied
-        the content verbatim.  Apologies for any broken links, or outdated/naive prose or references. 😁 🙈
+      * I hadn't updated my resume in 13 years (my entire time at Pivotal), and for
+        older jobs/skills I just copied the content verbatim. Apologies for any broken
+        links, or outdated/naive prose or references. 😁 🙈
 
 header:
   name: Chad Woolley
