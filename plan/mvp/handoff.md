@@ -143,11 +143,26 @@ derivable by running the livespec-orchestrator-beads-fabro `next` skill against
 the beads store.
 
 **Current state: PORT + R1 (live deploy) + R2 (redesign) + R3 (redeploy) are
-DONE and live; the MVP is NOT complete** — only **R4 (review of the running site
-+ maintainer sign-off)** remains, which is the final maintainer blocker (beads
-`li-88e`, now ready). The redesigned, content-updated site is live at
-`https://resume.thewoolleyweb.com`; the LLMs/maintainer must review it and the
-maintainer must sign off on Production.
+DONE and live; R4 review is IN PROGRESS with interim maintainer acceptance
+("good enough for now") but NO formal Production sign-off yet — the MVP is
+therefore NOT formally complete.** Spec head is **v034**. The redesigned,
+content-updated, fix-refined site is live at `https://resume.thewoolleyweb.com`.
+R4 (beads `li-88e`) stays open pending the maintainer's explicit final sign-off;
+when they give it, perform the Terminal step (verify Production/Preview against
+`constraints.md`, report MVP completion, hand off to `plan/ai/`).
+
+- **R4 review fixes — landed + live (2026-07-11, spec v034, commit `f5a0456`).**
+  Two owner-reported live-site defects fixed under guardrail discipline: (1) the
+  shared `about.content` opening line was neutralized from "my interactive resume"
+  to "my resume" (it renders byte-identically on both views) and `/static` gained
+  a print-friendly cross-link back to the interactive resume carrying its full
+  canonical URL — v034 added the contract requirement (contracts.md §"Web routes")
+  and re-pinned the committed-snapshot SHA-256 (`901ad39f…→61e2b2ca…`); (2) the
+  Contents/Skill Levels nav dropdowns now dismiss on outside pointer press,
+  Escape, or focus-loss (contracts.md §"Layout and controls"). Unit + browser e2e
+  coverage added; `bun run check` all-gates-green; deployed and verified live. The
+  maintainer reviewed and said "good enough for now" (interim, not a formal MVP
+  sign-off).
 
 - **R2 visual redesign — DONE (2026-07-10, spec v033, commit `09d728d`).**
   Claude-driven redesign implemented under guardrail discipline: hand-rolled,
@@ -277,14 +292,20 @@ The work-item orchestrator is `livespec-orchestrator-beads-fabro`, backed by the
 `resume` beads/Dolt tenant. Drive work through its operator loop — `drive` /
 `plan` / `needs-attention` / `next` / `implement` / `capture-work-item`.
 
-Next ripe action: **R4 — the maintainer's review and sign-off on the running
-Production site (slice R4, beads `li-88e`)** — the final maintainer blocker. The
-redesigned, content-updated site is live at `https://resume.thewoolleyweb.com`
-(and `/static`); the LLMs and the maintainer review it for parity, redesign
-quality, accessibility, responsiveness, metadata, light/dark, and cross-environment
-correctness, resolve any findings, and the maintainer signs off on Production.
-R1/R2/R3 are done; only R4 remains, after which the MVP is complete (perform the
-Terminal step and hand off to `plan/ai/`).
+Next ripe action: **R4 — continue the review of the running site and obtain the
+maintainer's explicit final sign-off (slice R4, beads `li-88e`)** — the final
+maintainer blocker. The redesigned, content-updated, fix-refined site is live at
+`https://resume.thewoolleyweb.com` (and `/static`) and the maintainer has given
+interim acceptance ("good enough for now"). A ripe next action is to either (a)
+apply any further design/content tweaks the maintainer reports, each under the
+same guardrail discipline (data/spec edits via a new vNNN, re-deploy), or (b) on
+the maintainer's explicit final sign-off, perform the Terminal step — verify
+Production/Preview against `constraints.md` §"Framework and deployment" /
+§"Accessibility and responsive behavior" / §"Performance and availability" (and
+that Preview is non-indexed), report MVP completion, and hand off to the AI
+delivery thread `plan/ai/`. The LLMs MAY also run a formal live-site review
+(a11y/contrast, responsive, metadata, light/dark, cross-environment) before that
+sign-off. R1/R2/R3 are done; only R4's formal sign-off remains.
 
 ## Resume
 
