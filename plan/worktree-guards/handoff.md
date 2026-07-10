@@ -1,10 +1,12 @@
-# Handoff — worktree-mandatory enforcement (activate commit-refuse)
+# Handoff — worktree-mandatory enforcement (THREAD COMPLETE)
 
 **Thread:** `plan/worktree-guards/` — **Driver-agnostic:** paste this file's path
 into Claude Code or Codex. Goal: fully realize the **worktree-mandatory landing
-policy** ratified in livespec **v028**. The primary-checkout commit-refuse hook
-is now activated; the sole remaining item is processing the one open spec
-critique via `/livespec:revise`.
+policy** ratified in livespec **v028**. **Status (2026-07-10): COMPLETE.** The
+primary-checkout commit-refuse hook is activated AND the sole remaining item —
+the one open spec critique — has been processed via `/livespec:revise` (v030 cut
+and landed). Nothing in this thread remains; the next ripe work is the adjacent
+`plan/mvp/` thread (see §"Next thread" below).
 
 ## Read first
 
@@ -44,19 +46,35 @@ closed. The only remaining thread work is processing the open spec critique.
   repository's primary checkout; foreign repos borrowing the hooks via
   `core.hooksPath` (the `scripts/*.test.ts` fixtures) are allowed. `commitLocation`
   stays pure topology; the CLI adds the ownership gate. `bun run check` green.
-- **Open critique (sole remaining item):**
-  `SPECIFICATION/proposed_changes/claude-opus-4-8-critique.md` (the
-  `constraints.md` verbatim-snapshot contradiction) awaits `/livespec:revise`.
-  Latest history is `v029`, so the revise cuts `v030`.
-- Adjacent, not this thread: `plan/mvp/` R2-R4 (visual redesign, redeploy,
-  review) and the v029 About redeploy remain the MVP thread's work.
+- **Open critique PROCESSED (2026-07-10):** `claude-opus-4-8-critique` (the
+  `constraints.md` verbatim-snapshot contradiction) was accepted via
+  `/livespec:revise`, cutting and landing **v030** (`5c5cc45`). `constraints.md
+  §"Predecessor data migration boundary"` now aligns with spec.md's
+  redaction/owner-edit two-hash model and cross-references it instead of asserting
+  a stricter byte-verbatim/single-hash rule. `SPECIFICATION/proposed_changes/` is
+  empty (only `README.md`). Post-step doctor static + `bun run check` green.
+- **Nothing remains in this thread.** All v028 §"Hooks" and §"Pull request
+  landing automation" enforcement is landed and the sole adjacent open critique is
+  resolved.
 
-## Ripe actions (in order)
+## Next thread
 
-1. **Revise the open critique** — run `/livespec:revise` to process the
-   `constraints.md` contradiction (align `constraints.md §"Predecessor data
-   migration boundary"` with spec.md's redaction/owner-edit two-hash model; cut
-   `v030`). This is the last item; when it lands, the thread is complete.
+This thread is complete. The next ripe work is the adjacent — NOT this thread —
+`plan/mvp/` R2-R4 (visual redesign, redeploy, review) and the v029 About
+redeploy. Resume from `plan/mvp/handoff.md`.
+
+## Done log
+
+Done (2026-07-10): **Process the open critique → cut v030** — ran
+`/livespec:revise` (release-build core `dd9ae4ce7219` to pass the currency gate
+under the stale pin), accepted `claude-opus-4-8-critique`, aligned
+`constraints.md §"Predecessor data migration boundary"` with spec.md's
+two-hash/redaction/owner-edit model, cut `v030`, `bun run check` green, landed via
+a worktree fast-forward (`5c5cc45`). Post-step `capture-impl-gaps` was skipped
+(narrated, not silent): the delta is a wording alignment to an already-ratified,
+already-implemented model — zero new spec→impl surface — and the orchestrator
+front-end skill was not loaded under the stale pin. Re-run from a fresh session
+only if belt-and-suspenders gap capture is wanted (it will be a no-op).
 
 Done (2026-07-10): **Activate the commit-refuse hook** — added the test, wired
 `.githooks/pre-commit`, added the `checkPrimaryCheckoutHook` verification gate,
@@ -81,8 +99,9 @@ Done (2026-07-10): **Activate the commit-refuse hook** — added the test, wired
 
 ## Resume
 
-Paste this into Claude Code or Codex:
+This thread is COMPLETE — there is no further action here. To pick up the next
+ripe work (the adjacent `plan/mvp/` thread), paste this into Claude Code or Codex:
 
 ```text
-plan/worktree-guards/handoff.md
+plan/mvp/handoff.md
 ```

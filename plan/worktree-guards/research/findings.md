@@ -50,9 +50,9 @@ automation" and §"Hooks" (cut in v028):
 
 ## What REMAINS
 
-Nothing on the enforcement side — the **primary-checkout commit-refuse hook** is
-now LANDED and ACTIVE (2026-07-10). The only adjacent open item is the spec
-critique in §"Adjacent open item".
+Nothing — the thread is COMPLETE (2026-07-10). The **primary-checkout
+commit-refuse hook** is LANDED and ACTIVE, and the adjacent spec critique has been
+processed (see §"Adjacent open item — RESOLVED").
 
 ## Landed — the commit-refuse hook (2026-07-10)
 
@@ -85,10 +85,18 @@ refused; a foreign fixture is left alone. The two full-check fixture builders
 (`check.test.ts`, `toolchain-gates.test.ts`) were updated to write a wired
 `.githooks/pre-commit` so they pass the new gate. `bun run check` green.
 
-## Adjacent open item
+## Adjacent open item — RESOLVED (2026-07-10)
 
-- `SPECIFICATION/proposed_changes/claude-opus-4-8-critique.md` — a filed critique
-  surfacing the `constraints.md §"Predecessor data migration boundary"` "verbatim
-  snapshot" contradiction with the v027/v029 redaction + owner-authored-edit
-  model. Process it with `/livespec:revise` (align constraints.md with spec.md;
-  cut the next `vNNN`).
+- `claude-opus-4-8-critique` — the filed critique surfacing the
+  `constraints.md §"Predecessor data migration boundary"` "verbatim snapshot"
+  contradiction with the v027/v029 redaction + owner-authored-edit model — was
+  **accepted via `/livespec:revise`, cutting and landing v030 (`5c5cc45`).**
+  `constraints.md` now states the committed `data/resume.yml` snapshot MAY diverge
+  via owner-directed PII redactions and owner-authored content edits, need NOT be
+  byte-identical, and records the two-hash provenance (retrieved-source SHA-256 +
+  committed-snapshot SHA-256) plus the per-edit ledger, cross-referencing spec.md
+  §"Governed data source and predecessor import (phase 1)" rather than restating a
+  stricter rule. The proposed-change + paired revision file are archived under
+  `SPECIFICATION/history/v030/proposed_changes/`; `proposed_changes/` holds only
+  `README.md`. Post-step doctor static + `bun run check` green. **This was the
+  last item; the thread is now complete.**
