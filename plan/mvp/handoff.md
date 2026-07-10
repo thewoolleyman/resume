@@ -142,9 +142,10 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-beads-fabro `next` skill against
 the beads store.
 
-**Current state: the PORT is complete and merged to `master`; the MVP is NOT
-complete** — the visual redesign, live deployment across all environment
-classes, and the review of the running site all remain.
+**Current state: the PORT is complete and merged; R1 LIVE DEPLOYMENT is now
+DONE; the MVP is NOT complete** — the visual redesign (R2), its redeploy (R3),
+and the review of the running site (R4) remain. R2 is the next ripe item and is
+maintainer-driven.
 
 - **Port done and green.** `src/**`, `data/resume.yml`, and the toolchain
   landed on `master` (`021b857 feat: implement phase-1 interactive and static
@@ -165,18 +166,36 @@ classes, and the review of the running site all remain.
   completion. The `phase 1` token is retained ("Phase 1 is the MVP"), so the
   guardrail gates and parity/identifier/scenario requirements are unaffected.
 
-- **What remains (the ripe work).**
-  - **R1 live deployment — MAINTAINER BLOCKER.** The app is not deployed to
-    Vercel. Needs maintainer-provided Vercel project linkage / deploy
-    credentials and custom-domain DNS for `resume.thewoolleyweb.com`. Deploying
-    is not required for the local build to be green, but IS required for MVP
-    completion.
-  - **R2 visual redesign — MAINTAINER-DRIVEN.** The maintainer performs a design
-    pass with Claude Design on the running site, then the redesign is implemented
-    under guardrail discipline preserving all behavioral scenarios and
-    a11y/responsive requirements.
+- **R1 live deployment — DONE (2026-07-10).** Dedicated Vercel project
+  `thewoolleymans-projects/resume` created and linked; deploy token
+  `resume-deploy` lives in the resume 1Password Environment (injected via
+  `./with-resume-env.sh`; org/project ids also in `.vercel/project.json`).
+  Production is live at `https://resume.thewoolleyweb.com` — Cloudflare `resume`
+  CNAME re-pointed to `cname.vercel-dns.com` (DNS-only), Let's Encrypt cert
+  issued, `/` and `/static` serve HTTP 200 and hydrate, `http`→`https` 308.
+  Preview = Vercel branch deploys behind Vercel SSO (non-indexed). Development =
+  local `vite dev`. Beads item closed with evidence. **Git↔Vercel integration is
+  NOT yet connected** — deploys are currently CLI-driven (`vercel deploy
+  --prod`); connecting the GitHub repo for true branch/PR previews + auto-deploy
+  is an open, maintainer-authorizable follow-up.
+  - **R2 visual redesign — MAINTAINER-DRIVEN (next ripe; beads li-ysz).** The
+    maintainer performs a design pass with Claude Design on the running site,
+    then the redesign is implemented under guardrail discipline preserving all
+    behavioral scenarios and a11y/responsive requirements.
   - **R3/R4 redeploy + review.** Redeploy the redesigned site; the LLMs and the
-    maintainer review the running Production site and sign off.
+    maintainer review the running Production site and sign off. (beads li-93c,
+    li-88e; blocked-by R2/R3 respectively.)
+
+- **Content changes landed (2026-07-10).** Owner-directed removal of the postal
+  address from `header.contact` (live site now shows phone + email only),
+  ratified as livespec **v027** (§"Governed data source" now permits recorded,
+  re-pinned owner-directed PII redactions; retrieved-source hash retained,
+  committed-snapshot SHA-256 re-pinned). The retired `cover-letter.thewoolleyweb.com`
+  host was deleted from Cloudflare DNS (both the CNAME and its GitLab-Pages TXT;
+  now NXDOMAIN); the underlying GitLab Pages project is separate hosting and was
+  left intact. Note: the live About text still references the retired cover letter
+  and the old Vue/Nuxt/GitLab stack — a known content-staleness item not yet
+  actioned.
 
 - **AI delivery relocated.** All AI-driven-mode and MCP planning now lives in
   `plan/ai/` (separate thread), not in `plan/mvp/`.
@@ -185,12 +204,12 @@ The work-item orchestrator is `livespec-orchestrator-beads-fabro`, backed by the
 `resume` beads/Dolt tenant. Drive work through its operator loop — `drive` /
 `plan` / `needs-attention` / `next` / `implement` / `capture-work-item`.
 
-Next ripe action: **deploy the ported app live across all environment classes
-(slice R1)** — a maintainer blocker pending Vercel project linkage / deploy
-credentials and DNS for `https://resume.thewoolleyweb.com`. In parallel, the
-maintainer's visual design pass (slice R2, with Claude Design) can begin against
-the running app. Neither the redesign nor the live deployment is done, so the
-MVP is not complete.
+Next ripe action: **the maintainer's visual redesign pass (slice R2, beads
+`li-ysz`)** — a maintainer-driven step. The site is now live at
+`https://resume.thewoolleyweb.com`, so the design pass (with Claude Design) can
+begin against the running app; the redesign is then implemented under guardrail
+discipline preserving all behavioral scenarios and a11y/responsive requirements.
+R1 (live deployment) is done; R2/R3/R4 remain, so the MVP is not complete.
 
 ## Resume
 
