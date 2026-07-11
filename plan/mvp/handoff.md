@@ -143,14 +143,32 @@ derivable by running the livespec-orchestrator-beads-fabro `next` skill against
 the beads store.
 
 **Current state: PORT + R1 (live deploy) + R2 (redesign) + R3 (redeploy) are
-DONE and live; the R4 formal LLM live-site review is DONE (all dimensions pass;
-findings F1+F2 fixed and redeployed live); R4 is now waiting ONLY on the
-maintainer's explicit Production sign-off — the MVP is therefore NOT yet
-formally complete.** Spec head is **v034**. The redesigned, content-updated,
-fix-refined site is live at `https://resume.thewoolleyweb.com`. R4 (beads
-`li-88e`) stays open pending the maintainer's explicit final sign-off; when they
-give it, perform the Terminal step (verify Production/Preview against
-`constraints.md`, report MVP completion, hand off to `plan/ai/`).
+DONE and live; the R4 formal LLM live-site review is DONE (all dimensions pass);
+ALL surfaced findings are resolved and redeployed live — F1+F2 (`fe90226`) and
+F3+F4+F5 (`8ab0b3b`); R4 is now waiting ONLY on the maintainer's explicit
+Production sign-off — the MVP is therefore NOT yet formally complete.** Spec head
+is **v034**. The redesigned, content-updated, fix-refined site is live at
+`https://resume.thewoolleyweb.com`. R4 (beads `li-88e`) stays open pending the
+maintainer's explicit final sign-off; when they give it, perform the Terminal
+step (verify Production/Preview against `constraints.md`, report MVP completion,
+hand off to `plan/ai/`).
+
+- **R4 findings F3 + F4 + F5 — DONE + landed live (2026-07-11, commit
+  `8ab0b3b`, master).** Maintainer-directed after the F1/F2 round. **F3**: each
+  route now self-canonicalizes to its own production URL via a layout `load`
+  (`data.canonical` from `$lib/canonical`; absolute production origin keeps
+  Preview non-canonical) — verified live `/`→`…/`, `/static`→`…/static`.
+  **F4**: added `static/robots.txt` (allow-all + `Sitemap:` ref) and
+  `static/sitemap.xml` (both routes) — verified live (200; previously
+  `/robots.txt` soft-404'd). **F5** (owner mid-review request): markdown bullet
+  lists in item descriptions and the About body now place the bullet marker at
+  the paragraph's left edge (custom `::before` at `left:0`, text hanging ~20px)
+  instead of the browser-default ~40px indent — verified live on all 11 item
+  lists. TDD Red→Green single commit (anchor `src/routes/layout.test.ts` asserts
+  the per-route canonical); `canonicalHref`/`load` unit-covered; metadata e2e
+  asserts per-route canonical + served robots/sitemap; `bun run check`
+  all-gates-green; landed via worktree fast-forward; redeployed and verified. No
+  governed data / pinned scope / behavioral scenario changed.
 
 - **R4 formal LLM live-site review — DONE + fixes landed live (2026-07-11,
   commit `fe90226`, master).** Reviewed the running Production site (`/` and
@@ -318,19 +336,20 @@ The work-item orchestrator is `livespec-orchestrator-beads-fabro`, backed by the
 
 Next ripe action: **R4 — obtain the maintainer's explicit final Production
 sign-off (slice R4, beads `li-88e`)** — the last remaining maintainer blocker.
-The formal LLM live-site review is DONE (all dimensions pass), and the two
-findings the maintainer chose to fix (F1 interactive `<h1>`, F2 native-control
-`color-scheme`) are landed (`fe90226`) and verified live at
-`https://resume.thewoolleyweb.com` (and `/static`). Nothing else is ripe for
-autonomous work: F3 (`/static` canonical → `/`) only needs the maintainer to
-confirm intent and F4 (no `robots.txt`) is acceptable as-is. On the maintainer's
-explicit sign-off, perform the Terminal step — verify Production/Preview against
-`constraints.md` §"Framework and deployment" / §"Accessibility and responsive
-behavior" / §"Performance and availability" (and that Preview is non-indexed),
-report MVP completion, and hand off to the AI delivery thread `plan/ai/`. If the
-maintainer instead reports further tweaks, apply each under the same guardrail
-discipline (data/spec edits via a new vNNN where needed, re-deploy). R1/R2/R3 and
-the LLM review are done; only R4's formal sign-off remains.
+The formal LLM live-site review is DONE (all dimensions pass) and EVERY surfaced
+finding is now resolved and verified live: F1 (interactive `<h1>`) + F2
+(native-control `color-scheme`) in `fe90226`, and F3 (per-route self-canonical) +
+F4 (`robots.txt`/`sitemap.xml`) + F5 (bullet markers at the paragraph left edge)
+in `8ab0b3b`. There is no remaining autonomous work — the site at
+`https://resume.thewoolleyweb.com` (and `/static`) reflects all fixes. On the
+maintainer's explicit sign-off, perform the Terminal step — verify
+Production/Preview against `constraints.md` §"Framework and deployment" /
+§"Accessibility and responsive behavior" / §"Performance and availability" (and
+that Preview is non-indexed), report MVP completion, and hand off to the AI
+delivery thread `plan/ai/`. If the maintainer instead reports further tweaks,
+apply each under the same guardrail discipline (data/spec edits via a new vNNN
+where needed, re-deploy). R1/R2/R3 and the LLM review are done; only R4's formal
+sign-off remains.
 
 ## Resume
 
