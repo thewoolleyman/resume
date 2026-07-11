@@ -142,16 +142,22 @@ Only non-derivable state is recorded here; the current ripe work item is
 derivable by running the livespec-orchestrator-beads-fabro `next` skill against
 the beads store.
 
-**Current state: PORT + R1 (live deploy) + R2 (redesign) + R3 (redeploy) are
-DONE and live; the R4 formal LLM live-site review is DONE (all dimensions pass);
-ALL surfaced findings are resolved and redeployed live — F1+F2 (`fe90226`) and
-F3+F4+F5 (`8ab0b3b`); R4 is now waiting ONLY on the maintainer's explicit
-Production sign-off — the MVP is therefore NOT yet formally complete.** Spec head
-is **v034**. The redesigned, content-updated, fix-refined site is live at
-`https://resume.thewoolleyweb.com`. R4 (beads `li-88e`) stays open pending the
-maintainer's explicit final sign-off; when they give it, perform the Terminal
-step (verify Production/Preview against `constraints.md`, report MVP completion,
-hand off to `plan/ai/`).
+**Current state: THE MVP IS COMPLETE (2026-07-11).** PORT + R1 (live deploy) +
+R2 (redesign) + R3 (redeploy) + R4 (review + sign-off) are all DONE. The
+maintainer reviewed the running Production site and gave explicit sign-off; R4
+(beads `li-88e`) is CLOSED with sign-off evidence and no work items remain open.
+Spec head is **v034**. The redesigned, reviewed site is live at
+`https://resume.thewoolleyweb.com` (and `/static`). All R4 review findings F1–F5
+are resolved and verified live (F1+F2 `fe90226`; F3+F4+F5 `8ab0b3b`). The
+Terminal step is done: Production/Preview verified against `constraints.md`
+§"Framework and deployment" / §"Accessibility and responsive behavior" /
+§"Performance and availability" (Preview non-indexed via Vercel SSO +
+absolute-origin canonical); 16 sections / 74 items live; all 36 scenarios green;
+`bun run check` all-gates-ACTIVE. **This thread (`plan/mvp/`) is complete.** The
+next milestone is the separate **AI delivery** in **`plan/ai/`** — the `/ai`
+answering behavior and the MCP server — which begins only when a future livespec
+proposed change activates those surfaces and is held to the same
+live-and-reviewed bar. No further `plan/mvp/` action is ripe.
 
 - **R4 findings F3 + F4 + F5 — DONE + landed live (2026-07-11, commit
   `8ab0b3b`, master).** Maintainer-directed after the F1/F2 round. **F3**: each
@@ -334,27 +340,28 @@ The work-item orchestrator is `livespec-orchestrator-beads-fabro`, backed by the
 `resume` beads/Dolt tenant. Drive work through its operator loop — `drive` /
 `plan` / `needs-attention` / `next` / `implement` / `capture-work-item`.
 
-Next ripe action: **R4 — obtain the maintainer's explicit final Production
-sign-off (slice R4, beads `li-88e`)** — the last remaining maintainer blocker.
-The formal LLM live-site review is DONE (all dimensions pass) and EVERY surfaced
-finding is now resolved and verified live: F1 (interactive `<h1>`) + F2
-(native-control `color-scheme`) in `fe90226`, and F3 (per-route self-canonical) +
-F4 (`robots.txt`/`sitemap.xml`) + F5 (bullet markers at the paragraph left edge)
-in `8ab0b3b`. There is no remaining autonomous work — the site at
-`https://resume.thewoolleyweb.com` (and `/static`) reflects all fixes. On the
-maintainer's explicit sign-off, perform the Terminal step — verify
-Production/Preview against `constraints.md` §"Framework and deployment" /
-§"Accessibility and responsive behavior" / §"Performance and availability" (and
-that Preview is non-indexed), report MVP completion, and hand off to the AI
-delivery thread `plan/ai/`. If the maintainer instead reports further tweaks,
-apply each under the same guardrail discipline (data/spec edits via a new vNNN
-where needed, re-deploy). R1/R2/R3 and the LLM review are done; only R4's formal
-sign-off remains.
+Next ripe action: **none for `plan/mvp/` — the MVP is COMPLETE and signed off.**
+All of PORT + R1 + R2 + R3 + R4 are done; the maintainer signed off on the
+running Production site on 2026-07-11; beads `li-88e` is closed and no work items
+remain open. Every R4 finding (F1–F5) is resolved and verified live: F1
+(interactive `<h1>`) + F2 (native-control `color-scheme`) in `fe90226`; F3
+(per-route self-canonical) + F4 (`robots.txt`/`sitemap.xml`) + F5 (bullet markers
+at the paragraph left edge) in `8ab0b3b`. The Terminal step is done (Production/
+Preview verified against `constraints.md`; Preview non-indexed). The next
+milestone is the separate **AI delivery** in **`plan/ai/`** (the `/ai` answering
+behavior + the MCP server), which begins only when a future livespec
+proposed change activates those surfaces and is held to the same
+live-and-reviewed bar. To pick that up, drive from **`plan/ai/handoff.md`**, not
+this thread.
 
 ## Resume
 
-Paste this into Claude Code or Codex:
+This thread (`plan/mvp/`) is **complete** — the MVP shipped and was signed off on
+2026-07-11. Pasting this file's path again will just re-confirm completion.
+
+The next milestone is the separate **AI delivery**. To drive it, paste this into
+Claude Code or Codex:
 
 ```text
-plan/mvp/handoff.md
+plan/ai/handoff.md
 ```
