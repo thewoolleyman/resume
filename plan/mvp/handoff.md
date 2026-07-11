@@ -143,13 +143,37 @@ derivable by running the livespec-orchestrator-beads-fabro `next` skill against
 the beads store.
 
 **Current state: PORT + R1 (live deploy) + R2 (redesign) + R3 (redeploy) are
-DONE and live; R4 review is IN PROGRESS with interim maintainer acceptance
-("good enough for now") but NO formal Production sign-off yet — the MVP is
-therefore NOT formally complete.** Spec head is **v034**. The redesigned,
-content-updated, fix-refined site is live at `https://resume.thewoolleyweb.com`.
-R4 (beads `li-88e`) stays open pending the maintainer's explicit final sign-off;
-when they give it, perform the Terminal step (verify Production/Preview against
+DONE and live; the R4 formal LLM live-site review is DONE (all dimensions pass;
+findings F1+F2 fixed and redeployed live); R4 is now waiting ONLY on the
+maintainer's explicit Production sign-off — the MVP is therefore NOT yet
+formally complete.** Spec head is **v034**. The redesigned, content-updated,
+fix-refined site is live at `https://resume.thewoolleyweb.com`. R4 (beads
+`li-88e`) stays open pending the maintainer's explicit final sign-off; when they
+give it, perform the Terminal step (verify Production/Preview against
 `constraints.md`, report MVP completion, hand off to `plan/ai/`).
+
+- **R4 formal LLM live-site review — DONE + fixes landed live (2026-07-11,
+  commit `fe90226`, master).** Reviewed the running Production site (`/` and
+  `/static`) across every R4 dimension — deploy/HTTP, metadata parity, cross-links,
+  data/behavior parity (16 sections / 74 items live), a11y (16 region landmarks,
+  labeled controls), responsive (no h-scroll at 1280 & 375, nav collapses),
+  the v034 nav-dropdown dismissal (Escape + outside-click re-verified live),
+  light/dark (dark nav band both themes, body-text contrast ≈7.6:1), and search
+  (`validated` → exactly `Growth / Lean`; no-match → explicit no-results). All
+  pass. Four minor findings surfaced; the maintainer chose to fix **F1 + F2**:
+  **F1** promoted the interactive `/` header name from `<p>` to
+  `<h1 class="resume-name">` (it was the only surface without an `<h1>`; `/static`
+  already had one) — visual byte-unchanged since `.resume-name` pins
+  margin/font-size/font-weight; **F2** added `color-scheme: light dark` on `:root`
+  (content-area sort `<select>`s follow the OS theme) and `color-scheme: dark` on
+  the always-dark `.sticky-nav` (search box + Skill Levels checkboxes). TDD
+  Red→Green single commit (anchor `ResumeApp.test.ts` asserts the `<h1>`);
+  `bun run check` all-gates-green; landed via worktree fast-forward; redeployed
+  (`vercel deploy --prod`, auto-aliased to the custom domain) and verified live
+  (exactly one `<h1>`, `H1→H2` outline, both `color-scheme` rules in the served
+  CSS). Findings **F3** (`/static` canonical → `/`, confirm intent) and **F4**
+  (no `robots.txt`, acceptable) were left as-is per the maintainer's F1+F2 focus.
+  No governed data / pinned scope / behavioral scenario changed.
 
 - **R4 review fixes — landed + live (2026-07-11, spec v034, commit `f5a0456`).**
   Two owner-reported live-site defects fixed under guardrail discipline: (1) the
@@ -292,20 +316,21 @@ The work-item orchestrator is `livespec-orchestrator-beads-fabro`, backed by the
 `resume` beads/Dolt tenant. Drive work through its operator loop — `drive` /
 `plan` / `needs-attention` / `next` / `implement` / `capture-work-item`.
 
-Next ripe action: **R4 — continue the review of the running site and obtain the
-maintainer's explicit final sign-off (slice R4, beads `li-88e`)** — the final
-maintainer blocker. The redesigned, content-updated, fix-refined site is live at
-`https://resume.thewoolleyweb.com` (and `/static`) and the maintainer has given
-interim acceptance ("good enough for now"). A ripe next action is to either (a)
-apply any further design/content tweaks the maintainer reports, each under the
-same guardrail discipline (data/spec edits via a new vNNN, re-deploy), or (b) on
-the maintainer's explicit final sign-off, perform the Terminal step — verify
-Production/Preview against `constraints.md` §"Framework and deployment" /
-§"Accessibility and responsive behavior" / §"Performance and availability" (and
-that Preview is non-indexed), report MVP completion, and hand off to the AI
-delivery thread `plan/ai/`. The LLMs MAY also run a formal live-site review
-(a11y/contrast, responsive, metadata, light/dark, cross-environment) before that
-sign-off. R1/R2/R3 are done; only R4's formal sign-off remains.
+Next ripe action: **R4 — obtain the maintainer's explicit final Production
+sign-off (slice R4, beads `li-88e`)** — the last remaining maintainer blocker.
+The formal LLM live-site review is DONE (all dimensions pass), and the two
+findings the maintainer chose to fix (F1 interactive `<h1>`, F2 native-control
+`color-scheme`) are landed (`fe90226`) and verified live at
+`https://resume.thewoolleyweb.com` (and `/static`). Nothing else is ripe for
+autonomous work: F3 (`/static` canonical → `/`) only needs the maintainer to
+confirm intent and F4 (no `robots.txt`) is acceptable as-is. On the maintainer's
+explicit sign-off, perform the Terminal step — verify Production/Preview against
+`constraints.md` §"Framework and deployment" / §"Accessibility and responsive
+behavior" / §"Performance and availability" (and that Preview is non-indexed),
+report MVP completion, and hand off to the AI delivery thread `plan/ai/`. If the
+maintainer instead reports further tweaks, apply each under the same guardrail
+discipline (data/spec edits via a new vNNN where needed, re-deploy). R1/R2/R3 and
+the LLM review are done; only R4's formal sign-off remains.
 
 ## Resume
 
