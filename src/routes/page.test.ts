@@ -20,7 +20,12 @@ describe("interactive route (/)", () => {
   it("renders the interactive resume app from the loaded data", () => {
     const component = mount(Page, {
       target,
-      props: { data: { resume: makeResumeData() } },
+      props: {
+        data: {
+          resume: makeResumeData(),
+          canonical: "https://resume.thewoolleyweb.com/",
+        },
+      },
     });
     expect(target.querySelector(".sticky-nav")).not.toBeNull();
     expect(target.querySelector(".resume-name")?.textContent).toBe(

@@ -9,7 +9,7 @@ import {
 } from "./helpers";
 
 const VIEWPORT = "width=device-width, initial-scale=1, shrink-to-fit=no";
-const CANONICAL = "https://resume.thewoolleyweb.com/";
+const ORIGIN = "https://resume.thewoolleyweb.com";
 
 test("interactive and static surfaces expose predecessor title, description, viewport, icons, and manifest", async ({
   page,
@@ -24,11 +24,14 @@ test("interactive and static surfaces expose predecessor title, description, vie
     // Viewport metadata, verbatim from the predecessor.
     expect(await metaContent(page, "viewport")).toBe(VIEWPORT);
 
-    // Robots + canonical consistent with the preview-non-index rule.
+    // Robots + canonical consistent with the preview-non-index rule. Each route
+    // self-canonicalizes to its OWN production URL (/ → /, /static → /static);
+    // the absolute production origin keeps preview deployments non-canonical
+    // (F3 live-review finding; constraints.md §"Framework and deployment").
     expect(await metaContent(page, "robots")).toBe("index, follow");
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
-      CANONICAL,
+      `${ORIGIN}${path}`,
     );
 
     // Favicon and manifest links served.
@@ -48,4 +51,16 @@ test("interactive and static surfaces expose predecessor title, description, vie
   const sizes = manifest.icons.map((icon) => icon.sizes);
   expect(sizes).toContain("192x192");
   expect(sizes).toContain("512x512");
+
+  // robots.txt allows crawling and points at the sitemap, which lists both
+  // canonical routes (F4 live-review finding).
+  const robots = await (await page.request.get("/robots.txt")).text();
+  expect(robots).toContain(
+    "Sitemap: https://resume.thewoolleyweb.com/sitemap.xml",
+  );
+  const sitemap = await (await page.request.get("/sitemap.xml")).text();
+  expect(sitemap).toContain("<loc>https://resume.thewoolleyweb.com/</loc>");
+  expect(sitemap).toContain(
+    "<loc>https://resume.thewoolleyweb.com/static</loc>",
+  );
 });

@@ -19,7 +19,12 @@ describe("static route (/static)", () => {
   it("renders the fully-expanded static resume from the loaded data", () => {
     const component = mount(Page, {
       target,
-      props: { data: { resume: makeResumeData() } },
+      props: {
+        data: {
+          resume: makeResumeData(),
+          canonical: "https://resume.thewoolleyweb.com/static",
+        },
+      },
     });
     expect(target.querySelector(".static-resume")).not.toBeNull();
     expect(target.querySelector("h1")?.textContent).toBe("Chad Woolley");

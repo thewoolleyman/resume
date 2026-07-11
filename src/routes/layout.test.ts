@@ -20,11 +20,20 @@ describe("root layout", () => {
     expect(prerender).toBe(true);
   });
 
-  it("renders its children and sets the page title", () => {
+  it("renders children and emits the per-route canonical from layout data", () => {
     const children = createRawSnippet(() => ({
       render: () => `<p data-testid="child">child content</p>`,
     }));
-    const component = mount(Layout, { target, props: { children } });
+    // The canonical is the route's own production URL supplied by the layout
+    // load (data.canonical), NOT a hard-coded root — so /static canonicalizes
+    // to /static, not to / (F3 live-review finding; contracts.md §"Web routes").
+    const component = mount(Layout, {
+      target,
+      props: {
+        children,
+        data: { canonical: "https://resume.thewoolleyweb.com/static" },
+      },
+    });
     flushSync();
     expect(target.querySelector('[data-testid="child"]')?.textContent).toBe(
       "child content",
@@ -34,7 +43,7 @@ describe("root layout", () => {
       document.head
         .querySelector('link[rel="canonical"]')
         ?.getAttribute("href"),
-    ).toBe("https://resume.thewoolleyweb.com/");
+    ).toBe("https://resume.thewoolleyweb.com/static");
     expect(document.head.querySelector('meta[name="robots"]')).not.toBeNull();
     void unmount(component);
   });

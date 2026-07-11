@@ -122,6 +122,32 @@ a:hover {
   color: var(--accent-hover);
 }
 
+/* Markdown bullet lists in rendered governed content (item descriptions and the
+   About body). The browser default indents the whole list ~40px; instead the
+   bullet marker sits at the paragraph's own left edge, with the item text
+   hanging just past it (owner live-review). A custom ::before marker keeps the
+   bullet flush at left:0 and aligns wrapped lines under the text regardless of
+   whether the list is tight or loose. These sinks render trusted owner-authored
+   markdown via {@html}, so a global (unscoped) rule is what reaches them. */
+.item-desc ul,
+.about-body ul {
+  margin: 0.45em 0;
+  padding-left: 0;
+  list-style: none;
+}
+.item-desc ul > li,
+.about-body ul > li {
+  position: relative;
+  padding-left: 1.25em;
+}
+.item-desc ul > li::before,
+.about-body ul > li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  color: var(--text-faint);
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

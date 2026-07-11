@@ -25,7 +25,7 @@
   <section class="static-about" aria-labelledby="static-about-title">
     <h2 id="static-about-title">{data.profile.about.title}</h2>
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-    <div>{@html data.profile.about.contentHtml}</div>
+    <div class="about-body">{@html data.profile.about.contentHtml}</div>
   </section>
 
   {#each data.sections as section (section.id)}

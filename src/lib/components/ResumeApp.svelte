@@ -184,7 +184,7 @@
     <section class="panel about-panel" data-testid="about-panel">
       <h2>{data.profile.about.title}</h2>
       <!-- eslint-disable-next-line svelte/no-at-html-tags -->
-      <div>{@html data.profile.about.contentHtml}</div>
+      <div class="about-body">{@html data.profile.about.contentHtml}</div>
     </section>
   {/if}
   {#if instructionsOpen}
