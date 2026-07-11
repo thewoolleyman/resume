@@ -175,7 +175,7 @@
 </nav>
 
 <header class="resume-header">
-  <p class="resume-name">{data.profile.header.name}</p>
+  <h1 class="resume-name">{data.profile.header.name}</h1>
   <p class="resume-contact">{data.profile.header.contact}</p>
 </header>
 
@@ -240,6 +240,10 @@
     background: var(--nav-bg);
     color: var(--nav-text);
     border-bottom: 1px solid var(--nav-border);
+    /* The nav is a dark band in BOTH themes (contracts.md §"Layout and
+       controls"), so its native controls — the search box and the Skill
+       Levels checkboxes — must always render for a dark surface. */
+    color-scheme: dark;
   }
   .nav-inner {
     max-width: var(--maxw);

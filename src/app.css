@@ -17,6 +17,12 @@
 }
 
 :root {
+  /* Advertise support for both themes so native form controls (the per-section
+     sort <select>s in the content area) follow the visitor's OS theme — the
+     content surface is light in light mode and near-black in dark mode. The
+     always-dark nav band pins its own controls to `color-scheme: dark`. */
+  color-scheme: light dark;
+
   --font-sans:
     "Geist", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;

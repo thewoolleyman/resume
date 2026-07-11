@@ -43,6 +43,12 @@ describe("ResumeApp", () => {
     expect(target.querySelector(".resume-name")?.textContent).toBe(
       "Chad Woolley",
     );
+    // The header name is the document's top-level heading — an <h1>, matching
+    // /static — so the interactive page has a proper heading outline rather
+    // than starting at the section <h2>s (F1 live-review finding).
+    const nameHeading = target.querySelector("h1.resume-name");
+    expect(nameHeading).not.toBeNull();
+    expect(nameHeading?.textContent).toBe("Chad Woolley");
     expect(target.querySelector(".resume-contact")?.textContent).toContain(
       "example.com",
     );
