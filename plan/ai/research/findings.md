@@ -1,7 +1,7 @@
 # Research - AI delivery (AI-driven mode + MCP server)
 
 Design of record for `plan/ai/`. This thread is the **separate, later delivery**
-that follows the MVP (`plan/mvp/`). It deals ONLY with adding the AI/LLM-related
+that follows the MVP (`plan/archive/mvp/`). It deals ONLY with adding the AI/LLM-related
 surfaces: AI-driven question-answering mode at `/ai` and the MCP server. It does
 NOT touch the ported interactive/static surfaces except where AI/MCP integration
 requires shared data-access modules.
@@ -11,7 +11,7 @@ The active handoff is `plan/ai/handoff.md`.
 ## Precondition: this thread starts only after the MVP ships
 
 This delivery begins ONLY after the MVP is complete per
-`plan/mvp/research/findings.md` §"Completion criteria" — the ported interactive
+`plan/archive/mvp/research/findings.md` §"Completion criteria" — the ported interactive
 and static surfaces are parity-green, visually redesigned, deployed live across
 all environment classes, and reviewed and signed off by the maintainer on the
 running Production site.

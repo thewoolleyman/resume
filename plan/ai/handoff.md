@@ -2,7 +2,7 @@
 
 **Thread:** `plan/ai/` - **Driver-agnostic:** paste this file's path into either
 Claude Code or Codex. This is the **separate, later delivery** that follows the
-MVP (`plan/mvp/`). It adds ONLY the AI/LLM surfaces — AI-driven mode at `/ai`
+MVP (`plan/archive/mvp/`). It adds ONLY the AI/LLM surfaces — AI-driven mode at `/ai`
 and the MCP server — held to the same live-and-reviewed bar as the MVP, under
 the repository guardrail discipline.
 
@@ -13,8 +13,10 @@ server are non-load-bearing until a future proposed change activates them, and
 they follow the MVP. This thread is **blocked on MVP completion** — the ported
 interactive/static surfaces redesigned, deployed live across all environment
 classes, and reviewed/signed-off on the running Production site
-(`plan/mvp/research/findings.md` §"Completion criteria"). If the MVP is not yet
-complete, the ripe action is in `plan/mvp/`, not here.
+(`plan/archive/mvp/research/findings.md` §"Completion criteria"). The MVP completed and was
+signed off on 2026-07-11 (its thread is archived at `plan/archive/mvp/`), so
+that precondition is now met; this thread still begins only once a future
+livespec proposed change activates the AI/MCP surfaces (next section).
 
 ## Read first
 
