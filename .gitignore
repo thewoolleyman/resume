@@ -23,3 +23,6 @@ playwright-report/
 
 # Vercel CLI local env download (VERCEL_OIDC_TOKEN etc.)
 .env*.local
+
+# Overseer / scratch temp dir (livespec overseer writes markers here)
+tmp/
