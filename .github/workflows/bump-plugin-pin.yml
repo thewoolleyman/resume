@@ -20,10 +20,13 @@
 # The rewrite refuses to touch a `release` ref and refuses a tag that is not a
 # concrete version; both refusals are pinned by scripts/bump-plugin-pin.test.ts.
 #
-# The pull request is opened with GITHUB_TOKEN, which is enough to push a branch
-# and open a PR. Enabling auto-merge needs the App identity that
-# auto-enable-merge.yml uses, so a bump PR lands through the ordinary review
-# path rather than merging itself.
+# The pull request is opened with a short-lived GitHub App installation token,
+# the same identity auto-enable-merge.yml uses. GITHUB_TOKEN cannot be used
+# here: this repository blocks Actions from creating pull requests
+# ("GitHub Actions is not permitted to create or approve pull requests"), and
+# that is a repository setting rather than a token scope, so no `permissions:`
+# block can grant it. The App identity also makes the bump PR eligible for the
+# auto-merge lane once that job allowlists automation authors.
 
 name: bump-plugin-pin
 
@@ -48,7 +51,29 @@ jobs:
   bump:
     runs-on: ubuntu-latest
     steps:
+      - name: Check the GitHub App secrets are provisioned
+        id: secrets
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+        run: |
+          if [ -n "$APP_ID" ]; then
+            echo "provisioned=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "provisioned=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::APP_ID is not provisioned; the pin bump cannot open a pull request"
+          fi
+
+      - name: Mint a short-lived installation token
+        if: steps.secrets.outputs.provisioned == 'true'
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
+        with:
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
 
       - uses: oven-sh/setup-bun@v2
         with:
@@ -80,9 +105,11 @@ jobs:
             --tag "${{ steps.inputs.outputs.tag }}"
 
       - name: Open the bump pull request
-        if: steps.bump.outputs.bumped == 'true'
+        if: >-
+          steps.bump.outputs.bumped == 'true'
+          && steps.secrets.outputs.provisioned == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           SOURCE_REPO: ${{ steps.inputs.outputs.source_repo }}
           TAG: ${{ steps.inputs.outputs.tag }}
         run: |
