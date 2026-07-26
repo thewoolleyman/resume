@@ -292,19 +292,29 @@ function verifyPinBumpLane(root: string): string[] {
     return [".github/workflows/bump-plugin-pin.yml is not parseable YAML"];
   }
   const failures: string[] = [];
-  const raw = readFileSync(path, "utf8");
   const schedule = (workflow.on ?? {})["schedule"];
   if (!Array.isArray(schedule) || schedule.length === 0) {
     failures.push(
       "bump-plugin-pin.yml must carry a `schedule` trigger — it is the only path that advances the pin without a cross-repo credential, since the producer's dispatch hop is unauthorized by design",
     );
   }
-  if (!raw.includes("releases/latest")) {
+  // Every content assertion below reads the PARSED `run:` bodies, never the
+  // file text. Scanning raw YAML conflates "the workflow DOES this" with "a
+  // comment MENTIONS this", and both directions of that confusion are real
+  // here: openbrain's bump lane pushes directly yet its header comment
+  // contains the words `gh pr create` (describing a past failure), so a raw
+  // scan would demand an auto-merge allowlist from a lane that opens no pull
+  // request. The mirror-image bug — a raw scan satisfied by a comment — is
+  // pinned separately by the bot-named-only-in-a-comment fixture.
+  const runBodies = workflowSteps(workflow)
+    .map((step) => step.run ?? "")
+    .join("\n");
+  if (!runBodies.includes("releases/latest")) {
     failures.push(
       "bump-plugin-pin.yml must resolve the source repository's latest release (releases/latest) when no tag is supplied — a scheduled run carries neither a dispatch payload nor an input",
     );
   }
-  if (raw.includes("gh pr create")) {
+  if (runBodies.includes("gh pr create")) {
     const mergePath = join(
       root,
       ".github",
