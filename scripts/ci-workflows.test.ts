@@ -140,6 +140,40 @@ const AUTO_MERGE_YML_WITH_BOT = VALID_AUTO_MERGE_YML.replace(
       )`,
 );
 
+// A direct-push lane whose HEADER COMMENT happens to contain "gh pr create"
+// — openbrain's real shape: its comment describes a past run that failed at
+// that step, while the lane itself pushes. A raw-text scan demands an
+// auto-merge allowlist from it; a parsed scan correctly does not.
+const BUMP_PIN_YML_PUSHES_BUT_COMMENT_MENTIONS_PR = `# This lane lands by direct
+# push. An earlier revision opened a pull request and failed at \`gh pr create\`,
+# which is why it does not any more.
+name: bump-plugin-pin
+on:
+  schedule:
+    - cron: "37 6 * * *"
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh api "repos/$OWNER/$SOURCE_REPO/releases/latest" --jq '.tag_name'
+      - run: git push origin HEAD:master
+`;
+
+// The pull resolve named only in a comment: the lane cannot actually resolve a
+// tag, so a scheduled run — which carries no payload and no input — dies.
+const BUMP_PIN_YML_RESOLVE_ONLY_IN_A_COMMENT = `name: bump-plugin-pin
+on:
+  schedule:
+    - cron: "37 6 * * *"
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      # Resolves the newest tag via repos/OWNER/REPO/releases/latest.
+      - run: echo "$TAG_FROM_PAYLOAD"
+      - run: git push origin HEAD:master
+`;
+
 // The trap this suite exists to keep shut: the bot named ONLY in a comment.
 // A raw-text scan for "[bot]" accepts this file; the eligibility expression
 // still allowlists nobody, so the bump pull request still waits for a human.
@@ -611,6 +645,38 @@ describe("the pinned-consumer bump lane must be able to run unattended", () => {
   // The control for every refusal above: a lane that does NOT open a pull
   // request needs no allowlist at all — openbrain's shape, which pushes
   // directly to its default branch and so never waits on a merge decision.
+  // THE MIRROR-IMAGE FALSE POSITIVE. A raw-text scan for "gh pr create" also
+  // misfires the other way: openbrain's real lane pushes directly, but its
+  // header comment contains that exact string describing a past failure. Under
+  // a raw scan that lane is told to add an auto-merge allowlist it does not
+  // need — a check that fails correct configurations is as bad as one that
+  // passes broken ones.
+  test("a direct-push lane is not accused merely because a COMMENT says gh pr create", () => {
+    expect(BUMP_PIN_YML_PUSHES_BUT_COMMENT_MENTIONS_PR).toContain(
+      "gh pr create",
+    );
+    const { exitCode, output } = runCi(
+      makeFixture({
+        bumpPinYml: BUMP_PIN_YML_PUSHES_BUT_COMMENT_MENTIONS_PR,
+        autoMergeYml: VALID_AUTO_MERGE_YML,
+      }),
+    );
+    expect(output).not.toContain("allowlists no automation identity");
+    expect(exitCode).toBe(0);
+  });
+
+  test("a pull resolve named only in a COMMENT does not count as resolving", () => {
+    expect(BUMP_PIN_YML_RESOLVE_ONLY_IN_A_COMMENT).toContain("releases/latest");
+    const { exitCode, output } = runCi(
+      makeFixture({
+        bumpPinYml: BUMP_PIN_YML_RESOLVE_ONLY_IN_A_COMMENT,
+        autoMergeYml: VALID_AUTO_MERGE_YML,
+      }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("releases/latest");
+  });
+
   test("a bump lane that pushes directly needs no allowlist", () => {
     const { exitCode, output } = runCi(
       makeFixture({
