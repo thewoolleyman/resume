@@ -18,6 +18,10 @@
 //   short-lived GitHub App installation token (secrets APP_ID /
 //   APP_PRIVATE_KEY), and enables rebase auto-merge via
 //   `gh pr merge ... --auto --rebase`.
+// - .github/workflows/bump-plugin-pin.yml, when present, carries a `schedule`
+//   trigger and a `releases/latest` pull resolve, and — if it opens a pull
+//   request — auto-enable-merge.yml allowlists an automation identity, so the
+//   pin advances unattended rather than merely opening a pull request.
 // - No workflow may implement an auto-update-branches mechanism.
 // - .github/README.md documents the required status-check name, merge
 //   methods, branch-protection/linear-history layout, non-strict policy,
@@ -254,6 +258,79 @@ function verifyNoBranchUpdater(root: string): string[] {
   return failures;
 }
 
+// The plugin-pin bump lane must be able to run UNATTENDED, which is a property
+// of three things agreeing across two files. Each was separately absent at some
+// point, and the lane looked healthy every time:
+//
+//   1. a `schedule` trigger — without it the lane depends entirely on the
+//      producer's `repository_dispatch`, which is unauthorized by design
+//      (adopters bring their own App). Measured on livespec-overseer v0.13.0:
+//      `delivered: 0, unauthorized: 3`. No schedule, no advance, ever.
+//   2. a PULL resolve of the source repository's latest release, so a run that
+//      carries no payload and no input can still determine a tag. A scheduled
+//      run has neither.
+//   3. if the lane opens a PULL REQUEST, `auto-enable-merge.yml` must allowlist
+//      the identity that opens it. This is the one that actually bit: the lane
+//      opened PRs #8 and #9 as `resume-pr-bot[bot]`, auto-enable-merge gated on
+//      the repository owner alone, both runs read `skipped`, and both PRs were
+//      merged by hand. The lane had degraded from "the pin advances" to "a pull
+//      request appears" with nothing red.
+//
+// Note why the pre-existing `github.repository_owner` assertion could not catch
+// (3): it is satisfied by the owner-only expression, which is exactly the
+// broken state. A cross-file coupling needs a cross-file check.
+//
+// Scoped to a repository that HAS this lane — a repo without
+// bump-plugin-pin.yml is not in violation, it simply is not a pinned consumer.
+function verifyPinBumpLane(root: string): string[] {
+  const path = join(root, ".github", "workflows", "bump-plugin-pin.yml");
+  if (!existsSync(path)) {
+    return [];
+  }
+  const workflow = parseWorkflow(path);
+  if (workflow === null) {
+    return [".github/workflows/bump-plugin-pin.yml is not parseable YAML"];
+  }
+  const failures: string[] = [];
+  const raw = readFileSync(path, "utf8");
+  const schedule = (workflow.on ?? {})["schedule"];
+  if (!Array.isArray(schedule) || schedule.length === 0) {
+    failures.push(
+      "bump-plugin-pin.yml must carry a `schedule` trigger — it is the only path that advances the pin without a cross-repo credential, since the producer's dispatch hop is unauthorized by design",
+    );
+  }
+  if (!raw.includes("releases/latest")) {
+    failures.push(
+      "bump-plugin-pin.yml must resolve the source repository's latest release (releases/latest) when no tag is supplied — a scheduled run carries neither a dispatch payload nor an input",
+    );
+  }
+  if (raw.includes("gh pr create")) {
+    const mergePath = join(
+      root,
+      ".github",
+      "workflows",
+      "auto-enable-merge.yml",
+    );
+    const mergeWorkflow = existsSync(mergePath)
+      ? parseWorkflow(mergePath)
+      : null;
+    // Read the PARSED eligibility expressions, never the file text. The first
+    // version of this check scanned the raw file for "[bot]" and stayed GREEN
+    // under the sabotage it exists to catch, because the surrounding comment
+    // block names the bot in prose. A substring hit in a comment proves the
+    // identity was DISCUSSED, not that it is eligible.
+    const eligibility = Object.values(mergeWorkflow?.jobs ?? {})
+      .map((job) => job.if ?? "")
+      .join("\n");
+    if (!eligibility.includes("[bot]")) {
+      failures.push(
+        "bump-plugin-pin.yml opens a pull request, but auto-enable-merge.yml's job eligibility expression allowlists no automation identity — the bump pull request would open and then wait for a human, so the pin would not advance unattended",
+      );
+    }
+  }
+  return failures;
+}
+
 function verifyDocumentation(root: string): string[] {
   const path = join(root, GITHUB_DOC_PATH);
   if (!existsSync(path)) {
@@ -365,6 +442,7 @@ export function verifyCiProvisioning(root: string): CiVerification {
   const failures = [
     ...verifyCheckWorkflow(root, pkg),
     ...verifyAutoMergeWorkflow(root),
+    ...verifyPinBumpLane(root),
     ...verifyNoBranchUpdater(root),
     ...verifyDocumentation(root),
     ...verifyScriptsDocumentation(root),
