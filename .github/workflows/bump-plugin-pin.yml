@@ -1,0 +1,113 @@
+# Advance this project's Claude plugin marketplace pin when a sibling publishes
+# a release.
+#
+# This project is a version-PINNED consumer: its `.claude/settings.json`
+# marketplace entries name concrete release tags rather than the moving
+# `release` branch ref that fleet members use. A concrete pin does not follow a
+# release, so this lane is what keeps it from going stale — without it the
+# pinned posture is indistinguishable from an abandoned one.
+#
+# The released tag arrives in the dispatch payload and is never looked up. This
+# repository's `GITHUB_TOKEN` is scoped to this repository alone and cannot read
+# a private sibling's releases, so a poll-based design cannot work here.
+#
+# Triggers:
+#   repository_dispatch (sibling-released) — the fleet's release fan-out shape,
+#     carrying source_repo + tag. This is the unattended path.
+#   workflow_dispatch — the same lane with a hand-supplied tag, for verifying
+#     the lane and for catching up after a missed dispatch.
+#
+# The rewrite refuses to touch a `release` ref and refuses a tag that is not a
+# concrete version; both refusals are pinned by scripts/bump-plugin-pin.test.ts.
+#
+# The pull request is opened with GITHUB_TOKEN, which is enough to push a branch
+# and open a PR. Enabling auto-merge needs the App identity that
+# auto-enable-merge.yml uses, so a bump PR lands through the ordinary review
+# path rather than merging itself.
+
+name: bump-plugin-pin
+
+on:
+  repository_dispatch:
+    types: [sibling-released]
+  workflow_dispatch:
+    inputs:
+      source_repo:
+        description: Sibling repository whose release is being pinned
+        required: true
+        default: livespec-overseer
+      tag:
+        description: Released tag to pin (concrete version, e.g. v0.12.3)
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Resolve the dispatch inputs
+        id: inputs
+        env:
+          # repository_dispatch carries the payload; workflow_dispatch carries
+          # inputs. Exactly one is populated for any given run.
+          SOURCE_REPO: >-
+            ${{ github.event.client_payload.source_repo
+                || inputs.source_repo }}
+          TAG: >-
+            ${{ github.event.client_payload.tag || inputs.tag }}
+        run: |
+          if [ -z "$SOURCE_REPO" ] || [ -z "$TAG" ]; then
+            echo "::error::source_repo and tag are both required" >&2
+            exit 1
+          fi
+          echo "source_repo=$SOURCE_REPO" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Advance the pin
+        id: bump
+        run: |
+          bun scripts/bump-plugin-pin.ts \
+            --source-repo "${{ steps.inputs.outputs.source_repo }}" \
+            --tag "${{ steps.inputs.outputs.tag }}"
+
+      - name: Open the bump pull request
+        if: steps.bump.outputs.bumped == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SOURCE_REPO: ${{ steps.inputs.outputs.source_repo }}
+          TAG: ${{ steps.inputs.outputs.tag }}
+        run: |
+          branch="chore/bump-${SOURCE_REPO}-pin-${TAG}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add .claude/settings.json
+          # `chore(deps):` keeps the bump out of a release-worthy commit range,
+          # matching the fleet's bump-pin convention.
+          git commit -m "chore(deps): bump ${SOURCE_REPO} plugin pin to ${TAG}"
+          git push origin "$branch"
+          cat > /tmp/bump-body.md <<'BODY'
+          Advances the marketplace pin in `.claude/settings.json` to the newly
+          released tag.
+
+          This project is a version-pinned consumer, so the pin does not follow
+          a release on its own. Opened unattended by `bump-plugin-pin.yml`.
+
+          The lane rewrites only concrete-version refs — a `release` ref is left
+          alone, so a channel-following consumer is never silently converted to
+          a pinned one.
+          BODY
+          gh pr create \
+            --base "${GITHUB_REF_NAME}" \
+            --head "$branch" \
+            --title "chore(deps): bump ${SOURCE_REPO} plugin pin to ${TAG}" \
+            --body-file /tmp/bump-body.md
