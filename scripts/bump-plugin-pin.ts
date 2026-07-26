@@ -9,11 +9,19 @@
 // the pin silently goes stale — the plugin keeps resolving an older build
 // forever.
 //
-// The released tag arrives as INPUT, never by lookup. A `GITHUB_TOKEN` in this
-// repository's CI is scoped to this repository alone and cannot read a private
-// sibling's releases, so a "poll for the latest release" design cannot work
-// here. The tag is carried in the `repository_dispatch` payload that the
-// producing repository sends on release, and passed to this script.
+// The released tag arrives as INPUT to THIS script, but that is a division of
+// labor, not a limitation: resolving the tag belongs to the caller
+// (`bump-plugin-pin.yml`), so this module stays a pure, testable rewrite.
+//
+// An earlier version of this comment claimed a "poll for the latest release"
+// design "cannot work here", because a repository-scoped `GITHUB_TOKEN` cannot
+// read a PRIVATE sibling's releases. That premise is FALSE and the lane now
+// depends on it being false: `livespec-overseer` is a PUBLIC repository, its
+// `releases/latest` is readable anonymously, and the workflow's scheduled pull
+// resolves the tag with this repository's own token and no cross-repo
+// credential at all. Do not restore the dispatch-only reading — the push hop
+// from the producer is unauthorized by design (adopters bring their own App),
+// so the pull is what makes the lane work.
 //
 // Two refusals are load-bearing, and both are pinned by tests:
 //   - a `ref` that is NOT a concrete version is never rewritten. A `release`
