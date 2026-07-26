@@ -63,6 +63,7 @@ const ORDINARY_EXACT_PATHS = [
   ".claude/hooks/background-gate-guard.ts",
   ".claude/hooks/subagent-stop-guard.ts",
   ".claude/hooks/session-plugin-freshness.ts",
+  ".claude/hooks/ensure-plugins.ts",
   ".prettierrc.json",
   ".prettierignore",
   ".livespec.jsonc",
