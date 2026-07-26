@@ -57,7 +57,7 @@ on:
   schedule:
     # Daily; the exact minute is arbitrary and off the hour to avoid the
     # scheduling stampede.
-    - cron: "37 6 * * *"
+    - cron: "45 17 * * *"
   workflow_dispatch:
     inputs:
       source_repo:
