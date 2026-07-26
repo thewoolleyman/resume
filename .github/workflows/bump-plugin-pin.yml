@@ -25,11 +25,21 @@
 # other way round and it was wrong: measured on the v0.13.0 release, the
 # producer's fan-out reported `delivered: 0, unauthorized: 3` — the livespec App
 # reaches no adopter, so the dispatch hop delivers nothing at all. Every advance
-# this lane has made to date was hand-driven (`workflow_dispatch`, or a
-# hand-sent dispatch), and no scheduled run had ever fired. Treat `schedule` as
-# the mechanism that actually keeps the pin fresh, bounding staleness to one
-# day, and `repository_dispatch` as a latency optimization for the day the
-# boundary is authorized.
+# this lane made BEFORE 2026-07-26T21:30Z was hand-driven (`workflow_dispatch`,
+# or a hand-sent dispatch). Treat `schedule` as the mechanism that actually
+# keeps the pin fresh, bounding staleness to one day, and `repository_dispatch`
+# as a latency optimization for the day the boundary is authorized.
+#
+# THE SCHEDULED PATH IS NOW PROVEN, not just reasoned about. On 2026-07-26 this
+# lane fired on `event: schedule` with nothing triggering it and advanced the
+# pin v0.12.4 -> v0.13.1 unattended. Two things learned that are easy to get
+# wrong next time:
+#   - GitHub's lag here is WIDE and variable: +50 and +52 min were observed
+#     against a 86-124 min band measured on a sibling workflow. Do not treat any
+#     figure as a floor, and wait two hours before concluding a run did not fire.
+#     An earlier attempt was abandoned at +39 min, about eleven minutes short.
+#   - A scheduled run carries no payload and no input, so the `releases/latest`
+#     resolve below is what makes it work at all. Do not remove it.
 #
 # The rewrite refuses to touch a `release` ref and refuses a tag that is not a
 # concrete version; both refusals are pinned by scripts/bump-plugin-pin.test.ts.
