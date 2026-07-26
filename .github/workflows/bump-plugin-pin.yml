@@ -7,15 +7,22 @@
 # release, so this lane is what keeps it from going stale — without it the
 # pinned posture is indistinguishable from an abandoned one.
 #
-# The released tag arrives in the dispatch payload and is never looked up. This
-# repository's `GITHUB_TOKEN` is scoped to this repository alone and cannot read
-# a private sibling's releases, so a poll-based design cannot work here.
+# Two ways in, because neither alone is sufficient:
 #
-# Triggers:
 #   repository_dispatch (sibling-released) — the fleet's release fan-out shape,
-#     carrying source_repo + tag. This is the unattended path.
-#   workflow_dispatch — the same lane with a hand-supplied tag, for verifying
-#     the lane and for catching up after a missed dispatch.
+#     carrying source_repo + tag. Instant, but it only fires if the producing
+#     repository can reach this one: adopters sit outside fleet credentials by
+#     design, and the livespec App currently has no dispatch access here.
+#   schedule — a daily PULL that resolves the source repository's latest release
+#     itself. This is what makes the lane work TODAY, with no cross-repo
+#     credential at all, because the source repository is PUBLIC and its
+#     releases are readable by this repository's own GITHUB_TOKEN.
+#   workflow_dispatch — either shape by hand, for verifying the lane and for
+#     catching up immediately after a missed dispatch. Omit the tag to resolve
+#     the latest release.
+#
+# The pull path is the backstop, not the primary: it bounds staleness to one day
+# even when push delivery is unavailable or silently broken.
 #
 # The rewrite refuses to touch a `release` ref and refuses a tag that is not a
 # concrete version; both refusals are pinned by scripts/bump-plugin-pin.test.ts.
@@ -33,15 +40,19 @@ name: bump-plugin-pin
 on:
   repository_dispatch:
     types: [sibling-released]
+  schedule:
+    # Daily; the exact minute is arbitrary and off the hour to avoid the
+    # scheduling stampede.
+    - cron: "37 6 * * *"
   workflow_dispatch:
     inputs:
       source_repo:
         description: Sibling repository whose release is being pinned
-        required: true
+        required: false
         default: livespec-overseer
       tag:
-        description: Released tag to pin (concrete version, e.g. v0.12.3)
-        required: true
+        description: Released tag to pin; omit to resolve the latest release
+        required: false
 
 permissions:
   contents: write
@@ -79,23 +90,36 @@ jobs:
         with:
           bun-version-file: package.json
 
-      - name: Resolve the dispatch inputs
+      - name: Resolve the source repository and released tag
         id: inputs
         env:
-          # repository_dispatch carries the payload; workflow_dispatch carries
-          # inputs. Exactly one is populated for any given run.
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          # repository_dispatch carries a payload; workflow_dispatch carries
+          # inputs; a scheduled run carries neither and falls back to the
+          # default source repository.
           SOURCE_REPO: >-
             ${{ github.event.client_payload.source_repo
-                || inputs.source_repo }}
+                || inputs.source_repo
+                || 'livespec-overseer' }}
           TAG: >-
             ${{ github.event.client_payload.tag || inputs.tag }}
         run: |
-          if [ -z "$SOURCE_REPO" ] || [ -z "$TAG" ]; then
-            echo "::error::source_repo and tag are both required" >&2
+          tag="$TAG"
+          if [ -z "$tag" ]; then
+            # PULL path: the source repository is public, so its latest release
+            # is readable with this repository's own token and needs no
+            # cross-repo credential.
+            tag=$(gh api "repos/$OWNER/$SOURCE_REPO/releases/latest" \
+                    --jq '.tag_name' 2>/dev/null || true)
+          fi
+          if [ -z "$tag" ]; then
+            echo "::error::could not determine a released tag for $SOURCE_REPO" >&2
             exit 1
           fi
           echo "source_repo=$SOURCE_REPO" >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "::notice::resolved $SOURCE_REPO release $tag"
 
       - name: Advance the pin
         id: bump
