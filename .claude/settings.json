@@ -20,12 +20,20 @@
         "repo": "thewoolleyman/livespec-orchestrator-beads-fabro",
         "ref": "v0.13.9"
       }
+    },
+    "livespec-overseer": {
+      "source": {
+        "source": "github",
+        "repo": "thewoolleyman/livespec-overseer",
+        "ref": "v0.12.2"
+      }
     }
   },
   "enabledPlugins": {
     "livespec@livespec": true,
     "livespec@livespec-driver-claude": true,
-    "livespec-orchestrator-beads-fabro@livespec-orchestrator-beads-fabro": true
+    "livespec-orchestrator-beads-fabro@livespec-orchestrator-beads-fabro": true,
+    "livespec-overseer@livespec-overseer": true
   },
   "hooks": {
     "SessionStart": [
