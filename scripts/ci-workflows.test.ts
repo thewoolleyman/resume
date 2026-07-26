@@ -113,9 +113,45 @@ readonly ONEPASSWORD_ENVIRONMENT_ID='exampleenvironmentid00000'
 exec op run --no-masking --environment "$ONEPASSWORD_ENVIRONMENT_ID" -- "$@"
 `;
 
+// A pinned-consumer bump lane that CAN run unattended: a daily schedule, a
+// pull resolve of the source repository's latest release, and a pull request
+// opened for an identity auto-enable-merge allowlists.
+const VALID_BUMP_PIN_YML = `name: bump-plugin-pin
+on:
+  repository_dispatch:
+    types: [sibling-released]
+  schedule:
+    - cron: "37 6 * * *"
+  workflow_dispatch:
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - run: gh api "repos/$OWNER/$SOURCE_REPO/releases/latest" --jq '.tag_name'
+      - run: gh pr create --base master --head "$branch" --title bump
+`;
+
+// auto-enable-merge that allowlists an automation identity beside the owner.
+const AUTO_MERGE_YML_WITH_BOT = VALID_AUTO_MERGE_YML.replace(
+  "      github.event.pull_request.user.login == github.repository_owner",
+  `      (
+        github.event.pull_request.user.login == github.repository_owner ||
+        github.event.pull_request.user.login == 'resume-pr-bot[bot]'
+      )`,
+);
+
+// The trap this suite exists to keep shut: the bot named ONLY in a comment.
+// A raw-text scan for "[bot]" accepts this file; the eligibility expression
+// still allowlists nobody, so the bump pull request still waits for a human.
+const AUTO_MERGE_YML_BOT_ONLY_IN_A_COMMENT = VALID_AUTO_MERGE_YML.replace(
+  "name: auto-enable-merge",
+  "# Trusted automation identities such as resume-pr-bot[bot] land here.\nname: auto-enable-merge",
+);
+
 interface FixtureOptions {
   readonly checkYml?: string | null;
   readonly autoMergeYml?: string | null;
+  readonly bumpPinYml?: string | null;
   readonly readme?: string | null;
   readonly scriptsReadme?: string | null;
   readonly wrapper?: string | null;
@@ -168,6 +204,15 @@ function makeFixture(options: FixtureOptions = {}): string {
   }
   if (options.wrapper !== undefined && options.wrapper !== null) {
     writeFileSync(join(dir, "with-resume-env.sh"), options.wrapper);
+  }
+  // Absent by DEFAULT: a repository without a bump lane is not a pinned
+  // consumer and is not in violation, so every pre-existing fixture keeps
+  // passing untouched.
+  if (options.bumpPinYml !== undefined && options.bumpPinYml !== null) {
+    writeFileSync(
+      join(dir, ".github", "workflows", "bump-plugin-pin.yml"),
+      options.bumpPinYml,
+    );
   }
   if (options.extraWorkflow !== undefined) {
     writeFileSync(
@@ -483,4 +528,100 @@ describe("GitHub CI and pull-request automation gate (li-xjjeqo)", () => {
     expect(gateLine).toContain("[ok]");
     expect(run.exitCode).toBe(0);
   }, 240000);
+});
+
+describe("the pinned-consumer bump lane must be able to run unattended", () => {
+  test("a repository with no bump lane is not in violation", () => {
+    expect(runCi(makeFixture()).exitCode).toBe(0);
+  });
+
+  test("a bump lane with a schedule, a pull resolve, and an allowlisted bot passes", () => {
+    const { exitCode, output } = runCi(
+      makeFixture({
+        bumpPinYml: VALID_BUMP_PIN_YML,
+        autoMergeYml: AUTO_MERGE_YML_WITH_BOT,
+      }),
+    );
+    expect(output).not.toContain("FAIL");
+    expect(exitCode).toBe(0);
+  });
+
+  test("a bump lane with no schedule trigger fails — the dispatch hop is unauthorized by design, so nothing else would ever advance the pin", () => {
+    const { exitCode, output } = runCi(
+      makeFixture({
+        bumpPinYml: VALID_BUMP_PIN_YML.replace(
+          '  schedule:\n    - cron: "37 6 * * *"\n',
+          "",
+        ),
+        autoMergeYml: AUTO_MERGE_YML_WITH_BOT,
+      }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("`schedule` trigger");
+  });
+
+  test("a bump lane that cannot resolve the latest release fails — a scheduled run carries neither a payload nor an input", () => {
+    const { exitCode, output } = runCi(
+      makeFixture({
+        bumpPinYml: VALID_BUMP_PIN_YML.replace(
+          "releases/latest",
+          "tags/pinned",
+        ),
+        autoMergeYml: AUTO_MERGE_YML_WITH_BOT,
+      }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("releases/latest");
+  });
+
+  test("a bump lane that opens a pull request fails when auto-enable-merge allowlists no automation identity", () => {
+    const { exitCode, output } = runCi(
+      makeFixture({
+        bumpPinYml: VALID_BUMP_PIN_YML,
+        autoMergeYml: VALID_AUTO_MERGE_YML,
+      }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("allowlists no automation identity");
+  });
+
+  // THE TOOTHLESS-VERIFIER REGRESSION. The first draft of this check scanned
+  // the raw auto-enable-merge.yml text for "[bot]" and stayed GREEN under the
+  // sabotage above, because the file's own comment block names the bot in
+  // prose. Reading the PARSED job `if` is what gives the check teeth; this test
+  // fails if anyone reverts it to a text scan.
+  test("a bot named only in a COMMENT does not satisfy the allowlist", () => {
+    // The trap is only meaningful if the fixture really would satisfy a raw
+    // text scan, so assert that about the FIXTURE before asserting the check
+    // rejects it anyway. Without this line the test could pass against a
+    // fixture that had quietly lost the comment.
+    expect(AUTO_MERGE_YML_BOT_ONLY_IN_A_COMMENT).toContain(
+      "resume-pr-bot[bot]",
+    );
+    const { exitCode, output } = runCi(
+      makeFixture({
+        bumpPinYml: VALID_BUMP_PIN_YML,
+        autoMergeYml: AUTO_MERGE_YML_BOT_ONLY_IN_A_COMMENT,
+      }),
+    );
+    expect(exitCode).toBe(1);
+    expect(output).toContain("allowlists no automation identity");
+  });
+
+  // The control for every refusal above: a lane that does NOT open a pull
+  // request needs no allowlist at all — openbrain's shape, which pushes
+  // directly to its default branch and so never waits on a merge decision.
+  test("a bump lane that pushes directly needs no allowlist", () => {
+    const { exitCode, output } = runCi(
+      makeFixture({
+        bumpPinYml: VALID_BUMP_PIN_YML.replace(
+          '      - run: gh pr create --base master --head "$branch" --title bump\n',
+          "      - run: git push origin HEAD:master\n",
+        ),
+        autoMergeYml: VALID_AUTO_MERGE_YML,
+      }),
+    );
+    expect(output).not.toContain("FAIL");
+    expect(exitCode).toBe(0);
+  });
 });
