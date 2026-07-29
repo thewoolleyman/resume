@@ -38,7 +38,14 @@
       "livespec": ">=0.1.0,<1.0.0",
       "pinned": "v0.7.1"
     },
-    "dispatcher": { "wip_cap": 5 },
+    // Acceptance policy, set EXPLICITLY to the fleet standard rather than left
+    // to the resolver default: `resolve_acceptance_mode` defaults to
+    // "ai-then-human", so a repo that says nothing silently opts OUT of the
+    // fleet standard and the omission is indistinguishable from agreement.
+    // Maintainer-directed 2026-07-29: every fleet member is "ai-only".
+    // `auto_approve_ready` is a DIFFERENT lever (admission, not acceptance) and
+    // is deliberately not touched here.
+    "dispatcher": { "wip_cap": 5, "acceptance_mode": "ai-only" },
     "connection": {
       "tenant": "resume",
       "prefix": "li",
