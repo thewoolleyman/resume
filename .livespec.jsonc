@@ -85,7 +85,17 @@
     // `auto_approve_ready` is a DIFFERENT lever (admission, not acceptance);
     // it is set true here as part of the maintainer-directed fleet-wide
     // autonomy lever rollout, which explicitly includes this adopter repo.
-    "dispatcher": { "wip_cap": 5, "acceptance_mode": "ai-only", "auto_approve_ready": true },
+    "dispatcher": {
+      "wip_cap": 5,
+      "acceptance_mode": "ai-only",
+      "auto_approve_ready": true,
+      "default_factory": "default",
+      "factories": {
+        "default": {
+          "server": "https://vps.perch-rudd.ts.net:32276"
+        }
+      }
+    },
     "connection": {
       "tenant": "resume",
       "prefix": "li",
