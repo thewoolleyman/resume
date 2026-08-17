@@ -118,10 +118,10 @@
       "wip_cap": 5,
       "acceptance_mode": "ai-only",
       "auto_approve_ready": true,
-      // Cutover to the hp-xubuntu dark-factory host, mirroring
-      // livespec-orchestrator-beads-fabro's own PR #1474: vps was
-      // running under sustained host load, so hp is now the default
-      // and vps stays configured as a fallback via the "default" entry.
+      // Cutover to the hp-xubuntu dark-factory host, mirroring the
+      // orchestrator repo's own vps -> hp cutover: vps was running
+      // under sustained host load, so hp is now the default and vps
+      // stays configured as a fallback via the "default" entry.
       "default_factory": "hp",
       "factories": {
         "default": {
