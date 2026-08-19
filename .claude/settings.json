@@ -79,7 +79,7 @@
       "source": {
         "source": "github",
         "repo": "thewoolleyman/livespec-overseer",
-        "ref": "v0.61.6"
+        "ref": "v0.62.0"
       }
     }
   }
