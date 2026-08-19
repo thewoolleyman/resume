@@ -10,7 +10,19 @@
 # before this workflow is operational (see .github/README.md); until then
 # the guard step emits an actionable notice instead of failing every PR.
 #
-# THE AUTOMATION ALLOWLIST — why `resume-pr-bot[bot]` is on it.
+# THE AUTOMATION ALLOWLIST — why TWO bot identities are on it.
+#
+# `thewoolleyman-factory-bot[bot]` (App 3668528) is the maintainer's single
+# automation App, which this repository is migrating to. `resume-pr-bot[bot]`
+# (App 4243167) is the identity still provisioned in the APP_ID /
+# APP_PRIVATE_KEY secrets today. BOTH are listed deliberately so the cutover
+# has no window in which auto-merge silently stops: whichever identity is
+# actually authoring pull requests matches. Once the secrets are switched and
+# a bump pull request is observed landing as the new App, the stale
+# `resume-pr-bot[bot]` entry SHOULD be removed. Tracked as
+# livespec-orchestrator-beads-fabro ledger bd-ib-l3nptz.12.
+#
+# Why `resume-pr-bot[bot]` was on it in the first place.
 #
 # `bump-plugin-pin.yml` is an UNATTENDED lane: a daily scheduled pull resolves
 # the latest `livespec-overseer` release and opens a pin-bump pull request as
@@ -43,7 +55,8 @@ jobs:
       !contains(github.event.pull_request.labels.*.name, 'do-not-merge') &&
       (
         github.event.pull_request.user.login == github.repository_owner ||
-        github.event.pull_request.user.login == 'resume-pr-bot[bot]'
+        github.event.pull_request.user.login == 'resume-pr-bot[bot]' ||
+        github.event.pull_request.user.login == 'thewoolleyman-factory-bot[bot]'
       )
     runs-on: ubuntu-latest
     steps:
