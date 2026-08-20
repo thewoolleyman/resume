@@ -115,7 +115,7 @@
     // it is set true here as part of the maintainer-directed fleet-wide
     // autonomy lever rollout, which explicitly includes this adopter repo.
     "dispatcher": {
-      "wip_cap": 5,
+      "wip_cap": 10,
       "acceptance_mode": "ai-only",
       "auto_approve_ready": true,
       // Cutover to the hp-xubuntu dark-factory host, mirroring the
