@@ -10,19 +10,31 @@
 # before this workflow is operational (see .github/README.md); until then
 # the guard step emits an actionable notice instead of failing every PR.
 #
-# THE AUTOMATION ALLOWLIST — why TWO bot identities are on it.
+# THE AUTOMATION ALLOWLIST — one bot identity.
 #
 # `thewoolleyman-factory-bot[bot]` (App 3668528) is the maintainer's single
-# automation App, which this repository is migrating to. `resume-pr-bot[bot]`
-# (App 4243167) is the identity still provisioned in the APP_ID /
-# APP_PRIVATE_KEY secrets today. BOTH are listed deliberately so the cutover
-# has no window in which auto-merge silently stops: whichever identity is
-# actually authoring pull requests matches. Once the secrets are switched and
-# a bump pull request is observed landing as the new App, the stale
-# `resume-pr-bot[bot]` entry SHOULD be removed. Tracked as
-# livespec-orchestrator-beads-fabro ledger bd-ib-l3nptz.12.
+# automation App, and is the identity provisioned in the APP_ID /
+# APP_PRIVATE_KEY secrets. It is the only automation identity allowlisted
+# here.
 #
-# Why `resume-pr-bot[bot]` was on it in the first place.
+# `resume-pr-bot[bot]` (App 4243167) was listed alongside it during the
+# cutover, so there was no window in which auto-merge silently stopped. The
+# removal condition this block used to carry is satisfied and the entry is
+# gone: the secrets were switched at 2026-08-22T03:42:48Z, and run
+# 32549501155 minted a token as the new App at 03:43:43Z. The App itself was
+# deleted the same day.
+#
+# One consequence worth knowing, because it is not reversible from here.
+# Deleting an App reassigns its ALREADY-OPEN pull requests to GitHub's
+# `ghost` user: measured 2026-08-22, all 19 pull requests this repository had
+# open from the retired App now report `user.login == "ghost"`. So they match
+# no allowlist arm and will not auto-merge, and the retired entry would not
+# have saved them — `ghost` is deliberately NOT allowlisted, since it is the
+# shared placeholder for every deleted account rather than an identity this
+# repository trusts. Those pull requests need a human merge or a reopen under
+# a live identity.
+#
+# Why an automation identity is on the allowlist at all.
 #
 # `bump-plugin-pin.yml` is an UNATTENDED lane: a daily scheduled pull resolves
 # the latest `livespec-overseer` release and opens a pin-bump pull request as
@@ -55,7 +67,6 @@ jobs:
       !contains(github.event.pull_request.labels.*.name, 'do-not-merge') &&
       (
         github.event.pull_request.user.login == github.repository_owner ||
-        github.event.pull_request.user.login == 'resume-pr-bot[bot]' ||
         github.event.pull_request.user.login == 'thewoolleyman-factory-bot[bot]'
       )
     runs-on: ubuntu-latest
