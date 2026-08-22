@@ -52,12 +52,17 @@
 # block can grant it.
 #
 # THE PULL REQUEST MUST ALSO LAND UNATTENDED, or this lane only notifies.
-# `auto-enable-merge.yml` allowlists `resume-pr-bot[bot]` for exactly that
-# reason, so the bump pull request enables rebase auto-merge on open and lands
-# itself once the required `check` status is green. If that allowlist entry is
-# ever removed, this lane silently degrades from "the pin advances" to "a pull
-# request appears" — which is the state pull requests #8 and #9 were merged out
-# of by hand.
+# `auto-enable-merge.yml` allowlists `thewoolleyman-factory-bot[bot]` (App
+# 3668528) for exactly that reason, so the bump pull request enables rebase
+# auto-merge on open and lands itself once the required `check` status is
+# green. If that allowlist entry is ever removed, this lane silently degrades
+# from "the pin advances" to "a pull request appears" — which is the state
+# pull requests #8 and #9 were merged out of by hand.
+#
+# The allowlisted identity MUST stay in step with the App actually provisioned
+# in APP_ID / APP_PRIVATE_KEY. `resume-pr-bot[bot]` (App 4243167) held both
+# roles until 2026-08-22, when the secrets moved to the shared App and 4243167
+# was deleted; its allowlist entry went with it.
 
 name: bump-plugin-pin
 

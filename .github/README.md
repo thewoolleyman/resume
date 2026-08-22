@@ -70,12 +70,22 @@ automatically on a green `check`
 (merge `1804aa4b7b2dcd75aa7cc834ceeecf1f8a87be91`), with the remote
 branch auto-deleted.
 
-### Required secrets (provisioned 2026-07-08)
+### Required secrets (provisioned 2026-07-08; re-pointed 2026-08-22)
 
 | Secret | Purpose |
 | --- | --- |
-| `APP_ID` | The GitHub App id of the automation App `resume-pr-bot` (app id `4243167`; `pull_requests: write` + `contents: write`; installed on this repository only, installation `145115216`). |
+| `APP_ID` | The GitHub App id of the maintainer's shared automation App `thewoolleyman-factory-bot` (app id `3668528`; `pull_requests: write` + `contents: write`). |
 | `APP_PRIVATE_KEY` | A private key generated for that App. |
+
+Both secrets named the per-repository App `resume-pr-bot` (app id `4243167`,
+installation `145115216`) until 2026-08-22T03:42:48Z, when they were re-pointed
+to the shared App and 4243167 was deleted. Run 32549501155 minted a token as the
+new App at 03:43:43Z, which is the proof the cutover took.
+
+Deleting an App reassigns its already-open pull requests to GitHub's `ghost`
+user, so the 19 pull requests open from `resume-pr-bot` at cutover no longer
+match any auto-merge allowlist arm and need a human merge or a reopen under a
+live identity.
 
 Both repository secrets are set. The canonical copy of these
 credentials lives in the maintainer's `resume` 1Password Environment;
