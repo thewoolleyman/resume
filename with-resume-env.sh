@@ -58,6 +58,12 @@ readonly MACOS_KEYCHAIN_TOKEN_ACCOUNT='OP_SERVICE_ACCOUNT_TOKEN'
 PROG="$(basename -- "$0")"
 err()  { printf '%s: %s\n' "$PROG" "$*" >&2; }
 die()  { err "$@"; exit 1; }
+# Shared diagnostic for op's exit code 9 (failed Environment resolution,
+# most commonly an exhausted service-account rate limit). Reused by every
+# op-run call site below (Linux stage 2's cache-populate resolve and its
+# uncached fallback, and the macOS single-stage path) so the wording lives
+# in exactly one place.
+op_rate_limit_hint() { err "op run exited 9 — most likely the 1Password service-account rate limit. The account-wide DAILY quota is SHARED across every tenant on this 1Password account and resets on a ~24h window; per-token HOURLY limits reset ~59m. A short retry will NOT clear it — stop and wait, or cut op-run frequency. See https://www.1password.dev/service-accounts/rate-limits/"; }
 
 # Drop -- separator if present.
 if [ "$#" -gt 0 ] && [ "$1" = "--" ]; then
@@ -101,7 +107,17 @@ case "$(uname -s)" in
                 if ! sudo_path="$(command -v sudo)"; then
                     die "sudo not found on PATH; required to escalate for credential decryption"
                 fi
-                exec "$sudo_path" -n WRAPPER_STAGE=1 -- "$INSTALLED_WRAPPER" "$@"
+                # Thread OP_ENV_WRAPPER_CACHE_TTL through explicitly: sudo's
+                # default env_reset strips the caller's ambient environment
+                # here (the sudoers SETENV tag permits an override, it does
+                # not imply preservation), so without this, a caller's
+                # OP_ENV_WRAPPER_CACHE_TTL — including =0 to disable caching
+                # — would silently fall back to the built-in default on every
+                # invocation that reaches here (the common, non-root path).
+                # ${VAR:-} degrades a genuinely-unset caller value to an
+                # empty string, which stage 2's ${...:-300} default treats
+                # the same as unset.
+                exec "$sudo_path" -n WRAPPER_STAGE=1 OP_ENV_WRAPPER_CACHE_TTL="${OP_ENV_WRAPPER_CACHE_TTL:-}" -- "$INSTALLED_WRAPPER" "$@"
                 ;;
             1)
                 # Stage 1 — running as root. Decrypt the credential into memory,
@@ -170,6 +186,7 @@ case "$(uname -s)" in
                         PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
                         OP_SERVICE_ACCOUNT_TOKEN="$token" \
                         WRAPPER_STAGE=2 \
+                        OP_ENV_WRAPPER_CACHE_TTL="${OP_ENV_WRAPPER_CACHE_TTL:-}" \
                         "${preserve[@]}" \
                         "$INSTALLED_WRAPPER" "$@"
                 else
@@ -181,6 +198,7 @@ case "$(uname -s)" in
                         PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin" \
                         OP_SERVICE_ACCOUNT_TOKEN="$token" \
                         WRAPPER_STAGE=2 \
+                        OP_ENV_WRAPPER_CACHE_TTL="${OP_ENV_WRAPPER_CACHE_TTL:-}" \
                         "${preserve[@]}" \
                         setpriv --reuid="$SUDO_UID" --regid="$SUDO_GID" --init-groups -- \
                         "$INSTALLED_WRAPPER" "$@"
@@ -207,6 +225,227 @@ case "$(uname -s)" in
                     set -- "$DEFAULT_SHELL" -i
                 fi
 
+                # ---------------------------------------------------------------
+                # TTL cache of the op-RESOLVED VARIABLES (not op's own cache —
+                # see the OP_CACHE note above; this is a wrapper-level cache
+                # that lets a repeated invocation skip calling op at all).
+                # Opt out per-call with OP_ENV_WRAPPER_CACHE_TTL=0; default TTL
+                # is 300s, overridable with the same variable.
+                #
+                # Storage: the invoking user's kernel PERSISTENT keyring
+                # (`keyctl get_persistent`), scoped by real uid — the same
+                # uid stage 2 always runs as after the setpriv drop, or
+                # root's own uid under OPENV_KEEP_PRIVILEGES=1. This is
+                # deliberately NOT the plain `@u` user keyring: `setpriv`
+                # changes uid via a raw syscall, with no PAM/login session,
+                # so the resulting process never gets kernel "Possessor"
+                # status over `@u`'s contents — even the process that just
+                # created a key there gets only the restrictive default
+                # "same uid, non-possessor" permission class back (view
+                # only, no read), so a later, separate invocation (even the
+                # very same uid) fails to read it with EPERM. The
+                # persistent-keyring facility exists precisely for "a
+                # uid-scoped keyring usable across separate process
+                # invocations without a login session": `get_persistent`
+                # both creates-or-fetches it AND links it into the calling
+                # process's session, so every invocation is a genuine
+                # possessor of it, and reads work correctly. Also chosen
+                # over a systemd-creds file because keyring entries live
+                # only in kernel memory (never touch disk), are readable
+                # only by that uid's own processes (and root), and
+                # `keyctl timeout` on the individual cached key gives the
+                # KERNEL an expiry, so an expired entry is simply gone
+                # rather than stale data this script has to remember to
+                # distrust. (The persistent keyring itself also has its own
+                # much longer idle-expiry, kernel-default 3 days, which is
+                # irrelevant here since every cached key inside it carries
+                # its own shorter TTL.)
+                #
+                # Only the variables op run actually injects are cached — never
+                # the wrapper's whole ambient environment — so a cache hit can
+                # never replay a stale snapshot of unrelated caller-set
+                # variables into a later invocation; it only re-forces the same
+                # 1Password-sourced values a live `op run` would have produced
+                # (per the "1Password value wins" override rule below). Any
+                # cache miss or cache-path anomaly falls through unchanged to
+                # the uncached op-run path.
+                #
+                # Framing is NUL-delimited (`env -0`; `keyctl padd`/`pipe`
+                # fed through a real pipe into `mapfile`, never through a
+                # bash variable) rather than newline-delimited: a POSIX
+                # environment variable name or value cannot contain a NUL
+                # byte, so this framing is unambiguous even when a value
+                # itself contains a literal newline (e.g. a multi-line PEM
+                # private key) — no line-continuation guessing, no risk of
+                # misreading a value's own content as a record boundary.
+                # `shopt -s lastpipe` makes the last stage of each pipeline
+                # below run in this shell rather than a subshell, so
+                # `mapfile` can populate arrays used afterward, while
+                # `${PIPESTATUS[0]}` still gives the real exit status of the
+                # command that produced the piped data.
+                # ---------------------------------------------------------------
+                shopt -s lastpipe
+                cache_ttl="${OP_ENV_WRAPPER_CACHE_TTL:-300}"
+                case "$cache_ttl" in
+                    ''|*[!0-9]*) cache_ttl=0 ;;  # malformed -> disabled, fail open
+                esac
+
+                keyctl_available=0
+                command -v keyctl >/dev/null 2>&1 && keyctl_available=1
+
+                persistent_kr=""
+                if [ "$cache_ttl" -gt 0 ] && [ "$keyctl_available" -eq 1 ]; then
+                    # `|| persistent_kr=""` matters under `set -e`: this is
+                    # a bare assignment statement, not part of an `if`
+                    # condition, so an unguarded failing command
+                    # substitution here would kill the script immediately
+                    # instead of falling through to the recovery below.
+                    persistent_kr="$(keyctl get_persistent @s 2>/dev/null)" || persistent_kr=""
+                    if [ -z "$persistent_kr" ]; then
+                        # @s (the session keyring) is unusable — almost
+                        # always because it was REVOKED. SSH's PAM stack
+                        # (pam_keyinit.so force revoke) revokes @s at logout
+                        # but never refreshes it for a process that outlives
+                        # that login (a detached tmux server reparented to
+                        # init, a long-lived daemon, sudo — which has no
+                        # pam_keyinit of its own and so only ever INHERITS
+                        # whatever @s it was handed). @s is still the right
+                        # destination (it's what children inherit, unlike @u
+                        # which loses "possessor" status across the setpriv
+                        # privilege drop above) — it just needs to be fresh.
+                        #
+                        # `keyctl new_session` performs the same join
+                        # operation as `keyctl session -` on THIS
+                        # already-running process — no exec, no child, no
+                        # re-entry into this script. That makes it strictly
+                        # safer AND simpler than a re-exec-based recovery:
+                        # if it fails (e.g. a keyring quota exceeded), this
+                        # process is completely unaffected and simply falls
+                        # through to the uncached path below, exactly like
+                        # any other cache-path anomaly — there is no
+                        # "committed to something destructive" step to
+                        # guard, no probe-then-commit dance, and no
+                        # recursion to bound, because nothing ever re-enters
+                        # this script.
+                        #
+                        # MEASURED, not merely reasoned: this is NOT purely
+                        # local to this process. A process whose @s was
+                        # revoked/absent falls back to a shared per-uid
+                        # keyring, and `keyctl new_session` appears to
+                        # re-mint THAT shared fallback — a sibling process in
+                        # the same state healed the instant this ran, with
+                        # no re-exec of its own. Confirmed this does NOT
+                        # disturb a process that already has its own
+                        # distinct, healthy session keyring (a live @s is
+                        # simply not looking at the shared fallback in the
+                        # first place). Documented as measured behavior, not
+                        # theory, because the exact kernel mechanism wasn't
+                        # independently verified beyond this observation.
+                        #
+                        # `>/dev/null 2>&1` on BOTH streams is load-bearing,
+                        # not cosmetic: `keyctl new_session` prints a bare
+                        # keyring ID to STDOUT (confirmed; `keyctl session`'s
+                        # "Joined session keyring: N" banner, by contrast,
+                        # goes to stderr). A real downstream caller merged
+                        # stdout+stderr around a wrapped JSON-emitting
+                        # command and had that banner corrupt its output —
+                        # the stdout case here is the same hazard but worse,
+                        # since it would corrupt EVERY caller's payload
+                        # channel, not only ones that merge streams.
+                        if keyctl new_session >/dev/null 2>&1; then
+                            persistent_kr="$(keyctl get_persistent @s 2>/dev/null)" || persistent_kr=""
+                            if [ -n "$persistent_kr" ]; then
+                                # Quiet by default: on a host where @s is
+                                # revoked by construction (see above), this
+                                # is the NORMAL path, not an anomaly, and
+                                # would otherwise fire on essentially every
+                                # invocation, training callers to filter it
+                                # out. Only a genuine bypass (below, and the
+                                # other two cache-path anomalies) stays loud
+                                # unconditionally.
+                                if [ "${OP_ENV_WRAPPER_DEBUG:-0}" = 1 ]; then
+                                    err "TTL cache: session keyring (@s) was unusable (commonly: revoked by a dead login session) — recovered by joining a fresh one in place"
+                                fi
+                            else
+                                err "TTL cache bypassed: joined a fresh session keyring but still could not obtain the persistent keyring — falling back to the uncached path"
+                            fi
+                        else
+                            err "TTL cache bypassed: session keyring (@s) is unusable and a fresh one could not be created (kernel.keys.maxkeys/maxbytes quota exceeded, or keyctl is non-functional here) — falling back to the uncached path"
+                        fi
+                    fi
+                elif [ "$cache_ttl" -gt 0 ]; then
+                    err "TTL cache bypassed: keyctl not found on PATH (install keyutils to enable caching) — falling back to the uncached path"
+                fi
+
+                if [ -n "$persistent_kr" ]; then
+                    cache_desc="op-env-wrapper-cache:${IDENTIFIER}:${ONEPASSWORD_ENVIRONMENT_ID}"
+
+                    # --- cache hit? ---
+                    assign=()
+                    if key_id="$(keyctl search "$persistent_kr" user "$cache_desc" 2>/dev/null)"; then
+                        keyctl pipe "$key_id" 2>/dev/null | mapfile -d '' -t assign
+                        # Sanity-check every replayed entry looks like
+                        # NAME=VALUE before trusting it as an `env` operand —
+                        # a value missing '=' entirely would otherwise be
+                        # interpreted by `env` as the START OF THE COMMAND
+                        # rather than an assignment. This guards only against
+                        # a corrupted/incompatible cache entry, never against
+                        # legitimate multi-line values (NUL framing already
+                        # makes those unambiguous).
+                        for kv in "${assign[@]}"; do
+                            case "$kv" in
+                                *=*) ;;
+                                *) assign=(); break ;;
+                            esac
+                        done
+                    fi
+                    if [ "${#assign[@]}" -gt 0 ]; then
+                        exec env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE "${assign[@]}" "$@"
+                    fi
+
+                    # --- cache miss: resolve via an introspection target
+                    # (`env -0`, not the real command) so we learn exactly
+                    # which variables op injected, cache that diff, then
+                    # launch the real command ourselves. This is the ONLY
+                    # `op run` call on a cache miss — the real command never
+                    # runs under op.
+                    env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE -0 | mapfile -d '' -t baseline_arr
+                    declare -A base_map=()
+                    for kv in "${baseline_arr[@]}"; do
+                        base_map["${kv%%=*}"]="${kv#*=}"
+                    done
+
+                    op run --no-masking --environment "$ONEPASSWORD_ENVIRONMENT_ID" -- env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE -0 | mapfile -d '' -t resolved_arr
+                    op_rc="${PIPESTATUS[0]}"
+                    if [ "$op_rc" -eq 0 ]; then
+                        assign=()
+                        injected=()
+                        for kv in "${resolved_arr[@]}"; do
+                            assign+=("$kv")
+                            name="${kv%%=*}"
+                            value="${kv#*=}"
+                            if [ "${base_map[$name]+set}" != "set" ] || [ "${base_map[$name]}" != "$value" ]; then
+                                injected+=("$kv")
+                            fi
+                        done
+                        if [ "${#injected[@]}" -gt 0 ]; then
+                            if new_key_id="$(printf '%s\0' "${injected[@]}" | keyctl padd user "$cache_desc" "$persistent_kr" 2>/dev/null)"; then
+                                keyctl timeout "$new_key_id" "$cache_ttl" >/dev/null 2>&1 || true
+                            else
+                                err "TTL cache: failed to store the resolved Environment (commonly: kernel.keys.maxbytes/maxkeys quota exceeded on the persistent keyring) — this invocation still succeeds, but every call will keep resolving via op run (one more draw on the 1Password service account's SHARED DAILY quota) until the keyring quota is freed"
+                            fi
+                        fi
+                        exec env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE "${assign[@]}" "$@"
+                    fi
+                    if [ "$op_rc" -eq 9 ]; then
+                        op_rate_limit_hint
+                    fi
+                    exit "$op_rc"
+                fi
+
+                # Uncached path: caching disabled (OP_ENV_WRAPPER_CACHE_TTL=0),
+                # keyctl unavailable, or a cache-path anomaly above. Identical
+                # to the wrapper's pre-cache behavior.
                 # Strip the service-account token AND the internal
                 # WRAPPER_STAGE sentinel from the final child env. Unsetting
                 # WRAPPER_STAGE lets one wrapper invoke another without the
@@ -224,7 +463,7 @@ case "$(uname -s)" in
                 op run --no-masking --environment "$ONEPASSWORD_ENVIRONMENT_ID" -- \
                     env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE "$@" || rc=$?
                 if [ "$rc" -eq 9 ]; then
-                    err "op run exited 9 — most likely the 1Password service-account rate limit. The account-wide DAILY quota is SHARED across every tenant on this 1Password account and resets on a ~24h window; per-token HOURLY limits reset ~59m. A short retry will NOT clear it — stop and wait, or cut op-run frequency. See https://www.1password.dev/service-accounts/rate-limits/"
+                    op_rate_limit_hint
                 fi
                 exit "$rc"
                 ;;
@@ -269,7 +508,7 @@ case "$(uname -s)" in
             op run --no-masking --environment "$ONEPASSWORD_ENVIRONMENT_ID" -- \
             env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE "$@" || rc=$?
         if [ "$rc" -eq 9 ]; then
-            err "op run exited 9 — most likely the 1Password service-account rate limit. The account-wide DAILY quota is SHARED across every tenant on this 1Password account and resets on a ~24h window; per-token HOURLY limits reset ~59m. A short retry will NOT clear it — stop and wait. See https://www.1password.dev/service-accounts/rate-limits/"
+            op_rate_limit_hint
         fi
         exit "$rc"
         ;;
