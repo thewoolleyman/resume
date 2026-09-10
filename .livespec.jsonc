@@ -10,6 +10,19 @@
   // human-gated-by-design decisions still escalate regardless of any panel
   // verdict.
   "livespec-overseer": { "foreman_valve_disposition": "consensus" },
+  // Operator-owned factory work retains Chad's declared author independently
+  // of the GitHub App that transports pushes. The sole mechanical author is
+  // the exact identity used by the committed plugin-pin bump workflow.
+  "git_author": {
+    "operator_name": "Chad Woolley",
+    "operator_email": "thewoolleyman@gmail.com",
+    "mechanical_authors": [
+      {
+        "name": "github-actions[bot]",
+        "email": "41898282+github-actions[bot]@users.noreply.github.com"
+      }
+    ]
+  },
   "template": "livespec",
   // Gap capture is ACTIVE: revise's post-step capture-impl-gaps surfaces
   // spec->impl gaps for implementation planning to file as work items. Set
