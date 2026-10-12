@@ -117,7 +117,47 @@ case "$(uname -s)" in
                 # ${VAR:-} degrades a genuinely-unset caller value to an
                 # empty string, which stage 2's ${...:-300} default treats
                 # the same as unset.
-                exec "$sudo_path" -n WRAPPER_STAGE=1 OP_ENV_WRAPPER_CACHE_TTL="${OP_ENV_WRAPPER_CACHE_TTL:-}" -- "$INSTALLED_WRAPPER" "$@"
+                # The same env_reset also destroys the CALLER'S OWN
+                # environment, and that is the scrub that actually hurts.
+                #
+                # Root is needed for exactly one thing: decrypting the token
+                # out of the root-only credstore. That step reads nothing from
+                # the caller — its inputs are this wrapper's baked-in constants
+                # and the SUDO_* values sudo sets itself. So no caller variable
+                # needs to reach root, and there is nothing here to allowlist,
+                # denylist, or sanitize.
+                #
+                # The final command runs as the INVOKER, so a variable the
+                # caller set reaching the caller's own child grants no
+                # privilege they did not already have. Losing it buys nothing
+                # and costs silence: the child simply behaves as if the caller
+                # never set it.
+                #
+                # So: capture the caller's environment HERE, as the caller,
+                # losslessly, into a file only the caller can read, and forward
+                # just its PATH across the sudo boundary under one fixed name.
+                # Root receives a path and never reads the file. Stage 2
+                # restores it after dropping back to the invoker.
+                #
+                # Prefer the per-user runtime directory (tmpfs, 0700) so the
+                # capture never reaches disk; fall back to mktemp's default.
+                caller_env_file=""
+                if [ -n "${XDG_RUNTIME_DIR:-}" ] && [ -d "$XDG_RUNTIME_DIR" ] && [ -w "$XDG_RUNTIME_DIR" ]; then
+                    caller_env_file="$(mktemp "$XDG_RUNTIME_DIR/openv-callerenv.XXXXXXXX" 2>/dev/null || true)"
+                fi
+                if [ -z "$caller_env_file" ]; then
+                    caller_env_file="$(mktemp 2>/dev/null || true)"
+                fi
+                if [ -n "$caller_env_file" ]; then
+                    chmod 600 "$caller_env_file" 2>/dev/null || true
+                    # env -0 is the only lossless framing: an environment value
+                    # may contain newlines (a PEM key), never a NUL byte.
+                    if ! env -0 > "$caller_env_file" 2>/dev/null; then
+                        rm -f "$caller_env_file" 2>/dev/null || true
+                        caller_env_file=""
+                    fi
+                fi
+                exec "$sudo_path" -n WRAPPER_STAGE=1 OP_ENV_WRAPPER_CACHE_TTL="${OP_ENV_WRAPPER_CACHE_TTL:-}" OPENV_CALLER_ENV_FILE="$caller_env_file" -- "$INSTALLED_WRAPPER" "$@"
                 ;;
             1)
                 # Stage 1 — running as root. Decrypt the credential into memory,
@@ -145,25 +185,11 @@ case "$(uname -s)" in
                 fi
                 [ -n "$token" ] || die "decrypted credential is empty"
 
-                # OPENV_PRESERVE_VARS (default unset/empty) — generic,
-                # caller-controlled allowlist of env var NAMES whose current
-                # values are carried THROUGH the `env -i` scrub into the final
-                # command. This is the generic mechanism for forwarding a
-                # named secret/setting; the wrapper hard-codes no specific name.
-                # Names are read from the runtime env, comma-separated;
-                # whitespace is trimmed and empty entries are skipped.
-                preserve=()
-                if [ -n "${OPENV_PRESERVE_VARS:-}" ]; then
-                    IFS=',' read -r -a _openv_names <<< "$OPENV_PRESERVE_VARS"
-                    for _openv_n in "${_openv_names[@]}"; do
-                        # Trim leading/trailing whitespace.
-                        _openv_n="${_openv_n#"${_openv_n%%[![:space:]]*}"}"
-                        _openv_n="${_openv_n%"${_openv_n##*[![:space:]]}"}"
-                        [ -n "$_openv_n" ] || continue
-                        preserve+=( "$_openv_n=$(printenv "$_openv_n" 2>/dev/null || true)" )
-                    done
-                fi
-
+                # Root's one job is done: the token is decrypted. Nothing
+                # below reads a caller-chosen variable, and the caller's own
+                # environment is carried past this stage as an opaque file the
+                # root stage never opens (OPENV_CALLER_ENV_FILE). Stage 2
+                # restores it once privileges are back down.
                 if [ "${OPENV_KEEP_PRIVILEGES:-0}" = "1" ]; then
                     # OPENV_KEEP_PRIVILEGES=1 — explicit, default-off opt-OUT of
                     # the drop-to-invoker principle (SPECIFICATION.md
@@ -187,7 +213,7 @@ case "$(uname -s)" in
                         OP_SERVICE_ACCOUNT_TOKEN="$token" \
                         WRAPPER_STAGE=2 \
                         OP_ENV_WRAPPER_CACHE_TTL="${OP_ENV_WRAPPER_CACHE_TTL:-}" \
-                        "${preserve[@]}" \
+                        OPENV_CALLER_ENV_FILE="${OPENV_CALLER_ENV_FILE:-}" \
                         "$INSTALLED_WRAPPER" "$@"
                 else
                     # Default: drop privileges back to the *invoker* via setpriv.
@@ -199,7 +225,7 @@ case "$(uname -s)" in
                         OP_SERVICE_ACCOUNT_TOKEN="$token" \
                         WRAPPER_STAGE=2 \
                         OP_ENV_WRAPPER_CACHE_TTL="${OP_ENV_WRAPPER_CACHE_TTL:-}" \
-                        "${preserve[@]}" \
+                        OPENV_CALLER_ENV_FILE="${OPENV_CALLER_ENV_FILE:-}" \
                         setpriv --reuid="$SUDO_UID" --regid="$SUDO_GID" --init-groups -- \
                         "$INSTALLED_WRAPPER" "$@"
                 fi
@@ -211,6 +237,52 @@ case "$(uname -s)" in
                 # op item get, op read, or any other vault-touching op
                 # subcommand — only op run --environment.
                 [ -n "${OP_SERVICE_ACCOUNT_TOKEN:-}" ] || die "stage 2 requires OP_SERVICE_ACCOUNT_TOKEN in env"
+
+                # Restore the caller's environment, captured at stage 0 before
+                # sudo's env_reset destroyed it. Privileges are already back
+                # down to the invoker here, so these values carry exactly the
+                # privilege the caller always had. Everything is restored:
+                # there is no allowlist, because there is nothing for one to
+                # protect.
+                #
+                # Restored BEFORE the op resolve below, so the 1Password
+                # Environment is diffed against an environment that already
+                # includes the caller's. A name defined on both sides therefore
+                # resolves to the 1PASSWORD value, which is the documented
+                # precedence.
+                #
+                # Three names are skipped, and none of them is the caller's:
+                # the decrypted token and the stage sentinel are this wrapper's
+                # own internals, and re-exporting either would leak the token
+                # or make a nested wrapper skip its stages. The third is the
+                # pointer to the capture itself.
+                #
+                # HOME is skipped ONLY under OPENV_KEEP_PRIVILEGES, where the
+                # child stays root and stage 1 deliberately set HOME to root's
+                # own home so `op run` accepts its config directory. That is an
+                # op ownership constraint, not a privilege boundary.
+                if [ -n "${OPENV_CALLER_ENV_FILE:-}" ]; then
+                    if [ -r "$OPENV_CALLER_ENV_FILE" ]; then
+                        while IFS= read -r -d "" _restore_kv; do
+                            case "$_restore_kv" in
+                                *=*) ;;
+                                *) continue ;;
+                            esac
+                            _restore_n="${_restore_kv%%=*}"
+                            [ -n "$_restore_n" ] || continue
+                            case "$_restore_n" in
+                                WRAPPER_STAGE|OP_SERVICE_ACCOUNT_TOKEN|OPENV_CALLER_ENV_FILE) continue ;;
+                            esac
+                            if [ "${OPENV_KEEP_PRIVILEGES:-0}" = "1" ] && [ "$_restore_n" = "HOME" ]; then
+                                continue
+                            fi
+                            export "$_restore_n=${_restore_kv#*=}"
+                        done < "$OPENV_CALLER_ENV_FILE"
+                    fi
+                    rm -f "$OPENV_CALLER_ENV_FILE" 2>/dev/null || true
+                    unset OPENV_CALLER_ENV_FILE
+                fi
+
                 unset OP_CONNECT_HOST OP_CONNECT_TOKEN
                 # OP_CACHE=false (original hardening default, kept). op's cache
                 # does NOT cover `op run --environment` resolution — verified by
@@ -261,10 +333,11 @@ case "$(uname -s)" in
                 # irrelevant here since every cached key inside it carries
                 # its own shorter TTL.)
                 #
-                # Only the variables op run actually injects are cached — never
+                # Only the changes relative to the caller are cached — never
                 # the wrapper's whole ambient environment — so a cache hit can
                 # never replay a stale snapshot of unrelated caller-set
-                # variables into a later invocation; it only re-forces the same
+                # variables into a later invocation. The key binds this diff
+                # to its exact baseline; it only re-forces the same
                 # 1Password-sourced values a live `op run` would have produced
                 # (per the "1Password value wins" override rule below). Any
                 # cache miss or cache-path anomaly falls through unchanged to
@@ -378,7 +451,73 @@ case "$(uname -s)" in
                 fi
 
                 if [ -n "$persistent_kr" ]; then
-                    cache_desc="op-env-wrapper-cache:${IDENTIFIER}:${ONEPASSWORD_ENVIRONMENT_ID}"
+                    # A diff belongs to its baseline, not just its Environment.
+                    # A nested caller can already carry every secret: replaying
+                    # its near-empty diff to a bare caller would omit them all.
+                    # Bind hits to a sorted, NUL-framed digest of the exact
+                    # baseline. Only the digest enters the key description;
+                    # values remain in memory, never argv or a temporary file.
+                    env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE -0 | mapfile -d '' -t baseline_arr
+                    if ! baseline_hash="$(printf '%s\0' "${baseline_arr[@]}" | LC_ALL=C sort -z | sha256sum)"; then
+                        err "TTL cache bypassed: could not fingerprint the caller environment"
+                        persistent_kr=""
+                    fi
+                fi
+
+                if [ -n "$persistent_kr" ]; then
+                    # Keyring housekeeping (issue #19). Every distinct caller
+                    # baseline owns its own entry (above), so a busy host
+                    # fans out to many ~5 KB entries per identifier, all
+                    # charged to this uid's kernel.keys.maxbytes. Expired
+                    # entries are NOT reliably reaped by the kernel while
+                    # still linked from the persistent keyring (measured:
+                    # `expd` entries sat there well past gc_delay), so they
+                    # kept their bytes until the quota was exhausted and
+                    # every store failed. The wrapper therefore cleans up
+                    # after itself: on every miss it unlinks its own expired
+                    # entries, and if a store still hits the quota it evicts
+                    # its own live entries, the soonest-to-expire first.
+                    #
+                    # Only keys of type `user`, owned by this uid, whose
+                    # description starts with `op-env-wrapper-cache:` are
+                    # ever touched (every identifier's wrapper shares that
+                    # prefix, and evicting another identifier's entry costs
+                    # it one extra resolve at most). /proc/keys is the only
+                    # interface that still shows an expired key's
+                    # description and a live key's remaining lifetime;
+                    # `keyctl describe` refuses expired keys outright.
+                    # Reads stdin (/proc/keys); $1 selects what to print:
+                    #   expired -> one decimal key id per line
+                    #   live    -> "<seconds-left> <decimal key id>" per line
+                    cache_select() {
+                        local id flags usage timeout perm uid gid type desc rest n
+                        while read -r id flags usage timeout perm uid gid type desc rest; do
+                            [ "$type" = user ] && [ "$uid" = "$EUID" ] || continue
+                            case "$desc" in op-env-wrapper-cache:*) ;; *) continue ;; esac
+                            case "$id" in ''|*[!0-9a-fA-F]*) continue ;; esac
+                            if [ "$timeout" = expd ]; then
+                                if [ "$1" = expired ]; then printf '%s\n' "$((16#$id))"; fi
+                                continue
+                            fi
+                            [ "$1" = live ] || continue
+                            # Kernel format: Ns, Nm, Nh, Nd, Nw (or perm).
+                            n="${timeout%[smhdw]}"
+                            case "$n" in ''|*[!0-9]*) continue ;; esac
+                            case "$timeout" in
+                                *m) n=$((n * 60)) ;;
+                                *h) n=$((n * 3600)) ;;
+                                *d) n=$((n * 86400)) ;;
+                                *w) n=$((n * 604800)) ;;
+                            esac
+                            printf '%s %s\n' "$n" "$((16#$id))"
+                        done
+                        return 0
+                    }
+                fi
+
+                if [ -n "$persistent_kr" ]; then
+                    # Versioned namespace excludes every old caller-unbound key.
+                    cache_desc="op-env-wrapper-cache:${IDENTIFIER}:${ONEPASSWORD_ENVIRONMENT_ID}:caller-v1:${baseline_hash%% *}"
 
                     # --- cache hit? ---
                     assign=()
@@ -409,11 +548,18 @@ case "$(uname -s)" in
                     # launch the real command ourselves. This is the ONLY
                     # `op run` call on a cache miss — the real command never
                     # runs under op.
-                    env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE -0 | mapfile -d '' -t baseline_arr
                     declare -A base_map=()
                     for kv in "${baseline_arr[@]}"; do
                         base_map["${kv%%=*}"]="${kv#*=}"
                     done
+
+                    # Reap expired entries BEFORE the resolve: the kernel
+                    # frees an unlinked key's bytes asynchronously (measured:
+                    # not yet freed immediately after unlink, freed ~50 ms
+                    # later), and the op call below gives it ample time.
+                    { cache_select expired < /proc/keys; } 2>/dev/null | while read -r reap_id; do
+                        keyctl unlink "$reap_id" "$persistent_kr" >/dev/null 2>&1 || true
+                    done || true
 
                     op run --no-masking --environment "$ONEPASSWORD_ENVIRONMENT_ID" -- env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE -0 | mapfile -d '' -t resolved_arr
                     op_rc="${PIPESTATUS[0]}"
@@ -429,10 +575,42 @@ case "$(uname -s)" in
                             fi
                         done
                         if [ "${#injected[@]}" -gt 0 ]; then
-                            if new_key_id="$(printf '%s\0' "${injected[@]}" | keyctl padd user "$cache_desc" "$persistent_kr" 2>/dev/null)"; then
-                                keyctl timeout "$new_key_id" "$cache_ttl" >/dev/null 2>&1 || true
-                            else
-                                err "TTL cache: failed to store the resolved Environment (commonly: kernel.keys.maxbytes/maxkeys quota exceeded on the persistent keyring) — this invocation still succeeds, but every call will keep resolving via op run (one more draw on the 1Password service account's SHARED DAILY quota) until the keyring quota is freed"
+                            # Store, evicting on quota exhaustion. stderr is
+                            # captured (keyctl prints only the key id on
+                            # success, only an error message on failure, and
+                            # never the payload) so a failure names the real
+                            # cause instead of a guess. Only a quota error
+                            # triggers eviction; anything else (EPERM, ...)
+                            # cannot be cured by freeing space. Each retry
+                            # sleeps briefly, because an evicted key's bytes
+                            # come back asynchronously (see the reap above).
+                            evict=()
+                            evict_loaded=0
+                            stored=0
+                            store_tries=0
+                            while :; do
+                                if padd_out="$(printf '%s\0' "${injected[@]}" | keyctl padd user "$cache_desc" "$persistent_kr" 2>&1)"; then
+                                    keyctl timeout "$padd_out" "$cache_ttl" >/dev/null 2>&1 || true
+                                    stored=1
+                                    break
+                                fi
+                                case "$padd_out" in *[Qq]uota*) ;; *) break ;; esac
+                                store_tries=$((store_tries + 1))
+                                [ "$store_tries" -le 32 ] || break
+                                if [ "$evict_loaded" -eq 0 ]; then
+                                    { cache_select live < /proc/keys; } 2>/dev/null | LC_ALL=C sort -n | mapfile -t evict || true
+                                    evict_loaded=1
+                                fi
+                                if [ "${#evict[@]}" -gt 0 ]; then
+                                    keyctl unlink "${evict[0]##* }" "$persistent_kr" >/dev/null 2>&1 || true
+                                    evict=("${evict[@]:1}")
+                                elif [ "$store_tries" -gt 3 ]; then
+                                    break  # nothing left to evict; the quota belongs to something else
+                                fi
+                                sleep 0.1
+                            done
+                            if [ "$stored" -eq 0 ]; then
+                                err "TTL cache: failed to store the resolved Environment (keyctl: ${padd_out:-no error message}) — this invocation still succeeds, but every call will keep resolving via op run (one more draw on the 1Password service account's SHARED DAILY quota) until the keyring has room"
                             fi
                         fi
                         exec env -u OP_SERVICE_ACCOUNT_TOKEN -u WRAPPER_STAGE "${assign[@]}" "$@"
