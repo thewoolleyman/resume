@@ -24,6 +24,13 @@
     ]
   },
   "template": "livespec",
+  // Cross-repository spec citations the doctor accepts; each names a heading
+  // that exists in the cited repository's specification.
+  "external_references": {
+    "livespec-dev-tooling": [
+      "SPECIFICATION/non-functional-requirements.md §\"Fabro factory registry\""
+    ]
+  },
   // Gap capture is ACTIVE: revise's post-step capture-impl-gaps surfaces
   // spec->impl gaps for implementation planning to file as work items. Set
   // false only to suppress capture during pre-implementation spec-hardening,
