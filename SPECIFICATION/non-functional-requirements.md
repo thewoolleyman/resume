@@ -292,6 +292,10 @@ Comments MUST NOT anchor to line numbers (for example `lines 12-18`, `line ~40`)
 
 **Enforcement.** A committed, standalone gate (for example `scripts/check-comments.ts`) MUST be added to `bun run check` that scans the comments and docstrings — never string literals — of every in-scope file for the Rule 2 banned markers and the line-number-anchor pattern, and exits non-zero with structured findings naming each violation site. The gate MUST be standalone per `constraints.md` §"Standalone boundary" (the pinned TypeScript compiler API; no livespec fleet Python tooling) and categorized so it is skipped when no in-scope file changes. Rule 1 (WHY-not-WHAT) is judgment-based and MUST NOT be mechanically enforced — code review is the gate. There MUST be no configuration allowlist or inline escape marker that permits a historical-bookkeeping reference to remain in a source comment.
 
+## Factory routing
+
+Every entry this repository commits in `.livespec.jsonc` under `dispatcher.factories` MUST be registry-backed: it declares `"registry": true` and carries no `server` and no `docker_host` value, so no committed factory entry names a machine. Which Fabro server answers to a factory name is bound only in the fleet gitops inventory's factory registry (livespec-dev-tooling `non-functional-requirements.md` §"Fabro factory registry"), which each dispatching host renders as `/etc/livespec/fabro-factories.json`; a dispatch resolves a registry-backed entry from that file by name. `dispatcher.default_factory` MUST name `legacy`.
+
 ## Scenarios
 
 ### Scenario: Discipline inventory proves local adoption
