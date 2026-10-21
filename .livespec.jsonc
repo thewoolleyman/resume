@@ -161,6 +161,15 @@
         "hp": {
           "server": "https://hp-xubuntu.perch-rudd.ts.net:32276"
         }
+      },
+      // Master-CI preflight target. resume's aggregate workflow is named
+      // `check` and its aggregate job is `check` (.github/workflows/check.yml,
+      // the branch-protection status), not the fleet's `CI` / `ci-green`
+      // defaults, so without this override the Dispatcher's master-CI
+      // preflight finds no workflow named CI and refuses every resume dispatch.
+      "master_ci": {
+        "workflow": "check",
+        "job": "check"
       }
     },
     "connection": {
