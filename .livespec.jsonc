@@ -149,14 +149,14 @@
       "wip_cap": 10,
       "acceptance_mode": "ai-only",
       "auto_approve_ready": true,
-      // Cutover to the hp-xubuntu dark-factory host, mirroring the
-      // orchestrator repo's own vps -> hp cutover: vps was running
-      // under sustained host load, so hp is now the default and vps
-      // stays configured as a fallback via the "default" entry.
+      // Dispatch defaults to the registry-backed `petri` factory, the current
+      // Fabro server (SPECIFICATION/non-functional-requirements.md
+      // §"Factory routing"). The hostname-literal "hp" and "default" (vps)
+      // entries stay declared only for explicit routing.
       "default_factory": "petri",
       "factories": {
-        // The current Fabro server, selected by default since the R668 cutover
-        // (plan petri-factory-on-gmktec); resolved through the factory registry.
+        // The current Fabro server; the dispatching host resolves it by name
+        // through its rendered factory registry.
         "petri": {
           "registry": true,
           "bin": "/home/ubuntu/.local/state/fabro-currency/carrier-petri-v0.382-adeefec4c/fabro",
