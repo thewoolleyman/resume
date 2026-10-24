@@ -176,6 +176,16 @@
       "master_ci": {
         "workflow": "check",
         "job": "check"
+      },
+      // resume has no justfile, so the fleet's `just`-based check suite and
+      // hook-install recipe fail before any work. The suite mirrors the
+      // `check` workflow: Bun dependencies and the Playwright browser are
+      // installed first because `bun run check` runs the end-to-end suite.
+      "janitor": {
+        "check_suite": ["mise", "exec", "--", "sh", "-c", "bun install --frozen-lockfile && bunx playwright install chromium && bun run check"]
+      },
+      "janitor_bootstrap": {
+        "recipe": ["mise", "exec", "--", "bun", "run", "bootstrap"]
       }
     },
     "connection": {
