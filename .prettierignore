@@ -21,3 +21,6 @@ archive/
 .livespec.jsonc
 # Local Playwright MCP browser-session artifacts (untracked scratch).
 .playwright-mcp/
+# livespec core provisioned by the factory janitor into a fresh checkout; it is
+# untracked third-party content, not first-party source.
+.livespec-core/
