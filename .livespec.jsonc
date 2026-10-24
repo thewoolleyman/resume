@@ -151,8 +151,9 @@
       "auto_approve_ready": true,
       // Dispatch defaults to the registry-backed `petri` factory, the current
       // Fabro server (SPECIFICATION/non-functional-requirements.md
-      // §"Factory routing"). The hostname-literal "hp" and "default" (vps)
-      // entries stay declared only for explicit routing.
+      // §"Factory routing"), and the only entry: the hostname-literal "hp"
+      // and "default" (vps) entries were removed on 2026-10-24 (plan
+      // fabro-currency), because that section forbids a committed `server`.
       "default_factory": "petri",
       "factories": {
         // The current Fabro server; the dispatching host resolves it by name
@@ -165,12 +166,6 @@
           // SPECIFICATION, "Factory sandbox environment naming"). Its provider, not
           // this id, says where the sandbox runs, so a provider move changes nothing here.
           "environment": "factory-python"
-        },
-        "default": {
-          "server": "https://vps.perch-rudd.ts.net:32276"
-        },
-        "hp": {
-          "server": "https://hp-xubuntu.perch-rudd.ts.net:32276"
         }
       },
       // Master-CI preflight target. resume's aggregate workflow is named
