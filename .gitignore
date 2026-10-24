@@ -26,3 +26,6 @@ playwright-report/
 
 # Overseer / scratch temp dir (livespec overseer writes markers here)
 tmp/
+
+# livespec core provisioned by the factory janitor into a fresh checkout.
+.livespec-core/
