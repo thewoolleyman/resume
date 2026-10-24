@@ -149,15 +149,14 @@
       "wip_cap": 10,
       "acceptance_mode": "ai-only",
       "auto_approve_ready": true,
-      // Dispatch defaults to the registry-backed `petri` factory, the current
-      // Fabro server (SPECIFICATION/non-functional-requirements.md
-      // §"Factory routing"), and the only entry: the hostname-literal "hp"
-      // and "default" (vps) entries were removed on 2026-10-24 (plan
-      // fabro-currency), because that section forbids a committed `server`.
+      // SPECIFICATION/non-functional-requirements.md §"Factory routing" forbids
+      // a committed `server` or `docker_host`, so no entry below names a
+      // machine, and it requires this default to be `petri`.
       "default_factory": "petri",
       "factories": {
-        // The current Fabro server; the dispatching host resolves it by name
-        // through its rendered factory registry.
+        // Registry-backed: the dispatching host resolves this name to a Fabro
+        // server through the factory registry it renders from the fleet gitops
+        // inventory, so nothing here binds it to a machine.
         "petri": {
           "registry": true,
           "bin": "/home/ubuntu/.local/state/fabro-currency/carrier-petri-v0.382-adeefec4c/fabro",
