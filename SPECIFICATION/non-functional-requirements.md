@@ -296,6 +296,8 @@ Comments MUST NOT anchor to line numbers (for example `lines 12-18`, `line ~40`)
 
 Every entry this repository commits in `.livespec.jsonc` under `dispatcher.factories` MUST be registry-backed: it declares `"registry": true` and carries no `server` and no `docker_host` value, so no committed factory entry names a machine. Which Fabro server answers to a factory name is bound only in the fleet gitops inventory's factory registry (livespec-dev-tooling `non-functional-requirements.md` §"Fabro factory registry"), which each dispatching host renders as `/etc/livespec/fabro-factories.json`; a dispatch resolves a registry-backed entry from that file by name. `dispatcher.default_factory` MUST name `petri`.
 
+The aggregate check command (§"Aggregate command") MUST enforce both rules above against the committed `.livespec.jsonc`, parsing it as JSONC because the file carries comments. When any `dispatcher.factories` entry lacks `"registry": true` or carries a `server` or `docker_host` value, the check MUST exit non-zero and its failure output MUST name that entry and each offending key. When `dispatcher.default_factory` names anything other than `petri`, the check MUST exit non-zero and its failure output MUST name the configured value. The gate MUST be standalone per `constraints.md` §"Standalone boundary" (local TypeScript/Bun tooling; no livespec fleet Python tooling).
+
 ## Scenarios
 
 ### Scenario: Discipline inventory proves local adoption
@@ -489,3 +491,11 @@ Given a comment in an in-scope source tree cites a historical-bookkeeping marker
 When the aggregate check runs
 
 Then the comment-discipline gate fails, naming the violation site, unless the reference is a durable present-tense pointer to a living specification section or the file is in an exempt tree
+
+### Scenario: Aggregate check enforces factory routing
+
+Given the committed `.livespec.jsonc` carries a `dispatcher.factories` entry with a `server` or `docker_host` value, or without `"registry": true`, or a `dispatcher.default_factory` other than `petri`
+
+When a contributor runs the aggregate check command
+
+Then the check exits non-zero and names the offending factory entry and key, or the configured default-factory value; and against a conforming `.livespec.jsonc` the factory-routing gate passes
