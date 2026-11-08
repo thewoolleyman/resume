@@ -268,6 +268,8 @@ The worktree-based landing policy in §"Pull request landing automation" MUST be
 
 Agent sessions MUST additionally be guarded by committed, standalone Claude Code hooks configured in `.claude/settings.json`: a `PreToolUse` git-footgun guard that blocks never-legitimate git foot-guns (a `--no-verify` commit or push, setting `core.bare` to a truthy value, and Bash writes into a retired private-memory store); a background-gate guard that denies backgrounding an aggregate-check or landing command; and a `SubagentStop` guard that blocks a sub-agent turn-end while a worktree it created still holds uncommitted or unpushed work. The repository MUST load its `AGENTS.md` conventions into agent context via a committed `.claude/CLAUDE.md`. Per `constraints.md` §"Standalone boundary", all such hooks MUST be standalone and MUST NOT depend on livespec fleet Python tooling.
 
+The SessionStart provisioner `.claude/hooks/ensure-plugins.ts` MUST hold an installed orchestrator plugin build. The fleet's host dispatcher resolves this repository's factory launch build from its project-scope install of `livespec-orchestrator-beads-fabro@livespec-orchestrator-beads-fabro`, so a provisioner that moves that install changes the launch build as a side effect of a session lifecycle event; that plugin moves only through livespec-dev-tooling's operator step `just adopt-orchestrator-build <clone> <build>` (livespec-dev-tooling `contracts.md` §"Orchestrator build adoption", ratified in its spec v155). When the committed settings enable the orchestrator plugin and `installed_plugins.json` has an install record for it whose project path is the working directory, the provisioner MUST NOT run `claude plugin update` or `claude plugin install` for that plugin and MUST leave that record unchanged, whichever build the marketplace offers, and MUST print one line naming the plugin, the installed build and the record's `lastUpdated` value; holding the build MUST NOT make the hook fail. When no install record has the working directory as its project path, it MUST install the build the marketplace offers, a linked worktree included. It MUST still install and update every other enabled plugin. This applies on every SessionStart source, in interactive and headless sessions alike.
+
 ### Vercel environment discipline
 
 Environment variables MUST be documented by name, purpose, environment class, and whether they are required for local, preview, or production use. Production secrets MUST be stored in Vercel or another managed secret store, never in the repository.
@@ -499,3 +501,13 @@ Given the committed `.livespec.jsonc` carries a `dispatcher.factories` entry wit
 When a contributor runs the aggregate check command
 
 Then the check exits non-zero and names the offending factory entry and key, or the configured default-factory value; and against a conforming `.livespec.jsonc` the factory-routing gate passes
+
+### Scenario: Session start holds the installed orchestrator build
+
+Given the committed settings enable the orchestrator plugin and this checkout already has a project-scope install record for it
+
+When a session starts and the marketplace offers a different orchestrator build
+
+Then the SessionStart provisioner MUST leave that install record unchanged and print one line naming the plugin, the installed build and the record's `lastUpdated` value
+
+And it MUST still install and update every other enabled plugin, MUST install the offered orchestrator build in a checkout that has no install record for it, and MUST NOT fail because it held the build

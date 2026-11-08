@@ -28,7 +28,8 @@
   // that exists in the cited repository's specification.
   "external_references": {
     "livespec-dev-tooling": [
-      "SPECIFICATION/non-functional-requirements.md §\"Fabro factory registry\""
+      "SPECIFICATION/non-functional-requirements.md §\"Fabro factory registry\"",
+      "SPECIFICATION/contracts.md §\"Orchestrator build adoption\""
     ]
   },
   // Gap capture is ACTIVE: revise's post-step capture-impl-gaps surfaces
