@@ -1,5 +1,7 @@
 # Chad Woolley's resume
 
+Built with [livespec](https://livespec-ai.org/)
+
 See https://resume.thewoolleyweb.com for live version of resume.
 
 ## Development
