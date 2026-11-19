@@ -96,16 +96,17 @@ Job History:
     desc: |
       Had a great run at GitLab, worked with some amazing people, and created some awesome
       stuff over 6 years and 7 months. I was laid off in June 2026, along with about 15% of the company.
-      The thing I'm most proud of in my time at GitLab is
+      The thing I'm most proud of is
       my time as technical team lead for planning, creating, and building GitLab's
       [Remote Development Workspaces feature](https://docs.gitlab.com/development/remote_development/),
       from 2022-2026.
       You can see some of the technical architecture, design patterns, and processes in the
-      [developer documentation README](https://gitlab.com/gitlab-org/gitlab/-/blob/v19.5.6-ee/ee/lib/remote_development/README.md)
+      [domain developer documentation README](https://gitlab.com/gitlab-org/gitlab/-/blob/v19.5.6-ee/ee/lib/remote_development/README.md)
       for the feature in GitLab's source code.
-      I haven't done any resume updates other than this entry. If you're interested in hiring me,
+      I haven't done any resume updates other than this job entry, so all the other info on here is
+      outdated by 7+ years. If you're interested in hiring me at place with great culture and values,
       just reach out :). See my website at [thewoolleyweb.com](https://thewoolleyweb.com) for
-      contact info and updates.
+      contact info and other content/updates.
 
   - name: Senior Software Engineer, Pivotal
     start: 2006-04-15
