@@ -14,7 +14,7 @@ import { loadResumeData } from "./resume";
 // description), and the about.content opening-line neutralization
 // ("interactive resume" -> "resume") for the shared static/interactive views.
 const PINNED_SHA256 =
-  "61e2b2ca076b56686a871854eff3b31f37b9c484ef7727c44f652e2675d4a78a";
+  "1ebcc7a91dfe53b8c71318f08ae33e334c2931db7da50dd498654fa5624db6e3";
 const SOURCE_HOST = "interactive-resume-data-chad-woolley.gitlab.io";
 // Vitest runs with cwd at the repository root; import.meta.url is not
 // guaranteed to be a file: URL under Vite, so resolve from cwd instead.

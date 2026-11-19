@@ -15,11 +15,13 @@
 #   retrieved: 2026-07-06
 #   upstream-last-modified: 2022-06-27
 #   retrieved-source-sha256: 792097b01aef31fdc7cbf2c2463492e87c5ca89bc8d864ef3ebacfc7f7a4d158  # pre-redaction predecessor hash
-#   committed-snapshot-sha256: 61e2b2ca076b56686a871854eff3b31f37b9c484ef7727c44f652e2675d4a78a
+#   committed-snapshot-sha256: 1ebcc7a91dfe53b8c71318f08ae33e334c2931db7da50dd498654fa5624db6e3
 #
 # Owner-directed edits (recorded per SPECIFICATION/spec.md §"Governed data source
 # and predecessor import (phase 1)" → "Committed production snapshot"). Each edit
 # re-pins committed-snapshot-sha256 above, src/lib/data/import.test.ts, and the spec:
+#   2026-11-19 (owner-authored content edit): updated the GitLab role description
+#     with details of the owner's work and current contact information.
 #   2026-07-10 (PII redaction): removed the owner's postal address from
 #     header.contact, leaving only phone and email. The literal address is
 #     intentionally NOT restated here (not rendered on any product surface).
@@ -92,9 +94,18 @@ Job History:
     start: 2019-11-07
     end: 2026-06-15
     desc: |
-      Had a great run at GitLab, worked with some amazing people and created some awesome
-      stuff over 6 years 7 months. Was laid off June, 2026. Resume update pending. Check my
-      GitHub (thewoolleyman) for what I'm currently hacking on.
+      Had a great run at GitLab, worked with some amazing people, and created some awesome
+      stuff over 6 years and 7 months. I was laid off in June 2026, along with about 15% of the company.
+      The thing I'm most proud of in my time at GitLab is
+      my time as technical team lead for planning, creating, and building GitLab's
+      [Remote Development Workspaces feature](https://docs.gitlab.com/development/remote_development/),
+      from 2022-2026.
+      You can see some of the technical architecture, design patterns, and processes in the
+      [developer documentation README](https://gitlab.com/gitlab-org/gitlab/-/blob/v19.5.6-ee/ee/lib/remote_development/README.md)
+      for the feature in GitLab's source code.
+      I haven't done any resume updates other than this entry. If you're interested in hiring me,
+      just reach out :). See my website at [thewoolleyweb.com](https://thewoolleyweb.com) for
+      contact info and updates.
 
   - name: Senior Software Engineer, Pivotal
     start: 2006-04-15
