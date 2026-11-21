@@ -79,7 +79,7 @@
       "source": {
         "source": "github",
         "repo": "livespec-ai/livespec-overseer",
-        "ref": "v5.67.1"
+        "ref": "v5.68.0"
       }
     }
   }
